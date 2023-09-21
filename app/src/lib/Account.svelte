@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { AuthSession } from '@supabase/supabase-js';
-	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient.ts';
+	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient';
 
 	export let session: AuthSession;
 
@@ -99,7 +99,12 @@
 	<div class="flex justify-center mt-4">
 		<!-- Centered green button -->
 		<button class="button block bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
-			New Green Button
+			<a
+				href="/pros"
+				class="button block bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded inline-block"
+			>
+				New Green Button
+			</a>
 		</button>
 	</div>
 </form>

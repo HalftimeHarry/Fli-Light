@@ -28,7 +28,7 @@
 				<label for="email">Email</label>
 				<input
 					id="email"
-					class="inputField"
+					class="inputField text-black"
 					type="email"
 					placeholder="Your email"
 					bind:value={email}
