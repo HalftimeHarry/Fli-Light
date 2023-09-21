@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.postcss';
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
+	import Footer from '$lib/components/Footer.svelte';
 </script>
 
 <!-- App Shell -->
@@ -9,19 +10,16 @@
 		<!-- App Bar -->
 		<AppBar>
 			<svelte:fragment slot="lead">
-				<strong class="text-xl uppercase">Skeleton</strong>
+				<a href="/">
+					<img src="/FLI_BLK.png" alt="FLI GOLF Logo" class="logo-class" />
+				</a>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				<a
-					class="btn btn-sm variant-ghost-surface"
-					href="/pros"
-					target="_blank"
-					rel="noreferrer"
-				>
+				<a class="btn btn-lg variant-ghost-surface" href="/pros" target="_blank" rel="noreferrer">
 					Pros
 				</a>
 				<a
-					class="btn btn-sm variant-ghost-surface"
+					class="btn btn-lg variant-ghost-surface"
 					href="https://twitter.com/SkeletonUI"
 					target="_blank"
 					rel="noreferrer"
@@ -29,7 +27,7 @@
 					Store
 				</a>
 				<a
-					class="btn btn-sm variant-ghost-surface"
+					class="btn btn-lg variant-ghost-surface"
 					href="https://github.com/skeletonlabs/skeleton"
 					target="_blank"
 					rel="noreferrer"
@@ -41,4 +39,5 @@
 	</svelte:fragment>
 	<!-- Page Route Content -->
 	<slot />
+	<Footer />
 </AppShell>

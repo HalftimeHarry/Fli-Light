@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient';
+	import { supabase } from '../supabaseClient';
 
 	let loading = false;
 	let email = '';
