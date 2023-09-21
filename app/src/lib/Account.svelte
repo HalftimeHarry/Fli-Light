@@ -73,18 +73,33 @@
 	<div>Email: {session.user.email}</div>
 	<div>
 		<label for="username">Name</label>
-		<input id="username" type="text" bind:value={username} />
+		<input id="username" type="text" class="text-black" bind:value={username} />
 	</div>
 	<div>
 		<label for="website">Website</label>
-		<input id="website" type="text" bind:value={website} />
+		<input id="website" type="text" class="text-black" bind:value={website} />
 	</div>
-	<div>
-		<button type="submit" class="button primary block" disabled={loading}>
+	<div class="flex justify-center space-x-4 mt-4">
+		<!-- Align and center the buttons -->
+		<button
+			type="submit"
+			class="button block border border-gray-300 hover:bg-gray-400 hover:text-black py-2 px-4"
+			disabled={loading}
+		>
 			{loading ? 'Saving ...' : 'Update profile'}
 		</button>
+		<button
+			type="button"
+			class="button block border border-gray-300 hover:bg-gray-400 hover:text-black py-2 px-4"
+			on:click={() => supabase.auth.signOut()}
+		>
+			Sign Out
+		</button>
 	</div>
-	<button type="button" class="button block" on:click={() => supabase.auth.signOut()}>
-		Sign Out
-	</button>
+	<div class="flex justify-center mt-4">
+		<!-- Centered green button -->
+		<button class="button block bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
+			New Green Button
+		</button>
+	</div>
 </form>
