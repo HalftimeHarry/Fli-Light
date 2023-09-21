@@ -14,11 +14,11 @@
 			<svelte:fragment slot="trail">
 				<a
 					class="btn btn-sm variant-ghost-surface"
-					href="https://discord.gg/EXqV7W8MtY"
+					href="/pros"
 					target="_blank"
 					rel="noreferrer"
 				>
-					Discord
+					Pros
 				</a>
 				<a
 					class="btn btn-sm variant-ghost-surface"
@@ -26,7 +26,7 @@
 					target="_blank"
 					rel="noreferrer"
 				>
-					Twitter
+					Store
 				</a>
 				<a
 					class="btn btn-sm variant-ghost-surface"
@@ -34,7 +34,7 @@
 					target="_blank"
 					rel="noreferrer"
 				>
-					GitHub
+					Subscription
 				</a>
 			</svelte:fragment>
 		</AppBar>
