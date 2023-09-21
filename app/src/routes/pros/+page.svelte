@@ -5,21 +5,29 @@
 	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient'; // Assuming you have a Supabase client setup
 
 	let selectedTab: 'teams' | 'pros' = 'pros'; // changed to 'pros'
-	let teams = [];
+	let teams: any[] = [];
 	let pros = [];
 	let isLoading = true;
 	let error: string | null = null;
 
 	onMount(async () => {
 		try {
-			let response = await supabase.from('teams').select('*');
-			if (response.error) throw response.error;
-			teams = response.data;
+			// Fetch both teams and pros
+			const teamsResponse = await supabase.from('teams').select('*');
+			const prosResponse = await supabase.from('pros').select('*');
 
-			response = await supabase.from('pros').select('*');
-			if (response.error) throw response.error;
-			pros = response.data;
+			if (teamsResponse.error) throw teamsResponse.error;
+			if (prosResponse.error) throw prosResponse.error;
 
+			teams = teamsResponse.data;
+			pros = prosResponse.data.map((pro) => {
+				const associatedTeam = teams.find((team) => team.team_id === pro.team_id);
+				console.log('Pro:', pro.name, 'TeamID:', pro.team_id, 'Associated Team:', associatedTeam);
+				return {
+					...pro,
+					team: associatedTeam ? associatedTeam.name : 'No Team'
+				};
+			});
 			isLoading = false;
 		} catch (err) {
 			error = err.message;
@@ -71,6 +79,7 @@
 					name={pro.name}
 					gender={pro.gender}
 					proImageUrl={pro.pro_image_url}
+					team={pro.team}
 					earnings={pro.earnings}
 					points={pro.points}
 				/>
