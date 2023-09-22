@@ -13,7 +13,7 @@
 	{/if}
 	<div class="flex flex-col">
 		<!-- Emphasize the team name in blue and uppercase. When ready, wrap in <a> tag -->
-		<div class="text-green-500 mb-2 uppercase cursor-pointer hover:underline">
+		<div class="text-xl font-bold mb-2 text-green-500 mb-2 uppercase cursor-pointer hover:underline">
 			<!-- Assuming a link will be provided later -->
 			<a href={`#/${team}`}>{team}</a>
 		</div>

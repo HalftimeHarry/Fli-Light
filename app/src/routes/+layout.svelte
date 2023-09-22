@@ -2,6 +2,7 @@
 	import '../app.postcss';
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 	import Footer from '$lib/components/Footer.svelte';
+	import NavBar from '$lib/components/NavBar.svelte';
 </script>
 
 <!-- App Shell -->
@@ -36,8 +37,14 @@
 				</a>
 			</svelte:fragment>
 		</AppBar>
+		<div class="mb-4">
+			<NavBar />
+		</div>
 	</svelte:fragment>
-	<!-- Page Route Content -->
-	<slot />
+
+	<div class="mt-4">
+		<slot />
+	</div>
+
 	<Footer />
 </AppShell>

@@ -9,7 +9,7 @@
 </script>
 
 <div class="flex">
-	<div class="container mx-auto px-4 mt-16 ml-24">
+	<div class="container mx-auto px-4">
 		<slot />
 	</div>
 </div>
