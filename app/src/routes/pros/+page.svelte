@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import ProCard from '$lib/components/ProCard.svelte';
 	import TeamCard from '$lib/components/TeamCard.svelte';
-	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient'; // Assuming you have a Supabase client setup
+	import { supabase } from '../../supabaseClient'; // Assuming you have a Supabase client setup
 
 	let selectedTab: 'teams' | 'pros' = 'pros'; // changed to 'pros'
 	let teams: any[] = [];

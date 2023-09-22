@@ -1,5 +1,5 @@
 <script>
-	import { overlayStore } from '/workspace/Fli-Light/app/src/lib/overlayStore';
+	import { overlayStore } from '$lib/overlayStore';
 	import { createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
 	import { writable } from 'svelte/store';

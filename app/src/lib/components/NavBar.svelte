@@ -1,6 +1,6 @@
 <script>
-	import VegasPopUp from '/workspace/Fli-Light/app/src/lib/components/VegasPopUp.svelte';
-	import { overlayStore } from '/workspace/Fli-Light/app/src/lib/overlayStore.ts';
+	import VegasPopUp from '$lib/components/VegasPopUp.svelte';
+	import { overlayStore } from '$lib/overlayStore.ts';
 
 	let continuousText = '... Placeholder text for the ticker...';
 
@@ -32,7 +32,7 @@
 		<div class={`space-x-4 ${menuOpen ? 'block' : 'hidden'} md:flex`}>
 			<a href="schedule" class="hover:underline">Schedule</a>
 			<a href="pros" class="hover:underline">Standings</a>
-			<a href="teams" class="hover:underline">Teams</a>
+			<a href="partners" class="hover:underline">Partners</a>
 			<a href="sponsors" class="hover:underline">Sponsors</a>
 			<a href="venues" class="hover:underline">Venues</a>
 			<a href="#" class="hover:underline">Standings</a>
