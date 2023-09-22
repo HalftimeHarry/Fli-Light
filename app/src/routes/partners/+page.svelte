@@ -7,11 +7,15 @@
 	let selectedTab: 'venues' | 'sponsors' = 'venues'; // Default to venues as they're the parent.
 	let sponsors = [];
 	let venues = [];
+	let tournaments = [];
 	let isLoading = true;
 	let error: string | null = null;
 
 	onMount(async () => {
 		try {
+			const tournamentsResponse = await supabase.from('tournaments').select('*');
+			if (tournamentsResponse.error) throw tournamentsResponse.error;
+			tournaments = tournamentsResponse.data;
 			const venuesResponse = await supabase.from('venues').select('*');
 			const sponsorsResponse = await supabase.from('sponsors').select('*');
 
@@ -20,10 +24,12 @@
 
 			venues = venuesResponse.data;
 			sponsors = sponsorsResponse.data.map((sponsor) => {
-				const associatedVenue = venues.find((venue) => venue.venue_id === sponsor.venue_id);
+				const associatedTournament = tournaments.find(
+					(tournament) => tournament.tournament_id === sponsor.tournament_id
+				);
 				return {
 					...sponsor,
-					sponsor: associatedVenue ? associatedVenue.name : 'No Sponsor'
+					tournamentName: associatedTournament ? associatedTournament.name : 'No Tournament'
 				};
 			});
 		} catch (err) {
@@ -81,7 +87,7 @@
 				<SponsorCard
 					name={sponsor.name}
 					sponsorImageUrl={sponsor.sponsor_image_url}
-					sponsorId={sponsor.tournament_id}
+					sponsorId={sponsor.tournamentName}
 				/>
 			{/each}
 		</div>
