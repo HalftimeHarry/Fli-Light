@@ -33,7 +33,7 @@
 			<a href="schedule" class="hover:underline">Schedule</a>
 			<a href="pros" class="hover:underline">Standings</a>
 			<a href="partners" class="hover:underline">Partners</a>
-			<a href="sponsors" class="hover:underline">Sponsors</a>
+			<a href="tournaments" class="hover:underline">Tournaments</a>
 			<a href="venues" class="hover:underline">Venues</a>
 			<a href="#" class="hover:underline">Standings</a>
 			<a href="#" class="hover:underline">Fantasy</a>
