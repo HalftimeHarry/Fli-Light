@@ -87,7 +87,7 @@
 				<SponsorCard
 					name={sponsor.name}
 					sponsorImageUrl={sponsor.sponsor_image_url}
-					sponsorId={sponsor.tournamentName}
+					sponsorName={sponsor.tournamentName}
 				/>
 			{/each}
 		</div>
