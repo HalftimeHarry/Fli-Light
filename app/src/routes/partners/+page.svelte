@@ -23,7 +23,7 @@
 				const associatedVenue = venues.find((venue) => venue.venue_id === sponsor.venue_id);
 				return {
 					...sponsor,
-					venue: associatedVenue ? associatedVenue.name : 'No Venue'
+					sponsor: associatedVenue ? associatedVenue.name : 'No Sponsor'
 				};
 			});
 		} catch (err) {
@@ -40,17 +40,18 @@
 	<div class="flex flex-wrap space-x-4 mb-4">
 		<!-- Venues button moved to the left as they're the parent -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2"
-			class:bg-green-500={selectedTab === 'venues'}
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700"
+			class:bg-blue-500={selectedTab === 'venues'}
 			class:text-white={selectedTab === 'venues'}
 			class:bg-gray-800={selectedTab !== 'venues'}
 			on:click={() => (selectedTab = 'venues')}
 		>
 			Venues
 		</button>
+
 		<!-- Sponsors button -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2"
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700"
 			class:bg-blue-500={selectedTab === 'sponsors'}
 			class:text-white={selectedTab === 'sponsors'}
 			class:bg-gray-800={selectedTab !== 'sponsors'}
@@ -80,7 +81,7 @@
 				<SponsorCard
 					name={sponsor.name}
 					sponsorImageUrl={sponsor.sponsor_image_url}
-					venueName={sponsor.venue}
+					sponsorId={sponsor.tournament_id}
 				/>
 			{/each}
 		</div>

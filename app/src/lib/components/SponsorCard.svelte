@@ -1,7 +1,7 @@
 <script lang="ts">
 	export let name: string;
 	export let sponsorImageUrl: string | null = null;
-	export let venueName: string = ''; // You can also use this to show which venue the sponsor is associated with
+	export let sponsorId: string = ''; // You can also use this to show which venue the sponsor is associated with
 </script>
 
 <div class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex items-center">
@@ -14,6 +14,6 @@
 	{/if}
 	<div>
 		<div class="text-xl font-bold mb-2">{name}</div>
-		<div class="text-gray-400">Venue: {venueName}</div>
+		<div class="text-gray-400">Sponsor of: {sponsorId}</div>
 	</div>
 </div>
