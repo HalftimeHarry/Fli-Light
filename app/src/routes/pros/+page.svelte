@@ -37,7 +37,7 @@
 </script>
 
 <div class="p-6">
-	<h1 class="text-5xl sm:text-7xl md:text-9xl font-bold mb-4 uppercase mt-6">Standings</h1>
+	<h1 class="text-5xl sm:text-7xl md:text-9xl font-bold mb-4 uppercase">Standings</h1>
 
 	<div class="flex flex-wrap space-x-4 mb-4">
 		<!-- Pros button moved to the left -->
