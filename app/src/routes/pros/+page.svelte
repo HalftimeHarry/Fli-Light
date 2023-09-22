@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import ProCard from '$lib/components/ProCard.svelte';
 	import TeamCard from '$lib/components/TeamCard.svelte';
-	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient'; // Assuming you have a Supabase client setup
+	import { supabase } from '../../supabaseClient'; // Assuming you have a Supabase client setup
 
 	let selectedTab: 'teams' | 'pros' = 'pros'; // changed to 'pros'
 	let teams: any[] = [];
@@ -42,7 +42,7 @@
 	<div class="flex flex-wrap space-x-4 mb-4">
 		<!-- Pros button moved to the left -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2"
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700"
 			class:bg-blue-500={selectedTab === 'pros'}
 			class:text-white={selectedTab === 'pros'}
 			class:bg-gray-800={selectedTab !== 'pros'}
@@ -52,7 +52,7 @@
 		</button>
 		<!-- Teams button -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2"
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700"
 			class:bg-blue-500={selectedTab === 'teams'}
 			class:text-white={selectedTab === 'teams'}
 			class:bg-gray-800={selectedTab !== 'teams'}

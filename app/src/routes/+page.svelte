@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient';
+	import { supabase } from '../supabaseClient';
 	import type { AuthSession } from '@supabase/supabase-js';
-	import Account from '/workspace/Fli-Light/app/src/lib/Account.svelte';
-	import Auth from '/workspace/Fli-Light/app/src/lib/Auth.svelte';
+	import Account from '$lib/Account.svelte';
+	import Auth from '$lib/Auth.svelte';
 
 	let session: AuthSession;
 
