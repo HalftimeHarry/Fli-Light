@@ -3,18 +3,34 @@
 	import TournamentCard from '$lib/components/TournamentCard.svelte';
 	import { supabase } from '../../supabaseClient';
 
-	let selectedTab: 'upcoming' | 'completed' = 'upcoming'; // Default to upcoming
+	let selectedTab: 'upcoming' | 'completed' = 'upcoming';
 	let tournaments = [];
 	let isLoading = true;
 	let error: string | null = null;
 
 	onMount(async () => {
 		try {
-			const tournamentsResponse = await supabase.from('tournaments').select('*');
+			const { data, error } = await supabase.from('tournaments').select(`
+				tournament_id,
+				name,
+				date,
+				tournament_image_url,
+				upcoming,
+				venue:venues(name),
+				tournament_sponsors:sponsors(name)
+			`);
 
-			if (tournamentsResponse.error) throw tournamentsResponse.error;
+			if (error) throw error;
 
-			tournaments = tournamentsResponse.data;
+			tournaments =
+				data.map((t) => {
+					console.log(t); // Log each tournament
+					return {
+						...t,
+						sponsors: t.tournament_sponsors.map((s) => s.name)
+					};
+				}) || [];
+
 			isLoading = false;
 		} catch (err) {
 			error = err.message;
@@ -60,7 +76,7 @@
 					name={tournament.name}
 					date={tournament.date}
 					tournamentImageUrl={tournament.tournament_image_url}
-					venue={tournament.venue}
+					venue={tournament.venue.name}
 					sponsor={tournament.sponsor}
 				/>
 			{/each}
@@ -72,8 +88,8 @@
 					name={tournament.name}
 					date={tournament.date}
 					tournamentImageUrl={tournament.tournament_image_url}
-					venue={tournament.venue}
-					sponsor={tournament.sponsor}
+					venue={tournament.venue.name}
+					sponsor={tournament.sponsors.length ? tournament.sponsors.join(', ') : 'No Sponsor'}
 				/>
 			{/each}
 		</div>
