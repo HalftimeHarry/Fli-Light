@@ -3,6 +3,16 @@
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 	import Footer from '$lib/components/Footer.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
+	import SubscribePopUp from '$lib/components/SubscribePopUp.svelte'; // Import the popup
+	import { overlayStore } from '$lib/overlayStore.ts';
+
+	function toggleSubscribePopUp() {
+		if ($overlayStore) {
+			overlayStore.set(false);
+		} else {
+			overlayStore.set(true);
+		}
+	}
 </script>
 
 <!-- App Shell -->
@@ -18,9 +28,7 @@
 			<svelte:fragment slot="trail">
 				<a
 					class="btn btn-sm lg:btn-md xl:btn-lg variant-ghost-surface"
-					href="https://github.com/skeletonlabs/skeleton"
-					target="_blank"
-					rel="noreferrer"
+					on:click={toggleSubscribePopUp}
 				>
 					Subscription
 				</a>
@@ -32,6 +40,9 @@
 	</svelte:fragment>
 
 	<div class="mt-4">
+		{#if $overlayStore}
+			<SubscribePopUp />
+		{/if}
 		<slot />
 	</div>
 

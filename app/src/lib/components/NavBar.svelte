@@ -30,17 +30,10 @@
 
 		<!-- Main Menu Links -->
 		<div class={`space-x-4 ${menuOpen ? 'block' : 'hidden'} md:flex`}>
-			<a href="schedule" class="hover:underline">Schedule</a>
 			<a href="pros" class="hover:underline">Standings</a>
 			<a href="partners" class="hover:underline">Partners</a>
 			<a href="tournaments" class="hover:underline">Tournaments</a>
-			<a href="venues" class="hover:underline">Venues</a>
-			<a href="#" class="hover:underline">Standings</a>
-			<a href="#" class="hover:underline">Fantasy</a>
-			<a href="#" class="hover:underline">Statistics</a>
-			<a href="leaderboard" class="hover:underline">Leaderboard</a>
-			<a href="press" class="hover:underline">Press</a>
-			<a href="info" class="hover:underline">Info</a>
+			<a href="info" class="hover:underline">Information</a>
 			<button
 				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
 				on:click={toggleVegasPopUp}
