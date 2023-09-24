@@ -45,7 +45,7 @@
 	<div class="flex flex-wrap space-x-4 mb-4">
 		<!-- Upcoming button -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700"
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold"
 			class:bg-blue-500={selectedTab === 'upcoming'}
 			class:text-white={selectedTab === 'upcoming'}
 			class:bg-gray-800={selectedTab !== 'upcoming'}
@@ -55,7 +55,7 @@
 		</button>
 		<!-- Completed button -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700"
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold"
 			class:bg-blue-500={selectedTab === 'completed'}
 			class:text-white={selectedTab === 'completed'}
 			class:bg-gray-800={selectedTab !== 'completed'}

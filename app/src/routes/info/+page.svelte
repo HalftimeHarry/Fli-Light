@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+	import Icon from '@iconify/svelte';
 	// Any JavaScript can go here, e.g., dynamic behavior or data handling
 	let listItems = [
 		'Pairs Competition: FLI GOLF TOUR sets a new standard, spotlighting mixed-gender teams — a nod to both talent amalgamation and a commitment to championing gender equality.',
@@ -7,13 +8,12 @@
 		"Uplift Disc Golf: Elevate the sport's stature, broadening its fan base and affirming its competitive essence.",
 		'Promote Gender Equality: Pioneering mixed-gender competitions, the tour positions itself at the forefront of inclusivity in sports.',
 		'Entertainment First: A commitment to offering fans a captivating experience, ensuring they are as much a part of the tour as the athletes.',
-        'Inspire Future Talents: Showcase the zenith of disc golf skill, aiming to kindle passion in the upcoming generation.',
-        'Sponsorships: Collaborations with eminent brands across various sectors form a significant chunk of the revenue.',
-        'Ticketing: Offering fans a front-row seat to the action, ticket sales play an integral role.',
-         "Merchandising: The tour boosts its earnings with a diverse range of official merchandise, including branded attire and exclusive collectibles.",
-        'Legal Gambling Partnerships: Tournaments are amplified by alliances with authorized sportsbooks, introducing a thrilling dimension for fans.',
-        'Media Collaborations: Venturing into broadcasting and streaming tie-ups not only enhances visibility but opens up monetization avenues.'
-
+		'Inspire Future Talents: Showcase the zenith of disc golf skill, aiming to kindle passion in the upcoming generation.',
+		'Sponsorships: Collaborations with eminent brands across various sectors form a significant chunk of the revenue.',
+		'Ticketing: Offering fans a front-row seat to the action, ticket sales play an integral role.',
+		'Merchandising: The tour boosts its earnings with a diverse range of official merchandise, including branded attire and exclusive collectibles.',
+		'Legal Gambling Partnerships: Tournaments are amplified by alliances with authorized sportsbooks, introducing a thrilling dimension for fans.',
+		'Media Collaborations: Venturing into broadcasting and streaming tie-ups not only enhances visibility but opens up monetization avenues.'
 	];
 </script>
 
@@ -29,14 +29,19 @@
 </ul>
 
 <div class="p-6 text-white">
-    <p class="text-xl font-semibold mb-4">
-        Located at the intersection of sports and entertainment, the FLI GOLF TOUR - Pairs Edition is all set to mark a new chapter in the world of disc golf.
-    </p>
-    <div class="border-t pt-4 mt-4">
-        <p class="text-lg mb-2">For media inquiries, please contact:</p>
-        <p class="text-blue-600 underline">[Contact Information]</p>
-    </div>
+	<p class="text-xl font-semibold mb-4">
+		Located at the intersection of sports and entertainment, the FLI GOLF TOUR - Pairs Edition is
+		all set to mark a new chapter in the world of disc golf.
+	</p>
+	<div class="border-t pt-4 mt-4">
+		<p class="text-lg mb-2">For media inquiries, please contact:</p>
+		<div class="flex items-center">
+			<Icon icon="ion:mail-outline" class="mr-2" />
+			<a href="mailto:info@fligolf.com" class="text-blue-600 underline">info@fligolf.com</a>
+		</div>
+	</div>
 </div>
+
 
 <style>
 	.customBulletList {

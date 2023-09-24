@@ -5,6 +5,7 @@
 	import NavBar from '$lib/components/NavBar.svelte';
 	import SubscribePopUp from '$lib/components/SubscribePopUp.svelte'; // Import the popup
 	import { overlayStore } from '$lib/overlayStore.ts';
+	import Icon from '@iconify/svelte';
 
 	function toggleSubscribePopUp() {
 		if ($overlayStore) {
@@ -27,16 +28,15 @@
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<a
-					class="btn btn-sm lg:btn-md xl:btn-lg variant-ghost-surface"
+					class="btn btn-sm lg:btn-md xl:btn-lg bg-blue-500 hover:bg-blue-700 mr-24 cursor-pointer text-white font-bold"
 					on:click={toggleSubscribePopUp}
 				>
-					Subscription
+					Subscription<br />
+					<Icon icon="pixelarticons:subscriptions" />
 				</a>
 			</svelte:fragment>
 		</AppBar>
-		<div class="mb-4">
-			<NavBar />
-		</div>
+		<NavBar />
 	</svelte:fragment>
 
 	<div class="mt-4">
@@ -48,3 +48,9 @@
 
 	<Footer />
 </AppShell>
+
+<style>
+	.cursor-pointer {
+		cursor: pointer;
+	}
+</style>
