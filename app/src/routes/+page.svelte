@@ -20,7 +20,6 @@
 
 <div class="container h-full mx-auto flex justify-center items-center">
 	<div class="space-y-10 text-center flex flex-col items-center">
-		<h2 class="h2 mx-auto">Where Disc Golf Takes Flight!</h2>
 		<!-- Login -->
 		<div class="container" style="padding: 50px 0 100px 0">
 			{#if !session}

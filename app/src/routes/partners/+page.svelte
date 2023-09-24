@@ -46,7 +46,7 @@
 	<div class="flex flex-wrap space-x-4 mb-4">
 		<!-- Venues button moved to the left as they're the parent -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700"
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold"
 			class:bg-blue-500={selectedTab === 'venues'}
 			class:text-white={selectedTab === 'venues'}
 			class:bg-gray-800={selectedTab !== 'venues'}
@@ -57,7 +57,7 @@
 
 		<!-- Sponsors button -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700"
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold"
 			class:bg-blue-500={selectedTab === 'sponsors'}
 			class:text-white={selectedTab === 'sponsors'}
 			class:bg-gray-800={selectedTab !== 'sponsors'}
@@ -84,11 +84,11 @@
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{#each sponsors as sponsor}
-			<SponsorCard
-				name={sponsor.name}
-				sponsorImageUrl={sponsor.sponsor_image_url}
-				associatedWith={sponsor.associatedWith}
-			/>
+				<SponsorCard
+					name={sponsor.name}
+					sponsorImageUrl={sponsor.sponsor_image_url}
+					associatedWith={sponsor.associatedWith}
+				/>
 			{/each}
 		</div>
 	{/if}
