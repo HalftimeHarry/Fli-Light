@@ -77,7 +77,7 @@
 					date={tournament.date}
 					tournamentImageUrl={tournament.tournament_image_url}
 					venue={tournament.venue.name}
-					sponsor={tournament.sponsor}
+					sponsor={tournament.sponsors.length ? tournament.sponsors.join(', ') : 'No Sponsor'}
 				/>
 			{/each}
 		</div>
