@@ -4,7 +4,7 @@
 
 	let continuousText = '... Placeholder text for the ticker...';
 
-	let menuOpen = false;
+	let menuOpen = true;
 
 	function toggleMenu() {
 		menuOpen = !menuOpen;
