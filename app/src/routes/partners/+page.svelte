@@ -25,11 +25,11 @@
 			venues = venuesResponse.data;
 			sponsors = sponsorsResponse.data.map((sponsor) => {
 				const associatedTournament = tournaments.find(
-					(tournament) => tournament.tournament_id === sponsor.tournament_id
+					(tournament) => tournament.sponsor_id === sponsor.sponsor_id
 				);
 				return {
 					...sponsor,
-					tournamentName: associatedTournament ? associatedTournament.name : 'No Tournament'
+					associatedWith: associatedTournament ? associatedTournament.name : 'No Tournament'
 				};
 			});
 		} catch (err) {
@@ -84,11 +84,11 @@
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{#each sponsors as sponsor}
-				<SponsorCard
-					name={sponsor.name}
-					sponsorImageUrl={sponsor.sponsor_image_url}
-					sponsorName={sponsor.tournamentName}
-				/>
+			<SponsorCard
+				name={sponsor.name}
+				sponsorImageUrl={sponsor.sponsor_image_url}
+				associatedWith={sponsor.associatedWith}
+			/>
 			{/each}
 		</div>
 	{/if}

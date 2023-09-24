@@ -16,19 +16,8 @@
 				</a>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				<a class="btn btn-lg variant-ghost-surface" href="/pros" target="_blank" rel="noreferrer">
-					Pros
-				</a>
 				<a
-					class="btn btn-lg variant-ghost-surface"
-					href="https://twitter.com/SkeletonUI"
-					target="_blank"
-					rel="noreferrer"
-				>
-					Store
-				</a>
-				<a
-					class="btn btn-lg variant-ghost-surface"
+					class="btn btn-sm lg:btn-md xl:btn-lg variant-ghost-surface"
 					href="https://github.com/skeletonlabs/skeleton"
 					target="_blank"
 					rel="noreferrer"
