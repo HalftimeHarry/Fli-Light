@@ -1,7 +1,7 @@
 <footer class="rounded-lg shadow bg-crimson-500 m-4">
 	<div class="w-full max-w-screen-xl mx-auto p-4 md:py-8">
 		<div class="sm:flex sm:items-center sm:justify-between">
-			<a href="https://fligolf.com/" class="flex items-center mb-4 sm:mb-0">
+			<a href="/" class="flex items-center mb-4 sm:mb-0">
 				<img src="/FLI_BLK.png" alt="FLI GOLF Logo" class="logo-class" />
 			</a>
 			<ul
