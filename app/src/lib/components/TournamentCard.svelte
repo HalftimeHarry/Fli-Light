@@ -6,18 +6,16 @@
 	export let sponsor: string = 'No Sponsor';
 </script>
 
-<div class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex items-center">
+<div class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex flex-col items-center text-center">
 	{#if tournamentImageUrl}
 		<img
-			class="w-10 h-10 rounded-full object-cover mr-4"
+			class="w-16 h-16 rounded-full object-cover mb-4"
 			src={tournamentImageUrl}
 			alt="{name}'s image"
 		/>
 	{/if}
-	<div>
-		<div class="text-xl font-bold mb-2">{name}</div>
-		{#if date}<div class="text-gray-500">Date: {date}</div>{/if}
-		<div class="text-gray-400">Venue: {venue}</div>
-		<div class="text-gray-400">Sponsor: {sponsor}</div>
-	</div>
+	<div class="text-xl font-bold mb-2">{name}</div>
+	{#if date}<div class="text-gray-500">Date: {date}</div>{/if}
+	<div class="text-gray-400">Venue: {venue}</div>
+	<div class="text-gray-400">Sponsor: {sponsor}</div>
 </div>
