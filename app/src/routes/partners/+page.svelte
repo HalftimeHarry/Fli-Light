@@ -28,8 +28,7 @@
 					(tournament) => tournament.sponsor_id === sponsor.sponsor_id
 				);
 				return {
-					...sponsor,
-					associatedWith: associatedTournament ? associatedTournament.name : 'No Tournament'
+					...sponsor
 				};
 			});
 		} catch (err) {
@@ -87,7 +86,6 @@
 				<SponsorCard
 					name={sponsor.name}
 					sponsorImageUrl={sponsor.sponsor_image_url}
-					associatedWith={sponsor.associatedWith}
 				/>
 			{/each}
 		</div>
