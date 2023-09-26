@@ -3,7 +3,7 @@
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 	import Footer from '$lib/components/Footer.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
-	import SubscribePopUp from '$lib/components/SubscribePopUp.svelte'; // Import the popup
+	import SubscribePopUp from '$lib/components/SubscribePopUp.svelte';
 	import { overlayStore } from '$lib/overlayStore.ts';
 	import authStore from '$lib/AuthStore';
 	import { onMount } from 'svelte';
@@ -32,18 +32,15 @@
 			session = data?.session;
 		}
 
-		// Subscribe to session changes
 		supabase.auth.onAuthStateChange((event, sessionData) => {
-			session = sessionData; // Update the session variable with the received session data
+			session = sessionData;
 
 			if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-				// USER_UPDATED event can also be added to cover cases where user data might have changed but not their authentication status
 				authStore.update((state) => {
 					state.isLoggedIn = true;
 					return state;
 				});
 			} else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-				// USER_DELETED can be added if you want to react when a user deletes their account
 				authStore.update((state) => {
 					state.isLoggedIn = false;
 					return state;
@@ -97,20 +94,30 @@
 		}
 	}
 
-	function toggleSubscribePopUp() {
-		if ($overlayStore) {
-			overlayStore.set(false);
+	function toggleOverlayForm(formType: 'subscribe' | 'register') {
+		if ($overlayStore.visible && $overlayStore.formType === formType) {
+			overlayStore.set({ visible: false, formType: null });
 		} else {
-			overlayStore.set(true);
+			overlayStore.set({ visible: true, formType: formType });
 		}
+	}
+
+	function toggleRegister() {
+		const currentRoute = window.location.pathname;
+		if (currentRoute === '/' || currentRoute === '/index.html') {
+			setFormToRegister();
+		} else {
+			toggleOverlayForm('register');
+		}
+	}
+
+	function toggleSubscribePopUp() {
+		toggleOverlayForm('subscribe');
 	}
 </script>
 
-<!-- App Shell -->
-<!-- App Shell -->
 <AppShell>
 	<svelte:fragment slot="header">
-		<!-- App Bar -->
 		<AppBar>
 			<svelte:fragment slot="lead">
 				<a href="/">
@@ -125,8 +132,9 @@
 					Subscription<br />
 					<Icon icon="pixelarticons:subscriptions" />
 				</a>
+
 				{#if !session}
-					<button class="btn btn-lg variant-ghost-surface" on:click={setFormToRegister}>
+					<button class="btn btn-lg variant-ghost-surface" on:click={toggleRegister}>
 						Register
 					</button>
 					<button class="btn btn-lg variant-ghost-surface" on:click={setFormToLogin}>
@@ -146,7 +154,7 @@
 	</svelte:fragment>
 
 	<div class="mt-4">
-		{#if $overlayStore}
+		{#if $overlayStore.visible}
 			<SubscribePopUp />
 		{/if}
 		<slot />
@@ -154,7 +162,6 @@
 
 	<Footer />
 </AppShell>
-
 
 <style>
 	.cursor-pointer {
