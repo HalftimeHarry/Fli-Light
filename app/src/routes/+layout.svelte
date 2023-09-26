@@ -13,13 +13,14 @@
 	import AdminDashboard from '../lib/AdminDashboard.svelte';
 	import ParticipantDashboard from '../lib/ParticipantDashboard.svelte';
 	import SubscribertDashboard from '../lib/SubscriberDashboard.svelte';
+	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
+	import { tick } from 'svelte';
 
 	let url;
 
 	$: ({ url } = $page);
 	$: console.log(url);
-
 	let session: AuthSession | null = null;
 	let role: 'Admin' | 'Participant' | 'Subscriber' | null = null;
 
@@ -56,7 +57,8 @@
 		formType = state.formType;
 	});
 
-	function setFormToRegister() {
+	async function setFormToRegister() {
+		await tick(); // Wait for the DOM to update
 		authStore.update((state) => {
 			state.formType = 'register';
 			return state;
@@ -104,15 +106,33 @@
 
 	function toggleRegister() {
 		const currentRoute = window.location.pathname;
-		if (currentRoute === '/' || currentRoute === '/index.html') {
-			setFormToRegister();
+
+		if (currentRoute !== '/' && currentRoute !== '/index.html') {
+			// Redirect to the root with a special query parameter
+			window.location.href = "/?showRegister=true";
 		} else {
-			toggleOverlayForm('register');
+			// If already on the root, just show the registration form
+			setFormToRegister();
 		}
 	}
 
 	function toggleSubscribePopUp() {
 		toggleOverlayForm('subscribe');
+	}
+
+	let showRegister: boolean = false;
+
+	$: {
+		const query = new URLSearchParams($page.query);
+		showRegister = query.get('showRegister') === 'true';
+
+		if (showRegister) {
+			setFormToRegister();
+
+			// Optional: Clean up the URL after showing the form
+			const cleanURL = window.location.pathname;
+			window.history.replaceState(null, '', cleanURL);
+		}
 	}
 </script>
 
