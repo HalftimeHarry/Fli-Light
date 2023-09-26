@@ -10,7 +10,7 @@
 		'Entertainment First: A commitment to offering fans a captivating experience, ensuring they are as much a part of the tour as the athletes.',
 		'Inspire Future Talents: Showcase the zenith of disc golf skill, aiming to kindle passion in the upcoming generation.',
 		'Sponsorships: Collaborations with eminent brands across various sectors form a significant chunk of the revenue.',
-		'Ticketing: Offering fans a front-row seat to the action, ticket sales play an integral role.',
+		'Ticketing: With multiple ticket options, fans can enjoy the interactive center on media day, tournament play, and even a live show to culminate the event.',
 		'Merchandising: The tour boosts its earnings with a diverse range of official merchandise, including branded attire and exclusive collectibles.',
 		'Legal Gambling Partnerships: Tournaments are amplified by alliances with authorized sportsbooks, introducing a thrilling dimension for fans.',
 		'Media Collaborations: Venturing into broadcasting and streaming tie-ups not only enhances visibility but opens up monetization avenues.'
@@ -41,7 +41,6 @@
 		</div>
 	</div>
 </div>
-
 
 <style>
 	.customBulletList {
