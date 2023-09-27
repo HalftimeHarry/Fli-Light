@@ -16,6 +16,8 @@
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import { tick } from 'svelte';
+	import UpdatePasswordForm from '/workspace/Fli-Light/app/src/lib/components/updatePasswordForm.svelte';
+	import { fly } from 'svelte/transition';
 
 	let url;
 
@@ -78,7 +80,7 @@
 		if (session && session.user?.email) {
 			const { data, error } = await supabase.auth.resetPasswordForEmail(session.user?.email, {
 				redirectTo:
-					'https://5173-halftimeharry-flilight-mw5hrxob9r1.ws-us105.gitpod.io/api/auth/callback?next=/account/update-password'
+					'https://neon-shortbread-5fe77d.netlify.app//api/auth/callback?next=/account/update-password'
 			});
 
 			if (error) {
@@ -89,7 +91,12 @@
 		}
 	}
 
-	async function handleUpdatePassword() {
+	async function handleUpdatePasswordEvent(event) {
+		const { currentPassword, newPassword } = event.detail;
+
+		// Check if you want to use the current password in some way for validation
+		// Otherwise, continue with the existing logic
+
 		if (newPassword && session) {
 			const { data, error } = await supabase.auth.updateUser({ password: newPassword });
 
@@ -124,6 +131,10 @@
 
 	function toggleSubscribePopUp() {
 		toggleOverlayForm('subscribe');
+	}
+
+	function showPasswordUpdateForm() {
+		showUpdatePasswordForm = true;
 	}
 
 	let showRegister: boolean = false;
@@ -171,19 +182,22 @@
 						Sign Out
 					</button>
 					<button class="btn btn-lg variant-ghost-surface" on:click={handlePasswordResetRequest}>
-						Update Password
+						Reset Password
 					</button>
 				{/if}
+				<button class="btn btn-lg variant-ghost-surface" on:click={showPasswordUpdateForm}>
+					Update Password
+				</button>
 			</svelte:fragment>
 		</AppBar>
 		<NavBar />
 	</svelte:fragment>
 
 	<div class="mt-4">
-		<!-- Password Update Form if the user clicked the magic link -->
 		{#if showUpdatePasswordForm}
-			<input type="password" bind:value={newPassword} placeholder="Enter New Password" />
-			<button on:click={handleUpdatePassword}>Update Password</button>
+			<div in:fly={{ x: 300, duration: 300 }} out:fly={{ x: 300, duration: 300 }}>
+				<UpdatePasswordForm on:updatepassword={handleUpdatePasswordEvent} />
+			</div>
 		{:else if $overlayStore.visible}
 			<SubscribePopUp />
 		{/if}

@@ -7,7 +7,7 @@
 <div class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex items-center">
 	{#if teamImageUrl}
 		<!-- Image container to maintain a square aspect ratio -->
-		<div class="relative w-25 h-20">
+		<div class="relative w-36 h-36">
 			<!-- Increase size from w-16 h-16 to w-20 h-20 -->
 			<img class="w-full h-full object-cover" src={teamImageUrl} alt="{name} team image" />
 		</div>

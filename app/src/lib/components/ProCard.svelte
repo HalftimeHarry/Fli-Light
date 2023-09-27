@@ -8,21 +8,25 @@
 	export let points: number = 0;
 </script>
 
-<div class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex items-start">
+<div
+	class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex items-start justify-start"
+>
 	{#if proImageUrl}
-		<img class="w-10 h-10 rounded-sm object-cover mr-4" src={proImageUrl} alt="{name}'s image" />
+		<div class="flex flex-col items-center mr-4">
+			<img class="w-24 h-24 rounded-sm object-cover mb-2" src={proImageUrl} alt="{name}'s image" />
+			<div class="text-gray-400">
+				<div>Earnings: ${earnings.toFixed(2)}</div>
+				<div>{points} points</div>
+			</div>
+		</div>
 	{/if}
 
-	<div class="flex flex-col flex-grow">
+	<div class="flex flex-col flex-grow justify-between">
 		<div class="text-lg font-bold mb-2">{name}</div>
-		<div class="text-gray-400 mb-4">
-			<div>Earnings: ${earnings.toFixed(2)}</div>
-			<div>{points} points</div>
-		</div>
 		{#if teamImageUrl}
-			<img class="w-12 h-12 rounded-sm object-cover mb-2" src={teamImageUrl} alt="{team} logo" />
+			<img class="w-36 h-18 rounded-sm mb-2 self-start" src={teamImageUrl} alt="{team} logo" />
 		{/if}
-		<div class="text-sm font-semibold text-green-500 uppercase cursor-pointer hover:underline">
+		<div class="text-sm font-semibold text-green-500 uppercase cursor-pointer hover:underline mt-6">
 			<a href={`#/${team}`}>{team}</a>
 		</div>
 	</div>
