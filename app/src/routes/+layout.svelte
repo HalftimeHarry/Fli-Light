@@ -23,6 +23,8 @@
 	$: console.log(url);
 	let session: AuthSession | null = null;
 	let role: 'Admin' | 'Participant' | 'Subscriber' | null = null;
+	let showUpdatePasswordForm = false;
+	let newPassword = '';
 
 	onMount(async () => {
 		const { data, error } = await supabase.auth.getSession();
@@ -72,27 +74,31 @@
 		});
 	}
 
-	async function handleUpdatePassword() {
+	async function handlePasswordResetRequest() {
 		if (session && session.user?.email) {
-			try {
-				const { data, error } = await supabase.auth.resetPasswordForEmail(session.user.email, {
-					redirectTo: '#'
-				});
+			const { data, error } = await supabase.auth.resetPasswordForEmail(session.user?.email, {
+				redirectTo:
+					'https://5173-halftimeharry-flilight-mw5hrxob9r1.ws-us105.gitpod.io/api/auth/callback?next=/account/update-password'
+			});
 
-				if (error) {
-					console.error('Error sending password reset email:', error.message);
-				} else {
-					console.log('Password reset email sent:', data);
-					authStore.update((state) => {
-						state.formType = 'updatePassword';
-						return state;
-					});
-				}
-			} catch (error) {
-				console.error('Exception caught:', error);
+			if (error) {
+				console.error('Error sending password reset:', error.message);
+			} else {
+				console.log('Password reset email sent:', data);
 			}
-		} else {
-			console.error('No user session available or email missing from session');
+		}
+	}
+
+	async function handleUpdatePassword() {
+		if (newPassword && session) {
+			const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+
+			if (error) {
+				console.error('Error updating password:', error.message);
+			} else {
+				console.log('Password updated successfully:', data);
+				showUpdatePasswordForm = false;
+			}
 		}
 	}
 
@@ -109,7 +115,7 @@
 
 		if (currentRoute !== '/' && currentRoute !== '/index.html') {
 			// Redirect to the root with a special query parameter
-			window.location.href = "/?showRegister=true";
+			window.location.href = '/?showRegister=true';
 		} else {
 			// If already on the root, just show the registration form
 			setFormToRegister();
@@ -164,7 +170,7 @@
 					<button class="btn btn-lg variant-ghost-surface" on:click={() => supabase.auth.signOut()}>
 						Sign Out
 					</button>
-					<button class="btn btn-lg variant-ghost-surface" on:click={handleUpdatePassword}>
+					<button class="btn btn-lg variant-ghost-surface" on:click={handlePasswordResetRequest}>
 						Update Password
 					</button>
 				{/if}
@@ -174,9 +180,14 @@
 	</svelte:fragment>
 
 	<div class="mt-4">
-		{#if $overlayStore.visible}
+		<!-- Password Update Form if the user clicked the magic link -->
+		{#if showUpdatePasswordForm}
+			<input type="password" bind:value={newPassword} placeholder="Enter New Password" />
+			<button on:click={handleUpdatePassword}>Update Password</button>
+		{:else if $overlayStore.visible}
 			<SubscribePopUp />
 		{/if}
+
 		<slot />
 	</div>
 
