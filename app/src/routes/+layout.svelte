@@ -16,7 +16,7 @@
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import { tick } from 'svelte';
-	import UpdatePasswordForm from '/workspace/Fli-Light/app/src/lib/components/updatePasswordForm.svelte';
+	import UpdatePasswordForm from '$lib/components/updatePasswordForm.svelte';
 	import { fly } from 'svelte/transition';
 
 	let url;
