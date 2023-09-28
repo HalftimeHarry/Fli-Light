@@ -204,7 +204,6 @@
 
 		<slot />
 	</div>
-
 	<Footer />
 </AppShell>
 
