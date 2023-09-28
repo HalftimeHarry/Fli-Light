@@ -4,62 +4,63 @@
 	import VenueCard from '$lib/components/VenueCard.svelte';
 	import { supabase } from '../../supabaseClient';
 
-	let selectedTab: 'venues' | 'sponsors' = 'venues'; // Default to venues as they're the parent.
+	let selectedTab: 'venues' | 'sponsors' = 'venues';
 	let sponsors = [];
 	let venues = [];
 	let tournaments = [];
 	let isLoading = true;
 	let error: string | null = null;
 
-	onMount(async () => {
+	async function fetchData() {
 		try {
-			const tournamentsResponse = await supabase.from('tournaments').select('*');
-			if (tournamentsResponse.error) throw tournamentsResponse.error;
-			tournaments = tournamentsResponse.data;
-			const venuesResponse = await supabase.from('venues').select('*');
-			const sponsorsResponse = await supabase.from('sponsors').select('*');
+			const { data: tournamentsData, error: tournamentsError } = await supabase
+				.from('tournaments')
+				.select('*');
+			const { data: venuesData, error: venuesError } = await supabase.from('venues').select('*');
+			const { data: sponsorsData, error: sponsorsError } = await supabase
+				.from('sponsors')
+				.select('*');
 
-			if (venuesResponse.error) throw venuesResponse.error;
-			if (sponsorsResponse.error) throw sponsorsResponse.error;
+			if (tournamentsError || venuesError || sponsorsError) {
+				throw new Error(
+					tournamentsError?.message || venuesError?.message || sponsorsError?.message
+				);
+			}
 
-			venues = venuesResponse.data;
-			sponsors = sponsorsResponse.data.map((sponsor) => {
+			tournaments = tournamentsData;
+			venues = venuesData;
+			sponsors = sponsorsData.map((sponsor) => {
 				const associatedTournament = tournaments.find(
 					(tournament) => tournament.sponsor_id === sponsor.sponsor_id
 				);
-				return {
-					...sponsor
-				};
+				return { ...sponsor };
 			});
 		} catch (err) {
 			error = err.message;
 		} finally {
 			isLoading = false;
 		}
-	});
+	}
+
+	onMount(fetchData);
 </script>
 
 <div class="p-6">
 	<h1 class="text-5xl sm:text-7xl md:text-9xl font-bold mb-4 uppercase">Partners</h1>
 
 	<div class="flex flex-wrap space-x-4 mb-4">
-		<!-- Venues button moved to the left as they're the parent -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold"
-			class:bg-blue-500={selectedTab === 'venues'}
-			class:text-white={selectedTab === 'venues'}
-			class:bg-gray-800={selectedTab !== 'venues'}
+			class={`flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold ${
+				selectedTab === 'venues' ? 'bg-blue-500 text-white' : 'bg-gray-800'
+			}`}
 			on:click={() => (selectedTab = 'venues')}
 		>
 			Venues
 		</button>
-
-		<!-- Sponsors button -->
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold"
-			class:bg-blue-500={selectedTab === 'sponsors'}
-			class:text-white={selectedTab === 'sponsors'}
-			class:bg-gray-800={selectedTab !== 'sponsors'}
+			class={`flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold ${
+				selectedTab === 'sponsors' ? 'bg-blue-500 text-white' : 'bg-gray-800'
+			}`}
 			on:click={() => (selectedTab = 'sponsors')}
 		>
 			Sponsors
@@ -70,24 +71,21 @@
 		<p>Loading...</p>
 	{:else if error}
 		<p>{error}</p>
-	{:else if selectedTab === 'venues'}
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-			{#each venues as venue}
-				<VenueCard
-					name={venue.name}
-					location={venue.location}
-					venueImageUrl={venue.venue_image_url}
-				/>
-			{/each}
-		</div>
 	{:else}
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-			{#each sponsors as sponsor}
-				<SponsorCard
-					name={sponsor.name}
-					sponsorImageUrl={sponsor.sponsor_image_url}
-				/>
-			{/each}
+		<div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+			{#if selectedTab === 'venues'}
+				{#each venues as venue}
+					<VenueCard
+						name={venue.name}
+						location={venue.location}
+						venueImageUrl={venue.venue_image_url}
+					/>
+				{/each}
+			{:else}
+				{#each sponsors as sponsor}
+					<SponsorCard name={sponsor.name} sponsorImageUrl={sponsor.sponsor_image_url} />
+				{/each}
+			{/if}
 		</div>
 	{/if}
 </div>

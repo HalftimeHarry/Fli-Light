@@ -10,31 +10,32 @@
 	let isLoading = true;
 	let error: string | null = null;
 
-onMount(async () => {
-	try {
-		const teamsResponse = await supabase.from('teams').select('*');
-		const prosResponse = await supabase.from('pros').select('*');
+	onMount(async () => {
+		try {
+			const teamsResponse = await supabase.from('teams').select('*');
+			const prosResponse = await supabase.from('pros').select('*');
 
-		if (teamsResponse.error) throw teamsResponse.error;
-		if (prosResponse.error) throw prosResponse.error;
+			if (teamsResponse.error) throw teamsResponse.error;
+			if (prosResponse.error) throw prosResponse.error;
 
-		teams = teamsResponse.data;
-		pros = prosResponse.data.map((pro) => {
-			const associatedTeam = teams.find((team) => team.team_id === pro.team_id);
-			return {
-				...pro,
-				team: associatedTeam ? associatedTeam.name : 'No Team',
-				team_image_url: associatedTeam ? associatedTeam.team_image_url : null
-			};
-		}).sort((a, b) => a.team.localeCompare(b.team));
+			teams = teamsResponse.data;
+			pros = prosResponse.data
+				.map((pro) => {
+					const associatedTeam = teams.find((team) => team.team_id === pro.team_id);
+					return {
+						...pro,
+						team: associatedTeam ? associatedTeam.name : 'No Team',
+						team_image_url: associatedTeam ? associatedTeam.team_image_url : null
+					};
+				})
+				.sort((a, b) => a.team.localeCompare(b.team));
 
-		isLoading = false;
-	} catch (err) {
-		error = err.message;
-		isLoading = false;
-	}
-});
-
+			isLoading = false;
+		} catch (err) {
+			error = err.message;
+			isLoading = false;
+		}
+	});
 </script>
 
 <div class="p-6">
@@ -72,7 +73,7 @@ onMount(async () => {
 			{/each}
 		</div>
 	{:else}
-		<div class="grid grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			{#each pros as pro}
 				<ProCard
 					name={pro.name}
