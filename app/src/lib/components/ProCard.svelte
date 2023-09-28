@@ -8,24 +8,34 @@
 	export let points: number = 0;
 </script>
 
-<div class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex items-start">
-	<div class="flex flex-col items-start justify-between mr-4">
-		{#if teamImageUrl}
-			<img class="w-12 h-12 rounded-sm object-cover mb-4" src={teamImageUrl} alt="{team} logo" />
-		{/if}
-		{#if proImageUrl}
-			<img class="w-10 h-10 rounded-sm object-cover" src={proImageUrl} alt="{name}'s image" />
-		{/if}
-	</div>
+<div
+	class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex items-start justify-start"
+>
+	{#if proImageUrl}
+		<div class="flex flex-col items-center mr-4">
+			<div class="text-lg font-bold mb-2">{name}</div>
+			<img class="w-24 h-24 rounded-sm object-cover mb-2" src={proImageUrl} alt="{name}'s image" />
+			<div class="text-gray-400">
+				<div>Earnings: ${earnings.toFixed(2)}</div>
+				<div>{points} points</div>
+			</div>
+		</div>
+	{/if}
 
-	<div class="flex flex-col flex-grow">
-		<div class="text-xl font-bold text-green-500 mb-2 uppercase cursor-pointer hover:underline">
-			<a href={`#/${team}`}>{team}</a>
-		</div>
-		<div class="text-xl font-bold mb-2">{name}</div>
-		<div class="text-gray-400">
-			<div>Earnings: ${earnings.toFixed(2)}</div>
-			<div>{points} points</div>
-		</div>
+	<div class="flex flex-col flex-grow justify-between">
+		{#if teamImageUrl}
+			<div class="flex flex-col items-center mb-2">
+				<img class="w-36 h-18 rounded-sm mb-2" src={teamImageUrl} alt="{team} logo" />
+				<div class="text-sm font-semibold text-green-500 uppercase cursor-pointer hover:underline">
+					<a href={`#/${team}`}>{team}</a>
+				</div>
+			</div>
+		{:else}
+			<div
+				class="text-sm font-semibold text-green-500 uppercase cursor-pointer hover:underline mt-6"
+			>
+				<a href={`#/${team}`}>{team}</a>
+			</div>
+		{/if}
 	</div>
 </div>
