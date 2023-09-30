@@ -30,34 +30,23 @@
 
 	onMount(async () => {
 		const { data, error } = await supabase.auth.getSession();
+		session = data?.session;
 
 		if (error) {
 			console.error('Error fetching session: ', error);
-		} else {
-			session = data?.session;
 		}
 
 		supabase.auth.onAuthStateChange((event, sessionData) => {
 			session = sessionData;
 
-			if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-				authStore.update((state) => {
-					state.isLoggedIn = true;
-					return state;
-				});
-			} else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-				authStore.update((state) => {
-					state.isLoggedIn = false;
-					return state;
-				});
-			}
+			let isLoggedIn = ['SIGNED_IN', 'USER_UPDATED'].includes(event);
+			authStore.update((state) => ({ ...state, isLoggedIn }));
 		});
 	});
 
 	let isLoggedIn = false;
 	let formType;
 	authStore.subscribe((state) => {
-		isLoggedIn = state.isLoggedIn;
 		formType = state.formType;
 	});
 
@@ -151,6 +140,15 @@
 			window.history.replaceState(null, '', cleanURL);
 		}
 	}
+	$: {
+		const query = new URLSearchParams($page.query);
+		const showRegister = query.get('showRegister') === 'true';
+
+		if (showRegister) {
+			setFormToRegister();
+			window.history.replaceState(null, '', window.location.pathname); // Clean up the URL
+		}
+	}
 </script>
 
 <AppShell>
@@ -162,38 +160,45 @@
 				</a>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
-				<a
-					class="btn btn-sm lg:btn-md xl:btn-lg bg-blue-500 hover:bg-blue-700 mr-24 cursor-pointer text-white font-bold"
-					on:click={toggleSubscribePopUp}
-				>
-					Subscription<br />
-					<Icon icon="pixelarticons:subscriptions" />
-				</a>
-
 				{#if !session}
-					<button class="btn btn-lg variant-ghost-surface" on:click={toggleRegister}>
-						Register
-					</button>
-					<button class="btn btn-lg variant-ghost-surface" on:click={setFormToLogin}>
-						Sign In
-					</button>
-				{:else}
-					<button class="btn btn-lg variant-ghost-surface" on:click={() => supabase.auth.signOut()}>
-						Sign Out
-					</button>
-					<button class="btn btn-lg variant-ghost-surface" on:click={handlePasswordResetRequest}>
-						Reset Password
-					</button>
+					<div class="flex flex-col justify-center items-center py-3 space-y-2">
+						<button class="btn btn-lg variant-ghost-surface p-2 flex-1" on:click={toggleRegister}>
+							Register
+						</button>
+						<button class="btn btn-lg variant-ghost-surface p-2 flex-1" on:click={setFormToLogin}>
+							Sign In
+						</button>
+						<button
+							class="btn btn-lg variant-ghost-surface p-2 flex-1"
+							on:click={showPasswordUpdateForm}
+						>
+							Update Password
+						</button>
+						<a
+							class="btn btn-sm lg:btn-md xl:btn-lg bg-blue-500 hover:bg-blue-700 cursor-pointer text-white font-bold flex-1"
+							on:click={toggleSubscribePopUp}
+						>
+							Subscription<br />
+							<Icon icon="pixelarticons:subscriptions" />
+						</a>
+					</div>
 				{/if}
-				<button class="btn btn-lg variant-ghost-surface" on:click={showPasswordUpdateForm}>
-					Update Password
-				</button>
 			</svelte:fragment>
 		</AppBar>
 		<NavBar />
 	</svelte:fragment>
 
 	<div class="mt-4">
+		{#if !session}
+			<div class="flex justify-center items-center py-3">
+				<button class="btn btn-lg variant-ghost-surface p-2 flex-1 mr-1" on:click={toggleRegister}>
+					Register
+				</button>
+				<button class="btn btn-lg variant-ghost-surface p-2 flex-1 ml-1" on:click={setFormToLogin}>
+					Sign In
+				</button>
+			</div>
+		{/if}
 		{#if showUpdatePasswordForm}
 			<div in:fly={{ x: 300, duration: 300 }} out:fly={{ x: 300, duration: 300 }}>
 				<UpdatePasswordForm on:updatepassword={handleUpdatePasswordEvent} />
@@ -210,5 +215,9 @@
 <style>
 	.cursor-pointer {
 		cursor: pointer;
+	}
+
+	.padded-button {
+		padding: 8px;
 	}
 </style>
