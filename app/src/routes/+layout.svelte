@@ -204,7 +204,9 @@
 				<UpdatePasswordForm on:updatepassword={handleUpdatePasswordEvent} />
 			</div>
 		{:else if $overlayStore.visible}
+		<div class="overlay">
 			<SubscribePopUp />
+		</div>
 		{/if}
 
 		<slot />
@@ -219,5 +221,9 @@
 
 	.padded-button {
 		padding: 8px;
+	}
+	.overlay {
+		z-index: 1000; /* or any sufficiently high value */
+		position: relative; /* or absolute, depending on your needs */
 	}
 </style>
