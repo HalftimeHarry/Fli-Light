@@ -20,28 +20,42 @@
 	import { fly } from 'svelte/transition';
 
 	let url;
+	let showNavBar = false;
+	let isHomePage = false;
 
-	$: ({ url } = $page);
-	$: console.log(url);
 	let session: AuthSession | null = null;
 	let role: 'Admin' | 'Participant' | 'Subscriber' | null = null;
 	let showUpdatePasswordForm = false;
 	let newPassword = '';
 
-	onMount(async () => {
-		const { data, error } = await supabase.auth.getSession();
-		session = data?.session;
+	function toggleNavBar() {
+		showNavBar = !showNavBar;
+	}
 
-		if (error) {
-			console.error('Error fetching session: ', error);
+	let isBrowser = typeof window !== 'undefined'; // Check if in a browser environment
+
+	let isSmallScreen = typeof window !== 'undefined' && window.innerWidth <= 768;
+
+	$: ({ url } = $page);
+	$: isHomePage = url.pathname === '/';
+	$: console.log(url.pathname);
+	$: console.log('URL value:', url);
+	console.log('NavBar rendered');
+	$: {
+		console.log('Reactive statement ran', isSmallScreen, isHomePage);
+	}
+
+	// Check the screen size on component mount and whenever the window is resized
+	onMount(() => {
+		function checkScreenSize() {
+			isSmallScreen = window.innerWidth <= 768;
 		}
 
-		supabase.auth.onAuthStateChange((event, sessionData) => {
-			session = sessionData;
+		window.addEventListener('resize', checkScreenSize);
 
-			let isLoggedIn = ['SIGNED_IN', 'USER_UPDATED'].includes(event);
-			authStore.update((state) => ({ ...state, isLoggedIn }));
-		});
+		return () => {
+			window.removeEventListener('resize', checkScreenSize);
+		};
 	});
 
 	let isLoggedIn = false;
@@ -159,36 +173,32 @@
 					<img src="/FLI_BLK.png" alt="FLI GOLF Logo" class="logo-class" />
 				</a>
 			</svelte:fragment>
-			<svelte:fragment slot="trail">
-				{#if !session}
-					<div class="flex flex-col justify-center items-center py-3 space-y-2">
-						<button class="btn btn-lg variant-ghost-surface p-2 flex-1" on:click={toggleRegister}>
-							Register
-						</button>
-						<button class="btn btn-lg variant-ghost-surface p-2 flex-1" on:click={setFormToLogin}>
-							Sign In
-						</button>
-						<button
-							class="btn btn-lg variant-ghost-surface p-2 flex-1"
-							on:click={showPasswordUpdateForm}
-						>
-							Update Password
-						</button>
-						<a
-							class="btn btn-sm lg:btn-md xl:btn-lg bg-blue-500 hover:bg-blue-700 cursor-pointer text-white font-bold flex-1"
-							on:click={toggleSubscribePopUp}
-						>
-							Subscription<br />
-							<Icon icon="pixelarticons:subscriptions" />
-						</a>
-					</div>
-				{/if}
-			</svelte:fragment>
 		</AppBar>
-		<NavBar />
+		<!-- Place the NavBar logic directly here, outside of a fragment -->
+		{#if isHomePage}
+			<!-- Full NavBar for Home Page -->
+			<NavBar />
+			{#if !session}
+				<!-- Your existing code for larger screens -->
+			{/if}
+		{:else if isSmallScreen}
+			<!-- Mini Menu (Icon) for small screens not on Home Page -->
+			<button class="icon-button" on:click={toggleNavBar}>
+				<div class="ml-8"><Icon icon="mdi:menu" /></div>
+			</button>
+			{#if showNavBar}
+				<NavBar />
+			{/if}
+		{:else}
+			<!-- Full NavBar for large screens not on Home Page -->
+			<NavBar />
+			{#if !session}
+				<!-- Your existing code for larger screens -->
+			{/if}
+		{/if}
 	</svelte:fragment>
 
-	<div class="mt-4">
+	<div class="mt-2 mr-16 ml-16">
 		{#if !session}
 			<div class="flex justify-center items-center py-3">
 				<button class="btn btn-lg variant-ghost-surface p-2 flex-1 mr-1" on:click={toggleRegister}>
@@ -204,9 +214,9 @@
 				<UpdatePasswordForm on:updatepassword={handleUpdatePasswordEvent} />
 			</div>
 		{:else if $overlayStore.visible}
-		<div class="overlay">
-			<SubscribePopUp />
-		</div>
+			<div class="overlay">
+				<SubscribePopUp />
+			</div>
 		{/if}
 
 		<slot />
