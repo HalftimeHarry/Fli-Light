@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { PDFDocument, StandardFonts } from 'pdf-lib';
 	import SignaturePad from 'signature_pad';
+	import { supabase } from '../../supabaseClient.ts';
 	import { onMount } from 'svelte';
 
 	let name = '';
 	let streetAddress = '';
 	let cityStateZip = '';
-	let emailAddress = '';
+	let userName = '';
 	let currentDate = new Date();
 	let formattedDate = `${
 		currentDate.getMonth() + 1
@@ -15,9 +16,60 @@
 	let committee = 'FLI Golf';
 	let ad1 = '5621 PALMER WAY STE G';
 	let ad2 = 'Carlsbad, CA, 92010';
+	let userData;
 
+	async function fetchUserData() {
+		// Fetch the current user's details
+		const {
+			data: { user }
+		} = await supabase.auth.getUser();
+
+		// Now use the user's ID to fetch their profile data
+		const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+
+		// Log the fetched data to the console
+		console.log(data);
+
+		if (error) {
+			console.error('Error fetching user data:', error);
+		} else if (data) {
+			// Store the profile data in the userData variable
+			userData = data;
+
+			// Populate the Svelte state variables with the fetched data
+			name = data.full_name || ''; // Mapping full_name to name
+			streetAddress = data.street_address || '';
+			cityStateZip = data.city_state_zip || '';
+			userName = data.username || ''; // Assuming username contains the email. Adjust if needed.
+			// ... and so on for other fields
+		}
+	}
+
+	async function updateHasSignedStatus() {
+		if (!userData) {
+			console.error('User data is not fetched yet.');
+			return;
+		}
+
+		const { error } = await supabase
+			.from('profiles')
+			.update({ has_signed: true })
+			.eq('id', userData.id);
+
+		if (error) {
+			console.error('Error updating has_signed status:', error);
+		}
+	}
+
+	onMount(() => {
+		fetchUserData();
+		const canvas = document.querySelector('canvas');
+		signaturePad = new SignaturePad(canvas);
+	});
 	// Generate the PDF
 	async function generatePDF() {
+		await updateHasSignedStatus();
+		
 		const pdfDoc = await PDFDocument.create();
 		const page = pdfDoc.addPage([800, 1100]);
 
@@ -87,9 +139,7 @@
 
 		page.drawText(`${formattedDate}`, { x: 50, y: yPosition, size: 12, font });
 		yPosition -= 20;
-		page.drawText(`Thank you ${name}`, { x: 50, y: yPosition, size: 12, font });
-		yPosition -= 20;
-		page.drawText(`${emailAddress}`, { x: 50, y: yPosition, size: 12, font });
+		page.drawText(`${name}`, { x: 50, y: yPosition, size: 12, font });
 		yPosition -= 20;
 		page.drawText(`${streetAddress}`, { x: 50, y: yPosition, size: 12, font });
 		yPosition -= 20;
@@ -98,26 +148,35 @@
 
 		const pdfBytes = await pdfDoc.save();
 		const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+		const pdfFileName = `Letter_of_Intent_${name.replace(/ /g, '_')}.pdf`;
+
+		const { error: uploadError } = await supabase.storage
+			.from('proIntentContracts')
+			.upload(pdfFileName, blob);
+
+		if (uploadError) {
+			console.error('Error uploading PDF to storage:', uploadError);
+		} else {
+			console.log('PDF uploaded successfully');
+		}
+
+		// Offer the PDF for download
 		const link = document.createElement('a');
 		link.href = URL.createObjectURL(blob);
 		link.download = 'Letter_of_Intent.pdf';
 		link.click();
 	}
-
-	onMount(() => {
-		const canvas = document.querySelector('canvas');
-		signaturePad = new SignaturePad(canvas);
-	});
 </script>
 
 <div class="letter-content">
 	LETTER OF INTENT TO PLAY
 
-	<input type="text" bind:value={name} placeholder="Your Name" required />
-	<input type="text" bind:value={streetAddress} placeholder="Street Address" required />
-	<input type="text" bind:value={cityStateZip} placeholder="City, State, ZIP Code" required />
-	<input type="email" bind:value={emailAddress} placeholder="Email Address" required />
-	<input type="text" bind:value={formattedDate} required />
+	<!-- Display the fetched user data instead of input fields -->
+	<p>Name: {name}</p>
+	<p>Street Address: {streetAddress}</p>
+	<p>City, State, ZIP Code: {cityStateZip}</p>
+	<p>User Name: {userName}</p>
+	<p>Date: {formattedDate}</p>
 
 	I, {name}, am thrilled by the prospect of being a part of this groundbreaking Disc Golf tournament
 	and contributing my skills and passion to the sport. I understand the significance of FLI Golf
@@ -155,7 +214,11 @@
 		</div>
 	</div>
 	<button on:click={() => signaturePad.clear()}>Clear Signature</button>
-	<button on:click={generatePDF}>Generate PDF</button>
+	<button
+		on:click={generatePDF}
+		class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+		>Generate PDF</button
+	>
 </div>
 
 <style>
