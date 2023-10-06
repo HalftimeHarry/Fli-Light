@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 
 	let name = '';
-	let address = '';
+	let streetAddress = '';
 	let cityStateZip = '';
 	let emailAddress = '';
 	let currentDate = new Date();
@@ -91,7 +91,9 @@
 		yPosition -= 20;
 		page.drawText(`${emailAddress}`, { x: 50, y: yPosition, size: 12, font });
 		yPosition -= 20;
-		page.drawText(`${address}`, { x: 50, y: yPosition, size: 12, font });
+		page.drawText(`${streetAddress}`, { x: 50, y: yPosition, size: 12, font });
+		yPosition -= 20;
+		page.drawText(`${cityStateZip}`, { x: 50, y: yPosition, size: 12, font });
 		yPosition -= 20;
 
 		const pdfBytes = await pdfDoc.save();
@@ -112,7 +114,7 @@
 	LETTER OF INTENT TO PLAY
 
 	<input type="text" bind:value={name} placeholder="Your Name" required />
-	<input type="text" bind:value={address} placeholder="Your Address" required />
+	<input type="text" bind:value={streetAddress} placeholder="Street Address" required />
 	<input type="text" bind:value={cityStateZip} placeholder="City, State, ZIP Code" required />
 	<input type="email" bind:value={emailAddress} placeholder="Email Address" required />
 	<input type="text" bind:value={formattedDate} required />
@@ -140,7 +142,19 @@
 	popularity. I am confident in my abilities and am fully committed to giving my best effort to
 	achieve success in this prestigious tournament. Please find my signature below, indicating my
 	intent to participate in the FLI Golf Tour:
-	<canvas width="400" height="200" />
+	<div class="relative group">
+		<canvas
+			width="400"
+			height="200"
+			class="block border hover:shadow-lg hover:bg-indigo-200 transition duration-300"
+		/>
+		<div
+			class="text-black absolute top-2 left-2 opacity-0 group-hover:opacity-100 z-20 select-none"
+		>
+			Sign here
+		</div>
+	</div>
+	<button on:click={() => signaturePad.clear()}>Clear Signature</button>
 	<button on:click={generatePDF}>Generate PDF</button>
 </div>
 
