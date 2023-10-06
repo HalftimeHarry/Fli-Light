@@ -24,18 +24,92 @@
 	let isHomePage = false;
 
 	let session: AuthSession | null = null;
-	let role: 'Admin' | 'Participant' | 'Subscriber' | null = null;
+	let role: 'Admin' | 'Participant' | 'Pro' | 'Subscriber' | null = null;
 	let showUpdatePasswordForm = false;
 	let newPassword = '';
+	let userRole = null;
+	let hasSigned = null;
+
+	async function fetchUserRoleAndSignStatus(userId) {
+		const { data, error } = await supabase
+			.from('profiles')
+			.select('role, has_signed')
+			.eq('id', userId)
+			.single();
+
+		if (error) {
+			console.error('Error fetching user role:', error);
+			return;
+		}
+
+		userRole = data.role;
+		hasSigned = data.has_signed;
+
+		// Check conditions and redirect as necessary
+		if (userRole === 'Pro' && !hasSigned) {
+			window.location.href = '/intent';
+		} else {
+			window.location.href = '/';
+		}
+	}
+
+	async function fetchUserRole(userId: string) {
+		const { data, error } = await supabase
+			.from('profiles')
+			.select('role')
+			.eq('id', userId) // id is the column that relates to the auth user's id
+			.single();
+
+		if (error) {
+			console.error('Error fetching user role:', error);
+			return null;
+		}
+
+		if (!data) {
+			console.warn(`No profile found for user with id: ${userId}`);
+			return null;
+		}
+
+		return data.role;
+	}
 
 	function toggleNavBar() {
 		showNavBar = !showNavBar;
 	}
 
+	async function fetchUserProfile(userId: string) {
+		const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+
+		if (error) {
+			console.error('Error fetching user profile:', error);
+			return null;
+		}
+
+		return data;
+	}
+
+	supabase.auth.onAuthStateChange(async (event, newSession) => {
+		session = newSession;
+		console.log('Session updated:', session);
+
+		if (session) {
+			const userProfile = await fetchUserProfile(session.user.id);
+			role = userProfile?.role || null;
+			const hasSigned = userProfile?.has_signed || false;
+
+			if (role === 'Pro' && !hasSigned) {
+				goto('/intent'); // Redirects to the 'intent' route
+			} else {
+				goto('/'); // Redirects to the root route
+			}
+		}
+	});
+
 	let isBrowser = typeof window !== 'undefined'; // Check if in a browser environment
 
 	let isSmallScreen = typeof window !== 'undefined' && window.innerWidth <= 768;
 
+	$: console.log('Current session:', session);
 	$: ({ url } = $page);
 	$: isHomePage = url.pathname === '/';
 	$: console.log(url.pathname);
@@ -71,6 +145,18 @@
 			return state;
 		});
 	}
+
+	const signOut = async () => {
+		try {
+			await supabase.auth.signOut();
+			session = null;
+			userRole = null;
+			// Navigate user to a desired location after sign out, if necessary:
+			// window.location.href = '/login';
+		} catch (error) {
+			console.error('Error signing out: ', error);
+		}
+	};
 
 	function setFormToLogin() {
 		authStore.update((state) => {
@@ -200,6 +286,7 @@
 
 	<div class="mt-2 mr-16 ml-16">
 		{#if !session}
+			<!-- User is not logged in -->
 			<div class="flex justify-center items-center py-3">
 				<button class="btn btn-lg variant-ghost-surface p-2 flex-1 mr-1" on:click={toggleRegister}>
 					Register
@@ -208,6 +295,23 @@
 					Sign In
 				</button>
 			</div>
+		{:else}
+			<!-- User is logged in -->
+			<button class="btn btn-lg variant-ghost-surface p-2 flex-1 ml-1" on:click={signOut}>
+				Sign Out
+			</button>
+			<button
+				class="btn btn-lg variant-ghost-surface p-2 flex-1 mr-1"
+				on:click={handlePasswordResetRequest}
+			>
+				Reset Password
+			</button>
+			<button
+				class="btn btn-lg variant-ghost-surface p-2 flex-1 ml-1"
+				on:click={toggleSubscribePopUp}
+			>
+				Subscribe
+			</button>
 		{/if}
 		{#if showUpdatePasswordForm}
 			<div in:fly={{ x: 300, duration: 300 }} out:fly={{ x: 300, duration: 300 }}>
