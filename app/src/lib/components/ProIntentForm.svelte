@@ -17,6 +17,10 @@
 	let ad1 = '5621 PALMER WAY STE G';
 	let ad2 = 'Carlsbad, CA, 92010';
 	let userData;
+	let approvedSignatureandDate = false;
+	let errorMessage = '';
+
+	$: console.log('Checkbox status:', approvedSignatureandDate);
 
 	async function fetchUserData() {
 		// Fetch the current user's details
@@ -47,7 +51,7 @@
 
 	async function updateHasSignedStatus() {
 		if (!userData) {
-			console.error('User data is not fetched yet.');
+			console.error('User data is not fetched yet. Refresh you browser');
 			return;
 		}
 
@@ -68,8 +72,15 @@
 	});
 	// Generate the PDF
 	async function generatePDF() {
+		console.log('Value of approvedSignatureandDate:', approvedSignatureandDate);
+		if (!approvedSignatureandDate) {
+			console.log('Please check the box before submitting.');
+			errorMessage = 'Please check the box before submitting.';
+			return;
+		}
+		errorMessage = '';
 		await updateHasSignedStatus();
-		
+
 		const pdfDoc = await PDFDocument.create();
 		const page = pdfDoc.addPage([800, 1100]);
 
@@ -165,6 +176,7 @@
 		link.href = URL.createObjectURL(blob);
 		link.download = 'Letter_of_Intent.pdf';
 		link.click();
+		location.reload();
 	}
 </script>
 
@@ -201,6 +213,17 @@
 	popularity. I am confident in my abilities and am fully committed to giving my best effort to
 	achieve success in this prestigious tournament. Please find my signature below, indicating my
 	intent to participate in the FLI Golf Tour:
+	{#if errorMessage}
+		<p class="text-red-500 mt-4 font-bold">{errorMessage}</p>
+	{/if}
+	<!-- Add this right after the Date and before the signature canvas -->
+	<label class="flex items-center space-x-2 mt-6">
+		<input bind:checked={approvedSignatureandDate} type="checkbox" />
+		<span
+			>By checking this box and signing this form, you {name} acknowledge and agree to the following
+			on the date of: {formattedDate}.</span
+		>
+	</label>
 	<div class="relative group">
 		<canvas
 			width="400"
@@ -213,9 +236,15 @@
 			Sign here
 		</div>
 	</div>
-	<button on:click={() => signaturePad.clear()}>Clear Signature</button>
 	<button
-		on:click={generatePDF}
+		class="btn btn-sm variant-ghost-surface p-2 flex-1 mr-1"
+		on:click={() => signaturePad.clear()}>Clear Signature</button
+	>
+	<button
+		on:click={() => {
+			console.log('Button clicked!');
+			generatePDF();
+		}}
 		class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
 		>Generate PDF</button
 	>
