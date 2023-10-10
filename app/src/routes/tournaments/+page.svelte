@@ -10,26 +10,40 @@
 
 	onMount(async () => {
 		try {
-			const { data, error } = await supabase.from('tournaments').select(`
+			const { data: tournamentData, error } = await supabase.from('tournaments').select(`
 				tournament_id,
 				name,
-				date,
+				start_date,
 				tournament_image_url,
 				upcoming,
-				venue:venues(name),
+				venue_id,
 				tournament_sponsors:sponsors(name)
 			`);
 
 			if (error) throw error;
 
-			tournaments =
-				data.map((t) => {
-					console.log(t); // Log each tournament
-					return {
-						...t,
-						sponsors: t.tournament_sponsors.map((s) => s.name)
-					};
-				}) || [];
+			// Fetch all venues for the tournaments in parallel
+			const venuePromises = tournamentData.map(async (tournament) => {
+				if (tournament.venue_id) {
+					const { data: venueData } = await supabase
+						.from('venues')
+						.select('name')
+						.eq('venue_id', tournament.venue_id);
+					return venueData ? venueData[0] : null;
+				}
+				return null;
+			});
+
+			const venues = await Promise.all(venuePromises);
+
+			// Merge the venue data into the tournament data
+			tournaments = tournamentData.map((tournament, index) => {
+				return {
+					...tournament,
+					venue: venues[index],
+					sponsors: tournament.tournament_sponsors.map((s) => s.name)
+				};
+			});
 
 			isLoading = false;
 		} catch (err) {
@@ -74,9 +88,9 @@
 			{#each tournaments.filter((t) => t.upcoming) as tournament}
 				<TournamentCard
 					name={tournament.name}
-					date={tournament.date}
+					date={tournament.start_date}
 					tournamentImageUrl={tournament.tournament_image_url}
-					venue={tournament.venue.name}
+					venue={tournament.venue ? tournament.venue.name : 'No Venue'}
 					sponsor={tournament.sponsors.length ? tournament.sponsors.join(', ') : 'No Sponsor'}
 				/>
 			{/each}
@@ -86,9 +100,9 @@
 			{#each tournaments.filter((t) => !t.upcoming) as tournament}
 				<TournamentCard
 					name={tournament.name}
-					date={tournament.date}
+					date={tournament.start_date}
 					tournamentImageUrl={tournament.tournament_image_url}
-					venue={tournament.venue.name}
+					venue={tournament.venue ? tournament.venue.name : 'No Venue'}
 					sponsor={tournament.sponsors.length ? tournament.sponsors.join(', ') : 'No Sponsor'}
 				/>
 			{/each}
