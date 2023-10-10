@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import VegasPopUp from '$lib/components/VegasPopUp.svelte';
 	import { overlayStore } from '$lib/overlayStore.ts';
 	import Icon from '@iconify/svelte';
