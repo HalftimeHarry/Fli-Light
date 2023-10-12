@@ -10,15 +10,24 @@
 	export let venue: string = 'No Venue';
 	export let sponsor: string = 'No Sponsor';
 	export let isCompleted: boolean = false;
-	export let venueId: string | null = null;
+	export let venueId: number | null = null;
+	let holesDataArray: any[] = [];
 	let holesData: any[] = [];
+	let totalDistance: number | null = null;
+	let totalPar: number | null = null;
+
+	interface TotalDistanceAndPar {
+		total_distance: bigint; // Update to bigint if needed
+		total_par: bigint; // Update to bigint if needed
+	}
 
 	let isCourseVisible = false; // To control the visibility of the holes list
 
 	function toggleCourse(): void {
-		isCourseVisible = !isCourseVisible; // Toggle visibility
+		isCourseVisible = !isCourseVisible;
 		if (isCourseVisible) {
-			showCourse(); // Fetch and show holes data if it's being made visible
+			showCourse();
+			fetchAggregateValues();
 		}
 	}
 
@@ -44,6 +53,30 @@
 		}
 	}
 
+	async function fetchAggregateValues(): Promise<void> {
+		try {
+			//... Previous code
+			const { data, error } = await supabase.rpc('get_total_distance_and_par', {
+				venue_id_arg: venueId
+			});
+
+			console.log('Returned Data:', data);
+
+			if (error) {
+				console.error('Supabase Error:', error);
+				throw error;
+			}
+			
+			if(data && data.length > 0) {
+				totalDistance = data[0].total_distance;
+				totalPar = data[0].total_par;
+			}
+
+		} catch (err) {
+			console.error('Error:', err.message || err);
+		}
+	}
+
 	function showPairings(): void {
 		console.log('Pairings for:', name);
 		// Your logic for showing pairings here...
@@ -54,14 +87,8 @@
 		// Your logic for showing results here...
 	}
 
-	onMount(async () => {
-		// Fetch your data here...
-		// Example:
-		holesData = [
-			{ name: 'Hole 1', par: 3 },
-			{ name: 'Hole 2', par: 4 }
-			// More holes...
-		];
+	onMount(() => {
+		fetchAggregateValues();
 	});
 </script>
 
@@ -97,12 +124,20 @@
 		</div>
 	{/if}
 	{#if holesData.length > 0 && isCourseVisible}
+	    {#if totalDistance != null && totalPar != null}
+        <div class="mt-4 mb-4">
+            <p>Total Distance: {totalDistance}</p>
+            <p>Total Par: {totalPar}</p>
+        </div>
+    {:else}
+        <p>Loading totals...</p>
+    {/if}
 		<Accordion>
 			{#each holesData as hole}
 				<AccordionItem>
 					<svelte:fragment slot="lead" />
 					<svelte:fragment slot="summary">
-					Hole -{hole.hole_number}
+						Hole -{hole.hole_number}
 					</svelte:fragment>
 					<svelte:fragment slot="content">
 						<HoleDetails holeData={hole} />
