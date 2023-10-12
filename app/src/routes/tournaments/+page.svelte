@@ -92,18 +92,20 @@
 					tournamentImageUrl={tournament.tournament_image_url}
 					venue={tournament.venue ? tournament.venue.name : 'No Venue'}
 					sponsor={tournament.sponsors.length ? tournament.sponsors.join(', ') : 'No Sponsor'}
+					venueId={tournament.venue_id}
 				/>
 			{/each}
 		</div>
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-			{#each tournaments.filter((t) => !t.upcoming) as tournament}
+			{#each tournaments.filter((t) => t.upcoming) as tournament}
 				<TournamentCard
 					name={tournament.name}
 					date={tournament.start_date}
 					tournamentImageUrl={tournament.tournament_image_url}
 					venue={tournament.venue ? tournament.venue.name : 'No Venue'}
 					sponsor={tournament.sponsors.length ? tournament.sponsors.join(', ') : 'No Sponsor'}
+					venueId={tournament.venue_id}
 				/>
 			{/each}
 		</div>
