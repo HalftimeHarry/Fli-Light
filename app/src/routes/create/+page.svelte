@@ -1,5 +1,5 @@
 <script lang="ts">
-	import GenerateFliGolfEventForm from '$lib/components/GenerateFliGolfEventForm.svelte';
+	import AssignScoring from '$lib/components/AssignScoring.svelte';
 </script>
 
-<GenerateFliGolfEventForm />
+<AssignScoring />
