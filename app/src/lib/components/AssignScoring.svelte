@@ -45,27 +45,65 @@
 		}
 	}
 
+// Inside the getHoleCountWithRPC function
 	async function getHoleCountWithRPC() {
-		try {
-			console.log(selectedTournamentId);
-			await getReferencedVenueFromTournament(selectedTournamentId); // Call the function to get venues
-			const venue = venuesReferencedByTournament[0]; // Assuming there's only one venue
-			if (!venue) {
-				console.error('No venue found for the selected tournament.');
-				return;
-			}
-			const { data, error } = await supabase.rpc('get_holes_by_venue_id', {
-				venue_id_arg: venue.venue_id // Use venue_id as the argument
-			});
-
-			if (error) {
-				console.error(error);
-			} else {
-				holeCount = data.length; // Assuming `data` is an array of holes
-			}
-		} catch (error) {
-			console.error(error);
+	try {
+		console.log(selectedTournamentId);
+		await getReferencedVenueFromTournament(selectedTournamentId); // Call the function to get venues
+		const venue = venuesReferencedByTournament[0]; // Assuming there's only one venue
+		if (!venue) {
+		console.error('No venue found for the selected tournament.');
+		return;
 		}
+		const { data: holes, error } = await supabase.rpc('get_holes_by_venue_id', {
+		venue_id_arg: venue.venue_id // Use venue_id as the argument
+		});
+
+		if (error) {
+		console.error(error);
+		} else {
+		holeCount = holes.length; // Assuming `data` is an array of holes
+
+		// Check if you have enough holes (e.g., at least 18 for a typical golf course)
+		const enoughHoles = holeCount >= 18; // Adjust the number as needed
+
+		if (enoughHoles) {
+			console.log('You have enough holes.');
+			assignHolesToGroups(holes); // Call the function to assign holes to groups
+		} else {
+			console.log('You need more holes to create a complete golf course.');
+		}
+		}
+	} catch (error) {
+		console.error(error);
+	}
+	}
+
+	// Function to assign holes to groups
+	async function assignHolesToGroups(holes) {
+	try {
+		if (!selectedTournamentId) {
+		console.error('Please select a tournament.');
+		return;
+		}
+
+		// Iterate through the holes and assign them to groups
+		for (let i = 0; i < holes.length; i++) {
+		const hole = holes[i];
+		const groupId = i + 1; // Assuming group IDs start from 1
+
+		// Insert the hole assignment into the 'group_hole_assignment' table
+		await supabase
+			.from('group_hole_assignment')
+			.insert([
+			{ group_id: groupId, hole_number: hole.hole_number }
+			]);
+		
+		console.log(`Hole ${hole.hole_number} assigned to Group ${groupId}`);
+		}
+	} catch (error) {
+		console.error(error);
+	}
 	}
 
 	// Fetch tournaments on component load
@@ -98,6 +136,9 @@
 
 	{#if holeCount !== null}
 		<p>This venue has: {holeCount} holes</p>
+		<button on:click={assignHolesToGroups} class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+			Assign Holes to Groups
+		</button>
 	{/if}
 </main>
 
