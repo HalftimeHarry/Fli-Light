@@ -17,6 +17,7 @@
 	let totalPar: number | null = null;
 	let groupData: any[] = [];
 	let isLoading = false;
+	let isGroupVisible = false; // To control the visibility of the groups list
 
 	interface TotalDistanceAndPar {
 		total_distance: bigint; // Update to bigint if needed
@@ -24,6 +25,13 @@
 	}
 
 	let isCourseVisible = false; // To control the visibility of the holes list
+
+	function toggleGroup(): void {
+		isGroupVisible = !isGroupVisible;
+		if (isGroupVisible) {
+			showGroups();
+		}
+	}
 
 	function toggleCourse(): void {
 		isCourseVisible = !isCourseVisible;
@@ -200,8 +208,8 @@
 
 	{#if !isCompleted}
 		<div class="flex mt-4 space-x-2">
-			<button class="text-xs px-2 py-1 bg-blue-500 text-white rounded" on:click={showGroups}>
-				Groups
+			<button class="text-xs px-2 py-1 bg-blue-500 text-white rounded" on:click={toggleGroup}>
+				{isGroupVisible ? 'Back' : 'Group'}
 			</button>
 			<button class="text-xs px-2 py-1 bg-green-500 text-white rounded" on:click={toggleCourse}>
 				{isCourseVisible ? 'Back' : 'Course'}
