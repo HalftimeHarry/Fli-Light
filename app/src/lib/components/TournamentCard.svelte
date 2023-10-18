@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { supabase } from '../../supabaseClient';
 	import HoleDetails from '$lib/components/HoleDetails.svelte';
-	import Pairing from '$lib/components/Pairings.svelte';
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
@@ -17,6 +16,7 @@
 	let totalDistance: number | null = null;
 	let totalPar: number | null = null;
 	let groupData: any[] = [];
+	let isLoading = false;
 
 	interface TotalDistanceAndPar {
 		total_distance: bigint; // Update to bigint if needed
@@ -75,7 +75,8 @@
 	}
 
 	async function showGroups(): Promise<void> {
-		console.log('Groups for:', name);
+		isLoading = true;
+		console.log('Fetching groups for:', name);
 
 		try {
 			const { data: groups, error: groupsError } = await supabase.from('groups').select('*');
@@ -85,14 +86,26 @@
 				throw groupsError;
 			}
 
+			console.log('Fetched groups:', groups);
+
 			const enrichedGroups = [];
 
 			for (const group of groups) {
 				const teamIDs = await fetchTeamsByRef(group.group_pairing_ref);
+				console.log(`Fetched team IDs for group ${group.group_name}:`, teamIDs);
+
 				const teams = [];
 
 				for (const teamID of teamIDs) {
 					const team = await fetchTeamByID(teamID);
+					console.log(`Fetched team data for team ID ${teamID}:`, team);
+
+					// Fetch pros for this team
+					const pros = await fetchProsByTeamID(teamID);
+					console.log(`Fetched pros for team ID ${teamID}:`, pros);
+
+					team.pros = pros; // Add pros data to the team object
+
 					teams.push(team);
 				}
 
@@ -101,8 +114,11 @@
 					teams
 				});
 			}
-			console.log('Enriched Groups:', enrichedGroups);
-			groupData = enrichedGroups; // <-- Here, update the groupData array
+
+			console.log('Final enriched groups:', enrichedGroups);
+
+			groupData = enrichedGroups; // <-- Update the groupData array
+			isLoading = false; // Fetching completed
 		} catch (err) {
 			console.error('Unexpected error in showGroups:', err.message);
 		}
@@ -146,6 +162,22 @@
 		}
 	}
 
+	async function fetchProsByTeamID(teamID: number): Promise<any[]> {
+		try {
+			const { data, error } = await supabase.from('pros').select('*').eq('team_id', teamID);
+
+			if (error) {
+				console.error('Error fetching pros by team ID:', error.message);
+				throw error;
+			}
+
+			return data || [];
+		} catch (err) {
+			console.error('Unexpected error in fetchProsByTeamID:', err.message);
+			throw err;
+		}
+	}
+
 	onMount(() => {
 		fetchAggregateValues();
 	});
@@ -182,56 +214,69 @@
 			</button>
 		</div>
 	{/if}
-	{#if holesData.length > 0 && isCourseVisible}
-		{#if totalDistance != null && totalPar != null}
-			<div class="mt-4 mb-4">
-				<p>Total Distance: {totalDistance}</p>
-				<p>Total Par: {totalPar}</p>
-			</div>
-		{:else}
-			<p>Loading totals...</p>
+	<!-- Other code above... -->
+
+	{#if isCourseVisible}
+		{#if holesData.length > 0}
+			{#if totalDistance != null && totalPar != null}
+				<div class="mt-4 mb-4">
+					<p>Total Distance: {totalDistance}</p>
+					<p>Total Par: {totalPar}</p>
+				</div>
+			{:else}
+				<p>Loading totals...</p>
+			{/if}
+			<Accordion>
+				{#each holesData as hole}
+					<AccordionItem>
+						<svelte:fragment slot="lead" />
+						<svelte:fragment slot="summary">
+							Hole -{hole.hole_number}
+						</svelte:fragment>
+						<svelte:fragment slot="content">
+							<HoleDetails holeData={hole} />
+						</svelte:fragment>
+					</AccordionItem>
+				{/each}
+			</Accordion>
 		{/if}
+	{:else if isLoading}
+		<div>Loading...</div>
+	{:else if groupData && groupData.length > 0}
 		<Accordion>
-			{#each holesData as hole}
+			{#each groupData as group (group.group_id)}
 				<AccordionItem>
-					<svelte:fragment slot="lead" />
 					<svelte:fragment slot="summary">
-						Hole -{hole.hole_number}
+						{group.group_name}
 					</svelte:fragment>
 					<svelte:fragment slot="content">
-						<HoleDetails holeData={hole} />
+						<Accordion>
+							{#each group.teams as team}
+								<AccordionItem>
+									<svelte:fragment slot="summary">
+										<div class="flex items-center space-x-4">
+											<img src={team.team_image_url} alt={team.team_name} class="team-img" />
+											<p>{team.name}</p>
+										</div>
+									</svelte:fragment>
+									<svelte:fragment slot="content">
+										{#each team.pros as pro}
+											<div class="flex items-center space-x-4">
+												<img src={pro.pro_image_url} alt={pro.name} class="pro-img" />
+												<p>{pro.name}</p>
+											</div>
+										{/each}
+									</svelte:fragment>
+								</AccordionItem>
+							{/each}
+						</Accordion>
 					</svelte:fragment>
 				</AccordionItem>
 			{/each}
 		</Accordion>
 	{/if}
 
-	{#if groupData && groupData.length > 0}
-		<Accordion>
-			{#each groupData as group (group.group_id)}
-				<!-- Assuming each group has an id property for key -->
-				<AccordionItem>
-					<svelte:fragment slot="summary">
-						{group.group_name}
-					</svelte:fragment>
-					<svelte:fragment slot="content">
-						{#if group.teams && group.teams.length > 0}
-							{#each group.teams as team}
-								<div class="flex items-center space-x-4">
-									{#if team.team_image_url}
-										<img src={team.team_image_url} alt={team.name} class="team-img" />
-									{/if}
-									<p>{team.name}</p>
-								</div>
-							{/each}
-						{:else}
-							<p>No teams for this group.</p>
-						{/if}
-					</svelte:fragment>
-				</AccordionItem>
-			{/each}
-		</Accordion>
-	{/if}
+	<!-- Other code below... -->
 </div>
 
 <style>
@@ -239,5 +284,10 @@
 		border-radius: 50%; /* round image */
 		width: 50px;
 		height: 50px;
+	}
+	.pro-img {
+		border-radius: 50%; /* round image */
+		width: 40px;
+		height: 40px;
 	}
 </style>
