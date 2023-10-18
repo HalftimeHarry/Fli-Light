@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { supabase } from '../../supabaseClient';
 	import HoleDetails from '$lib/components/HoleDetails.svelte';
+	import Pairing from '$lib/components/Pairings.svelte';
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 
@@ -15,6 +16,7 @@
 	let holesData: any[] = [];
 	let totalDistance: number | null = null;
 	let totalPar: number | null = null;
+	let groupData: any[] = [];
 
 	interface TotalDistanceAndPar {
 		total_distance: bigint; // Update to bigint if needed
@@ -32,7 +34,6 @@
 	}
 
 	async function showCourse(): Promise<void> {
-		console.log('Venue:', venue);
 		try {
 			if (!venueId) {
 				throw new Error('Venue ID is not defined');
@@ -46,7 +47,6 @@
 				throw error;
 			}
 
-			console.log('Holes for venue ID', venueId, ':', data);
 			holesData = data || []; // Save the fetched data to a local variable
 		} catch (err) {
 			console.error('Error fetching holes:', err.message || err);
@@ -60,31 +60,90 @@
 				venue_id_arg: venueId
 			});
 
-			console.log('Returned Data:', data);
-
 			if (error) {
 				console.error('Supabase Error:', error);
 				throw error;
 			}
-			
-			if(data && data.length > 0) {
+
+			if (data && data.length > 0) {
 				totalDistance = data[0].total_distance;
 				totalPar = data[0].total_par;
 			}
-
 		} catch (err) {
 			console.error('Error:', err.message || err);
 		}
 	}
 
-	function showPairings(): void {
-		console.log('Pairings for:', name);
-		// Your logic for showing pairings here...
+	async function showGroups(): Promise<void> {
+		console.log('Groups for:', name);
+
+		try {
+			const { data: groups, error: groupsError } = await supabase.from('groups').select('*');
+
+			if (groupsError) {
+				console.error('Error fetching groups:', groupsError.message);
+				throw groupsError;
+			}
+
+			const enrichedGroups = [];
+
+			for (const group of groups) {
+				const teamIDs = await fetchTeamsByRef(group.group_pairing_ref);
+				const teams = [];
+
+				for (const teamID of teamIDs) {
+					const team = await fetchTeamByID(teamID);
+					teams.push(team);
+				}
+
+				enrichedGroups.push({
+					...group,
+					teams
+				});
+			}
+			console.log('Enriched Groups:', enrichedGroups);
+			groupData = enrichedGroups; // <-- Here, update the groupData array
+		} catch (err) {
+			console.error('Unexpected error in showGroups:', err.message);
+		}
 	}
 
-	function showResults(): void {
-		console.log('Results for:', name);
-		// Your logic for showing results here...
+	async function fetchTeamsByRef(ref) {
+		try {
+			const { data, error } = await supabase.rpc('in_group_fetch_teams_from_pairing', {
+				group_pairing_ref: ref
+			});
+
+			if (error) {
+				console.error('Error fetching teams using RPC:', error.message);
+				throw error;
+			}
+
+			return data;
+		} catch (err) {
+			console.error('Unexpected error in fetchTeamsByRef:', err.message);
+			throw err;
+		}
+	}
+
+	async function fetchTeamByID(teamID) {
+		try {
+			const { data, error } = await supabase
+				.from('teams')
+				.select('*')
+				.eq('team_id', teamID)
+				.single();
+
+			if (error) {
+				console.error('Error fetching team by ID:', error.message);
+				throw error;
+			}
+
+			return data;
+		} catch (err) {
+			console.error('Unexpected error in fetchTeamByID:', err.message);
+			throw err;
+		}
 	}
 
 	onMount(() => {
@@ -109,8 +168,8 @@
 
 	{#if !isCompleted}
 		<div class="flex mt-4 space-x-2">
-			<button class="text-xs px-2 py-1 bg-blue-500 text-white rounded" on:click={showPairings}>
-				Pairings
+			<button class="text-xs px-2 py-1 bg-blue-500 text-white rounded" on:click={showGroups}>
+				Groups
 			</button>
 			<button class="text-xs px-2 py-1 bg-green-500 text-white rounded" on:click={toggleCourse}>
 				{isCourseVisible ? 'Back' : 'Course'}
@@ -124,14 +183,14 @@
 		</div>
 	{/if}
 	{#if holesData.length > 0 && isCourseVisible}
-	    {#if totalDistance != null && totalPar != null}
-        <div class="mt-4 mb-4">
-            <p>Total Distance: {totalDistance}</p>
-            <p>Total Par: {totalPar}</p>
-        </div>
-    {:else}
-        <p>Loading totals...</p>
-    {/if}
+		{#if totalDistance != null && totalPar != null}
+			<div class="mt-4 mb-4">
+				<p>Total Distance: {totalDistance}</p>
+				<p>Total Par: {totalPar}</p>
+			</div>
+		{:else}
+			<p>Loading totals...</p>
+		{/if}
 		<Accordion>
 			{#each holesData as hole}
 				<AccordionItem>
@@ -146,4 +205,39 @@
 			{/each}
 		</Accordion>
 	{/if}
+
+	{#if groupData && groupData.length > 0}
+		<Accordion>
+			{#each groupData as group (group.group_id)}
+				<!-- Assuming each group has an id property for key -->
+				<AccordionItem>
+					<svelte:fragment slot="summary">
+						{group.group_name}
+					</svelte:fragment>
+					<svelte:fragment slot="content">
+						{#if group.teams && group.teams.length > 0}
+							{#each group.teams as team}
+								<div class="flex items-center space-x-4">
+									{#if team.team_image_url}
+										<img src={team.team_image_url} alt={team.name} class="team-img" />
+									{/if}
+									<p>{team.name}</p>
+								</div>
+							{/each}
+						{:else}
+							<p>No teams for this group.</p>
+						{/if}
+					</svelte:fragment>
+				</AccordionItem>
+			{/each}
+		</Accordion>
+	{/if}
 </div>
+
+<style>
+	.team-img {
+		border-radius: 50%; /* round image */
+		width: 50px;
+		height: 50px;
+	}
+</style>
