@@ -3,6 +3,8 @@
 	import HoleDetails from '$lib/components/HoleDetails.svelte';
 	import { Accordion, AccordionItem } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
+	import { ConicGradient } from '@skeletonlabs/skeleton';
+	import type { ConicStop } from '@skeletonlabs/skeleton';
 
 	export let name: string;
 	export let date: Date | null = null;
@@ -196,32 +198,44 @@
 >
 	{#if tournamentImageUrl}
 		<img
-			class="w-16 h-16 rounded-full object-cover mb-4"
+			class="w-16 h-16 sm:w-32 sm:h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-contain mb-4 mt-4"
 			src={tournamentImageUrl}
 			alt="{name}'s image"
 		/>
 	{/if}
-	<div class="text-xl font-bold mb-2">{name}</div>
-	{#if date}<div class="text-gray-500">Date: {date}</div>{/if}
-	<div class="text-gray-400">Venue: {venue}</div>
-	<div class="text-gray-400">Sponsor: {sponsor}</div>
+	<div class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2">{name}</div>
+	{#if date}<div class="text-gray-500 text-sm sm:text-base md:text-lg lg:text-xl">
+			Date: {date}
+		</div>{/if}
+	<div class="text-gray-400 text-sm sm:text-base md:text-lg lg:text-xl">Venue: {venue}</div>
+	<div class="text-gray-400 text-sm sm:text-base md:text-lg lg:text-xl">Sponsor: {sponsor}</div>
 
 	{#if !isCompleted}
 		<div class="flex mt-4 space-x-2">
-			<button class="text-xs px-2 py-1 bg-blue-500 text-white rounded" on:click={toggleGroup}>
+			<button
+				class="text-xs sm:text-sm md:text-base lg:text-lg px-2 sm:px-3 md:px-4 lg:px-5 py-1 sm:py-2 md:py-3 lg:py-4 bg-blue-500 text-white rounded"
+				on:click={toggleGroup}
+			>
 				{isGroupVisible ? 'Back' : 'Group'}
 			</button>
-			<button class="text-xs px-2 py-1 bg-green-500 text-white rounded" on:click={toggleCourse}>
+			<button
+				class="text-xs sm:text-sm md:text-base lg:text-lg px-2 sm:px-3 md:px-4 lg:px-5 py-1 sm:py-2 md:py-3 lg:py-4 bg-green-500 text-white rounded"
+				on:click={toggleCourse}
+			>
 				{isCourseVisible ? 'Back' : 'Course'}
 			</button>
 		</div>
 	{:else}
 		<div class="flex mt-4 space-x-2">
-			<button class="text-xs px-2 py-1 bg-red-500 text-white rounded" on:click={showResults}>
+			<button
+				class="text-xs sm:text-sm md:text-base lg:text-lg px-2 sm:px-3 md:px-4 lg:px-5 py-1 sm:py-2 md:py-3 lg:py-4 bg-red-500 text-white rounded"
+				on:click={showResults}
+			>
 				Results
 			</button>
 		</div>
 	{/if}
+
 	<!-- Other code above... -->
 
 	{#if isCourseVisible}
@@ -249,7 +263,7 @@
 			</Accordion>
 		{/if}
 	{:else if isLoading}
-		<div>Loading...</div>
+		<div class="spinner" />
 	{:else if groupData && groupData.length > 0}
 		<Accordion>
 			{#each groupData as group (group.group_id)}
@@ -297,5 +311,23 @@
 		border-radius: 50%; /* round image */
 		width: 40px;
 		height: 40px;
+	}
+	.spinner {
+		border: 4px solid rgba(255, 255, 255, 0.1);
+		border-radius: 50%;
+		border-top: 4px solid #ffffff;
+		width: 40px;
+		height: 40px;
+		animation: spin 1s linear infinite;
+		margin-top: 1.5rem; /* This equals to mt-6 in Tailwind CSS */
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 </style>
