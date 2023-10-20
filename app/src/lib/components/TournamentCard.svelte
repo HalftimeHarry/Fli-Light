@@ -6,6 +6,7 @@
 	import { ConicGradient } from '@skeletonlabs/skeleton';
 	import type { ConicStop } from '@skeletonlabs/skeleton';
 
+
 	export let name: string;
 	export let date: Date | null = null;
 	export let tournamentImageUrl: string | null = null;
@@ -13,13 +14,13 @@
 	export let sponsor: string = 'No Sponsor';
 	export let isCompleted: boolean = false;
 	export let venueId: number | null = null;
+	export let upcoming: boolean = false; // Set this to true or false based on your business logic
 	let holesDataArray: any[] = [];
 	let holesData: any[] = [];
 	let totalDistance: number | null = null;
 	let totalPar: number | null = null;
 	let groupData: any[] = [];
 	let isLoading = false;
-	let isGroupVisible = false; // To control the visibility of the groups list
 
 	interface TotalDistanceAndPar {
 		total_distance: bigint; // Update to bigint if needed
@@ -27,11 +28,14 @@
 	}
 
 	let isCourseVisible = false; // To control the visibility of the holes list
+	let isGroupVisible = false; // To control the visibility of the groups list
 
 	function toggleGroup(): void {
 		isGroupVisible = !isGroupVisible;
 		if (isGroupVisible) {
 			showGroups();
+		} else {
+			location.reload();
 		}
 	}
 

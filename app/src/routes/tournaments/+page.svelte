@@ -95,9 +95,6 @@
 					venueId={tournament.venue_id}
 				/>
 			{/each}
-			<button class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-700 font-bold"
-				>Purchase Tickets</button
-			>
 		</div>
 	{:else}
 		<div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
@@ -112,9 +109,6 @@
 					venueId={tournament.venue_id}
 				/>
 			{/each}
-			<button class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700 font-bold"
-				>Results</button
-			>
 		</div>
 	{/if}
 </div>
