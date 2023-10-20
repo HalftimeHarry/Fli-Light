@@ -6,7 +6,6 @@
 	import { ConicGradient } from '@skeletonlabs/skeleton';
 	import type { ConicStop } from '@skeletonlabs/skeleton';
 
-
 	export let name: string;
 	export let date: Date | null = null;
 	export let tournamentImageUrl: string | null = null;
@@ -14,7 +13,6 @@
 	export let sponsor: string = 'No Sponsor';
 	export let isCompleted: boolean = false;
 	export let venueId: number | null = null;
-	export let upcoming: boolean = false; // Set this to true or false based on your business logic
 	let holesDataArray: any[] = [];
 	let holesData: any[] = [];
 	let totalDistance: number | null = null;
@@ -219,6 +217,7 @@
 			<button
 				class="text-xs sm:text-sm md:text-base lg:text-lg px-2 sm:px-3 md:px-4 lg:px-5 py-1 sm:py-2 md:py-3 lg:py-4 bg-blue-500 text-white rounded"
 				on:click={toggleGroup}
+				disabled={isCourseVisible}
 			>
 				{isGroupVisible ? 'Back' : 'Group'}
 			</button>
