@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { ConicGradient } from '@skeletonlabs/skeleton';
 	import type { ConicStop } from '@skeletonlabs/skeleton';
+	import TicketButton from '$lib/components/TicketButton.svelte'; // Import the TicketButton component
 
 	export let name: string;
 	export let date: Date | null = null;
@@ -13,13 +14,13 @@
 	export let sponsor: string = 'No Sponsor';
 	export let isCompleted: boolean = false;
 	export let venueId: number | null = null;
+	export let isUpcoming: boolean; // Add this line to accept isUpcoming as a prop
 	let holesDataArray: any[] = [];
 	let holesData: any[] = [];
 	let totalDistance: number | null = null;
 	let totalPar: number | null = null;
 	let groupData: any[] = [];
 	let isLoading = false;
-	let isGroupVisible = false; // To control the visibility of the groups list
 
 	interface TotalDistanceAndPar {
 		total_distance: bigint; // Update to bigint if needed
@@ -27,11 +28,14 @@
 	}
 
 	let isCourseVisible = false; // To control the visibility of the holes list
+	let isGroupVisible = false; // To control the visibility of the groups list
 
 	function toggleGroup(): void {
 		isGroupVisible = !isGroupVisible;
 		if (isGroupVisible) {
 			showGroups();
+		} else {
+			location.reload();
 		}
 	}
 
@@ -196,6 +200,16 @@
 <div
 	class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex flex-col items-center text-center"
 >
+	<div class="flex justify-between items-center w-full">
+		<div>
+			<!-- Other content of your card goes here -->
+		</div>
+		<TicketButton
+			{isUpcoming}
+			isCompleted={!isUpcoming}
+			class="text-xs py-1 px-2 bg-blue-500 text-white rounded mr-2"
+		/>
+	</div>
 	{#if tournamentImageUrl}
 		<img
 			class="w-16 h-16 sm:w-32 sm:h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-contain mb-4 mt-4"
@@ -215,6 +229,7 @@
 			<button
 				class="text-xs sm:text-sm md:text-base lg:text-lg px-2 sm:px-3 md:px-4 lg:px-5 py-1 sm:py-2 md:py-3 lg:py-4 bg-blue-500 text-white rounded"
 				on:click={toggleGroup}
+				disabled={isCourseVisible}
 			>
 				{isGroupVisible ? 'Back' : 'Group'}
 			</button>
