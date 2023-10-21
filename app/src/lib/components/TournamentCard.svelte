@@ -200,7 +200,16 @@
 <div
 	class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex flex-col items-center text-center"
 >
-	<TicketButton {isUpcoming} isCompleted={!isUpcoming} />
+	<div class="flex justify-between items-center w-full">
+		<div>
+			<!-- Other content of your card goes here -->
+		</div>
+		<TicketButton
+			{isUpcoming}
+			isCompleted={!isUpcoming}
+			class="text-xs py-1 px-2 bg-blue-500 text-white rounded mr-2"
+		/>
+	</div>
 	{#if tournamentImageUrl}
 		<img
 			class="w-16 h-16 sm:w-32 sm:h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-contain mb-4 mt-4"
