@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { ConicGradient } from '@skeletonlabs/skeleton';
 	import type { ConicStop } from '@skeletonlabs/skeleton';
+	import TicketButton from '$lib/components/TicketButton.svelte'; // Import the TicketButton component
 
 	export let name: string;
 	export let date: Date | null = null;
@@ -13,6 +14,7 @@
 	export let sponsor: string = 'No Sponsor';
 	export let isCompleted: boolean = false;
 	export let venueId: number | null = null;
+	export let isUpcoming: boolean; // Add this line to accept isUpcoming as a prop
 	let holesDataArray: any[] = [];
 	let holesData: any[] = [];
 	let totalDistance: number | null = null;
@@ -198,6 +200,7 @@
 <div
 	class="border border-gray-300 rounded p-4 transition-shadow hover:shadow-md flex flex-col items-center text-center"
 >
+	<TicketButton {isUpcoming} isCompleted={!isUpcoming} />
 	{#if tournamentImageUrl}
 		<img
 			class="w-16 h-16 sm:w-32 sm:h-32 md:w-48 md:h-48 lg:w-64 lg:h-64 object-contain mb-4 mt-4"

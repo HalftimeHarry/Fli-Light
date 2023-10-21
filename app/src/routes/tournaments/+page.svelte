@@ -93,6 +93,7 @@
 					venue={tournament.venue ? tournament.venue.name : 'No Venue'}
 					sponsor={tournament.sponsors.length ? tournament.sponsors.join(', ') : 'No Sponsor'}
 					venueId={tournament.venue_id}
+					isUpcoming={tournament.upcoming}
 				/>
 			{/each}
 		</div>
@@ -107,6 +108,7 @@
 					venue={tournament.venue ? tournament.venue.name : 'No Venue'}
 					sponsor={tournament.sponsors.length ? tournament.sponsors.join(', ') : 'No Sponsor'}
 					venueId={tournament.venue_id}
+					isUpcoming={tournament.upcoming}
 				/>
 			{/each}
 		</div>
