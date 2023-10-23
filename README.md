@@ -3,33 +3,77 @@ I am a scalled down version of Fli Golf
 
 Database Design:
 
-Pros Table:
+## Pros Table:
 
 pro_id, name, gender, image, team_id (foreign key), earnings, points
-Sponsors Table:
+
+## Sponsors Table:
 
 sponsor_id, name, image
-Teams Table:
+
+## Teams Table:
 
 team_id, name, image, sponsor_id (foreign key), earnings, points
 Venues Table:
 
 venue_id, name, location, image
-Tournaments Table:
+
+## Tournaments Table:
 
 tournament_id, name, date, venue_id (foreign key), winner_pro_id (foreign key), winner_team_id (foreign key)
 Leaderboards (Live Tournaments):
 
+## Leaderbord
+
 leaderboard_id, tournament_id (foreign key), pro_id (foreign key), team_id (foreign key), score, position
 Note: The earnings and points fields in both the Pros and Teams tables will be used to track cumulative earnings and points.
 
-Real-time Updates:
+
+# How to Setup a Tournament using "Svelte UI" and "Supabase"
+
+## Step 1: Manually Input Data
+- Add a row in the "Tournaments" table.
+- Add a row in the "Venues" table.
+
+## Step 2: Import Holes Data using CSV
+Utilize a CSV file to populate the holes. Below is the sample structure of the CSV file:
+
+hole_id,hole_number,hole_name,par,distance,venue_id,hole_type
+32,3,,3,386,4,
+33,4,,4,708,4,
+34,5,,3,325,4,
+
+## Step 3: Import Pairings Data using CSV
+Use a CSV file to input pairings data. For this example, we have used Chat GPT to randomly generate pairings. Here is a sample CSV:
+
+pairings_id,tour_ref,team_a,team_b,pairing_name
+7,3,11,2,
+8,3,5,1,
+9,3,3,10,
+10,3,12,6,
+11,3,8,7,
+12,3,9,4,
+
+## Step 4: Import Groups Data using CSV
+Utilize a CSV file to input groups data. In this instance, Chat GPT was used to set group names based on the pairings. Below is a sample CSV:
+
+
+
+## Real-time Updates:
 
 Supabase supports real-time functionality. You can utilize this feature to make sure that when the leaderboard data changes (scores, positions), it updates instantly for the users viewing the app.
 API Endpoints:
 
 You'll be able to use Supabase's auto-generated API for common CRUD operations. For custom logic, you may want to utilize serverless functions.
 Implementation:
+
+group_id,tee_time,group_pairing_ref,group_name
+7,13:00:00,7,Group 1 Chain Breakers vs. Birdie Storm - Live Music Disc Golf Invitational (2025)
+8,13:00:00,8,Group 2 Midas Touch vs. Ace Makers - Live Music Disc Golf Invitational (2025)
+9,13:00:00,9,Group 3 Chain Seekers vs. Disc Dynasty - Live Music Disc Golf Invitational (2025)
+10,13:00:00,10,Group 4 Hyzer Heros vs. Flight Squad - Live Music Disc Golf Invitational (2025)
+11,13:00:00,11,Group 5 Glide Masters vs. Disc Jesters - Live Music Disc Golf Invitational (2025)
+12,13:00:00,12,Group 6 Fairway Bombers vs. Huk-a-Mania - Live Music Disc Golf Invitational (2025)
 
 Utilize Supabase's client libraries to interact with the backend.
 Use PostgreSQL's rich querying capability for things like:
