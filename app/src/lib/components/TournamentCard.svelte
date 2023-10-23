@@ -8,6 +8,7 @@
 	import TicketButton from '$lib/components/TicketButton.svelte'; // Import the TicketButton component
 
 	export let name: string;
+	export let tournamentId: number;
 	export let date: Date | null = null;
 	export let tournamentImageUrl: string | null = null;
 	export let venue: string = 'No Venue';
@@ -88,19 +89,21 @@
 		}
 	}
 
-	async function showGroups(): Promise<void> {
-		isLoading = true;
-		console.log('Fetching groups for:', name);
+async function showGroups(): Promise<void> {
+    isLoading = true;
+    console.log('Fetching groups for:', tournamentId);
 
-		try {
-			const { data: groups, error: groupsError } = await supabase.from('groups').select('*');
+    try {
+        const { data: groups, error } = await supabase.rpc('fetchgroupsviapairingsandrefrencedtournament', {
+            tournament_id: tournamentId
+        });
 
-			if (groupsError) {
-				console.error('Error fetching groups:', groupsError.message);
-				throw groupsError;
-			}
+        if (error) {  // changed from groupsError to error
+            console.error('Error fetching groups:', error.message);
+            throw error;  // changed from groupsError to error
+        }
 
-			console.log('Fetched groups:', groups);
+        console.log('Fetched groups:', groups);
 
 			const enrichedGroups = [];
 
@@ -134,9 +137,9 @@
 			groupData = enrichedGroups; // <-- Update the groupData array
 			isLoading = false; // Fetching completed
 		} catch (err) {
-			console.error('Unexpected error in showGroups:', err.message);
-		}
-	}
+        console.error('Unexpected error in showGroups:', err.message);
+    }
+}
 
 	async function fetchTeamsByRef(ref) {
 		try {

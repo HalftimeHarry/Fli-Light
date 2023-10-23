@@ -87,6 +87,7 @@
 		<div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
 			{#each tournaments.filter((t) => t.upcoming) as tournament}
 				<TournamentCard
+					tournamentId={tournament.tournament_id}
 					name={tournament.name}
 					date={tournament.start_date}
 					tournamentImageUrl={tournament.tournament_image_url}
@@ -102,6 +103,7 @@
 			{#each tournaments.filter((t) => !t.upcoming) as tournament}
 				<!-- Note the change here -->
 				<TournamentCard
+					tournamentId={tournament.tournament_id}
 					name={tournament.name}
 					date={tournament.start_date}
 					tournamentImageUrl={tournament.tournament_image_url}
