@@ -43,18 +43,18 @@
 
 	<div class="flex flex-wrap space-x-4 mb-4">
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold"
-			class:bg-blue-500={selectedTab === 'pros'}
-			class:text-white={selectedTab === 'pros'}
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-green-700 font-extrabold"
+			class:bg-green-500={selectedTab === 'pros'}
+			class:text-black={selectedTab === 'pros'}
 			class:bg-gray-800={selectedTab !== 'pros'}
 			on:click={() => (selectedTab = 'pros')}
 		>
 			Pros
 		</button>
 		<button
-			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold"
-			class:bg-blue-500={selectedTab === 'teams'}
-			class:text-white={selectedTab === 'teams'}
+			class="flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-green-700 font-extrabold"
+			class:bg-green-500={selectedTab === 'teams'}
+			class:text-black={selectedTab === 'teams'}
 			class:bg-gray-800={selectedTab !== 'teams'}
 			on:click={() => (selectedTab = 'teams')}
 		>
