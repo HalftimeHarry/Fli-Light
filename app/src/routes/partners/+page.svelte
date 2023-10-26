@@ -50,16 +50,16 @@
 
 	<div class="flex flex-wrap space-x-4 mb-4">
 		<button
-			class={`flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold ${
-				selectedTab === 'venues' ? 'bg-blue-500 text-white' : 'bg-gray-800'
+			class={`flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-green-700 font-extrabold ${
+				selectedTab === 'venues' ? 'bg-green-500 text-black' : 'bg-gray-800'
 			}`}
 			on:click={() => (selectedTab = 'venues')}
 		>
 			Venues
 		</button>
 		<button
-			class={`flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-blue-700 font-bold ${
-				selectedTab === 'sponsors' ? 'bg-blue-500 text-white' : 'bg-gray-800'
+			class={`flex-1 px-2 py-1 sm:px-4 sm:py-2 transition duration-300 ease-in-out hover:bg-green-700 font-bold ${
+				selectedTab === 'sponsors' ? 'bg-green-500 text-black' : 'bg-gray-800'
 			}`}
 			on:click={() => (selectedTab = 'sponsors')}
 		>

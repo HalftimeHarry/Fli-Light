@@ -44,7 +44,7 @@
 			</button>
 
 			<!-- Content of your popup -->
-			<div class="text-black">Vegas Info Here</div>
+			<div class="text-black">Fantasy Info Here</div>
 		</div>
 	</div>
 {/if}
