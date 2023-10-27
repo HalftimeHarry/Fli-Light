@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { overlayStore } from '$lib/overlayStore';
 	import { createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
@@ -20,7 +20,10 @@
 		class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
 		on:click={handleOutsideClick}
 	>
-		<div class="relative bg-white p-4 rounded-lg max-w-xl w-full pb-16">
+		<div
+			class="relative bg-white p-4 rounded-lg max-w-xl w-full overflow-y-auto"
+			style="max-height: 80vh;"
+		>
 			<!-- Close button -->
 			<button
 				class="absolute top-0 right-0 m-2 text-gray-700 hover:text-gray-900"
@@ -84,7 +87,7 @@
 				</p>
 			</div>
 			<div class="absolute bottom-0 right-0 mr-4 mb-4">
-       		    <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+				<button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
 					Sign Up
 				</button>
 			</div>
