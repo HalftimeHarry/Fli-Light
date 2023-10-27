@@ -50,14 +50,14 @@
 			</div>
 		{/if}
 
-		<div class="text-gray-400">
+		<div class="text-gray-400 ml-6">
 			<div>
 				<img class="inline-block h-4 mr-15" src={worldRankingsIcon} alt="World Rankings Icon" />
 				World Ranking # {rank}
 			</div>
 		</div>
 		<div class="text-gray-400">
-			<div class="flex flex-col items-center">
+			<div class="flex flex-col items-center mt-4">
 				<!-- Other content... -->
 				{#if u_disc_link}
 					<a
