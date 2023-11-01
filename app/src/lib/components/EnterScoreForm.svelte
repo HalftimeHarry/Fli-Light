@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { supabase } from '../../supabaseClient';
 
+	let holes; // Define holes in a broader scope
+
 	async function fetchData() {
 		// Step 1: Fetch the scores
 		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
@@ -57,6 +59,54 @@
 			// Log the referenced pairing
 			console.log(pairing);
 
+			// Step 3.1: Fetch team_a
+			const { data: team_a, error: team_aError } = await supabase
+				.from('teams')
+				.select('*')
+				.eq('team_id', pairing.team_a)
+				.single(); // Use single() to get a single record
+
+			// ...
+
+			// Step 3.2: Fetch team_b
+			const { data: team_b, error: team_bError } = await supabase
+				.from('teams')
+				.select('*')
+				.eq('team_id', pairing.team_b)
+				.single(); // Use single() to get a single record
+
+			// ...
+
+			// Step 3.3: Fetch team_a_pros
+			const { data: team_a_pros, error: team_a_prosError } = await supabase
+				.from('pros')
+				.select('*')
+				.eq('team_id', team_a.team_id);
+
+			// Check for any errors
+			if (team_a_prosError) {
+				console.error('Error fetching team_a pros:', team_a_prosError);
+				return;
+			}
+
+			// Log the referenced team_a_pros
+			console.log(team_a_pros);
+
+			// Step 3.4: Fetch team_b_pros
+			const { data: team_b_pros, error: team_b_prosError } = await supabase
+				.from('pros')
+				.select('*')
+				.eq('team_id', team_b.team_id);
+
+			// Check for any errors
+			if (team_b_prosError) {
+				console.error('Error fetching team_b pros:', team_b_prosError);
+				return;
+			}
+
+			// Log the referenced team_b_pros
+			console.log(team_b_pros);
+
 			// Step 4: Fetch the referenced tournament
 			const { data: tournament, error: tournamentError } = await supabase
 				.from('tournaments')
@@ -89,21 +139,24 @@
 			// Log the referenced venue
 			console.log(venue);
 
-    // Step 6: Fetch the referenced holes
-    const { data: holes, error: holesError } = await supabase
-      .from('holes')
-      .select('*')
-      .eq('venue_id', venue.venue_id) // Use the venue_id to filter holes
-      .eq('not_using', false); // Filter out holes where not_using is true
+			// Step 6: Fetch the referenced holes
+			const { data, error: holesError } = await supabase
+				.from('holes')
+				.select('*')
+				.eq('venue_id', venue.venue_id) // Use the venue_id to filter holes
+				.eq('not_using', false); // Filter out holes where not_using is true
 
-    // Check for any errors
-    if (holesError) {
-      console.error('Error fetching holes:', holesError);
-      return;
-    }
+			// Check for any errors
+			if (holesError) {
+				console.error('Error fetching holes:', holesError);
+				return;
+			}
 
-    // Log the referenced holes
-    console.log(holes);
+			// Assign the fetched holes data to the holes variable
+			holes = data;
+
+			// Log the referenced holes
+			console.log(holes);
 		}
 	}
 
@@ -111,5 +164,30 @@
 		// TODO: Implement this function to display the score info in a form
 	}
 
+function handleClick() {
+    const detailedScores = buildDetailedScores(holes);
+    console.log(detailedScores);
+}
+
+	function buildDetailedScores(holes) {
+		// Process the array of holes and convert it into a JSON object
+		const detailedScores = {};
+		holes.forEach(hole => {
+			detailedScores[hole.hole_id] = {
+				par: hole.par,
+				distance: hole.distance,
+				// Add any other hole properties you want to include in the detailed scores
+			};
+		});
+		return detailedScores;
+	}
+
 	fetchData();
 </script>
+
+<button
+	class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+	on:click={handleClick}
+>
+	Start
+</button>
