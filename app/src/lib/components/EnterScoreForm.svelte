@@ -1,106 +1,115 @@
 <script lang="ts">
-	import { supabase } from '../../supabaseClient'; // Make sure to import supabase
+	import { supabase } from '../../supabaseClient';
 
-	let pros = [];
-	let teams = [];
-	let groups = [];
-
-	// Fetch data for pros, teams, and groups
 	async function fetchData() {
-		try {
-			let { data: prosData, error: prosError } = await supabase.from('pros').select('pro_id');
+		// Step 1: Fetch the scores
+		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
+		const { data: scores, error: scoresError } = await supabase
+			.from('scores')
+			.select('*')
+			.eq('score_scorer_uuid_ref', scorerUuid);
 
-			let { data: teamsData, error: teamsError } = await supabase.from('teams').select('team_id');
-
-			let { data: groupsData, error: groupsError } = await supabase
-				.from('groups')
-				.select('group_id');
-
-			if (prosError) {
-				console.error(prosError);
-			} else {
-				pros = prosData;
-			}
-
-			if (teamsError) {
-				console.error(teamsError);
-			} else {
-				teams = teamsData;
-			}
-
-			if (groupsError) {
-				console.error(groupsError);
-			} else {
-				groups = groupsData;
-			}
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	fetchData();
-
-	let startingHole = 1; // Modify this as needed
-	let totalHoles = 18; // Modify this as needed
-	let proId = null;
-	let teamId = null;
-	let groupId = null;
-	let score = null;
-
-	// Function to calculate holeNumber based on startingHole and totalHoles
-	function calculateHoleNumber() {
-		return startingHole + (parseInt(holeNumber) - 1);
-	}
-
-	async function handleSubmit() {
-		if (!proId || !groupId || !score || isNaN(parseInt(score))) {
-			alert('Please fill in all fields, and ensure the score is a valid number.');
+		// Check for any errors
+		if (scoresError) {
+			console.error('Error fetching scores:', scoresError);
 			return;
 		}
 
-		const holeNum = calculateHoleNumber();
+		// Log the score_group_id_ref for each score
+		scores?.forEach((score) => {
+			console.log(score.score_group_id_ref);
+		});
 
-		// You can now use proId, teamId, groupId, holeNum, and score to insert into the database
+		// If there's only one score, display its info in a form
+		if (scores && scores.length === 1) {
+			const score = scores[0];
+			displayScoreForm(score);
 
-		// Example:
-		// const result = await insertScore(proId, teamId, groupId, holeNum, score);
+			// Step 2: Fetch the referenced group
+			const { data: group, error: groupError } = await supabase
+				.from('groups')
+				.select('*')
+				.eq('group_id', score.score_group_id_ref)
+				.single(); // Use single() to get a single record
 
-		// Handle the result (success or error) as needed
-		// alert(result);
+			// Check for any errors
+			if (groupError) {
+				console.error('Error fetching group:', groupError);
+				return;
+			}
+
+			// Log the referenced group
+			console.log(group);
+
+			// Step 3: Fetch the referenced pairing
+			const { data: pairing, error: pairingError } = await supabase
+				.from('pairings')
+				.select('*')
+				.eq('pairings_id', group.group_pairing_ref)
+				.single(); // Use single() to get a single record
+
+			// Check for any errors
+			if (pairingError) {
+				console.error('Error fetching pairing:', pairingError);
+				return;
+			}
+
+			// Log the referenced pairing
+			console.log(pairing);
+
+			// Step 4: Fetch the referenced tournament
+			const { data: tournament, error: tournamentError } = await supabase
+				.from('tournaments')
+				.select('*')
+				.eq('tournament_id', pairing.tour_ref)
+				.single(); // Use single() to get a single record
+
+			// Check for any errors
+			if (tournamentError) {
+				console.error('Error fetching tournament:', tournamentError);
+				return;
+			}
+
+			// Log the referenced tournament
+			console.log(tournament);
+
+			// Step 5: Fetch the referenced venue
+			const { data: venue, error: venueError } = await supabase
+				.from('venues')
+				.select('*')
+				.eq('venue_id', tournament.venue_id)
+				.single(); // Use single() to get a single record
+
+			// Check for any errors
+			if (venueError) {
+				console.error('Error fetching venue:', venueError);
+				return;
+			}
+
+			// Log the referenced venue
+			console.log(venue);
+
+    // Step 6: Fetch the referenced holes
+    const { data: holes, error: holesError } = await supabase
+      .from('holes')
+      .select('*')
+      .eq('venue_id', venue.venue_id) // Use the venue_id to filter holes
+      .eq('not_using', false); // Filter out holes where not_using is true
+
+    // Check for any errors
+    if (holesError) {
+      console.error('Error fetching holes:', holesError);
+      return;
+    }
+
+    // Log the referenced holes
+    console.log(holes);
+		}
 	}
+
+	function displayScoreForm(score) {
+		// TODO: Implement this function to display the score info in a form
+	}
+
+	fetchData();
 </script>
-
-<main>
-	<h2>Enter Score</h2>
-	<form on:submit|preventDefault={handleSubmit}>
-		<label for="proId">Pro ID:</label>
-		<select id="proId" class="text-black" bind:value={proId}>
-			{#each pros as pro}
-				<option value={pro.pro_id}>{pro.pro_id}</option>
-			{/each}
-		</select>
-
-		<label for="teamId">Team ID:</label>
-		<select id="teamId" class="text-black" bind:value={teamId}>
-			{#each teams as team}
-				<option value={team.team_id}>{team.team_id}</option>
-			{/each}
-		</select>
-
-		<label for="groupId">Group ID:</label>
-		<select id="groupId" class="text-black" bind:value={groupId}>
-			{#each groups as group}
-				<option value={group.group_id}>{group.group_id}</option>
-			{/each}
-		</select>
-
-		<label for="score">Score:</label>
-		<input type="text" id="score" class="text-black" bind:value={score} />
-
-		<button type="submit">Submit</button>
-	</form>
-</main>
-
-<style>
-	/* Add your CSS styles here if needed */
-</style>
