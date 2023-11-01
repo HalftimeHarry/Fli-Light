@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { supabase } from '../../supabaseClient';
+	import { onMount } from 'svelte';
 
+	let loading = true;
 	let holes; // Define holes in a broader scope
+	let score = { score_id: 0 /* ... other default values ... */ };
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
-		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
+		const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff'; // Update this with the desired UUID
 		const { data: scores, error: scoresError } = await supabase
 			.from('scores')
 			.select('*')
@@ -17,14 +20,14 @@
 			return;
 		}
 
-		// Log the score_group_id_ref for each score
+		// Log the score_group_id
 		scores?.forEach((score) => {
-			console.log(score.score_group_id_ref);
+			console.log(score.score_id);
 		});
 
 		// If there's only one score, display its info in a form
 		if (scores && scores.length === 1) {
-			const score = scores[0];
+			score = scores[0]; // Update the top-level score variable
 			displayScoreForm(score);
 
 			// Step 2: Fetch the referenced group
@@ -164,30 +167,79 @@
 		// TODO: Implement this function to display the score info in a form
 	}
 
-function handleClick() {
-    const detailedScores = buildDetailedScores(holes);
-    console.log(detailedScores);
-}
+	async function handleClick() {
+		if (!score) {
+			console.error('Score is not defined');
+			return;
+		}
+		const detailedScores = buildDetailedScores(holes);
+		console.log(detailedScores);
+		await updateDetailedScores(score.score_id, detailedScores);
+	}
+
+	async function updateDetailedScores(score_id, detailedScores) {
+		console.log(
+			'updateDetailedScores started with score_id:',
+			score_id,
+			'and detailedScores:',
+			detailedScores
+		);
+
+		// Convert detailedScores to a JSON string if it's an object
+		const updatedScores =
+			typeof detailedScores === 'object' ? JSON.stringify(detailedScores) : detailedScores;
+		console.log('Updated scores (after JSON.stringify if needed):', updatedScores);
+
+		// Update the scores in the database
+		const { data, error } = await supabase
+			.from('scores')
+			.update({ detailed_scores: updatedScores })
+			.eq('score_id', score_id);
+
+		// Handle any errors that occurred during the update
+		if (error) {
+			console.error('Error updating detailed scores:', error);
+			return;
+		}
+
+		// Log the updated scores this returns null fix later
+		console.log('Updated detailed scores:', data);
+
+		// Return the updated scores data
+		return data;
+	}
 
 	function buildDetailedScores(holes) {
+		console.log('buildDetailedScores started with holes:', holes);
+
 		// Process the array of holes and convert it into a JSON object
 		const detailedScores = {};
-		holes.forEach(hole => {
+		holes.forEach((hole) => {
 			detailedScores[hole.hole_id] = {
-				par: hole.par,
-				distance: hole.distance,
+				det_sco_par: hole.par,
+				det_sco_hole_number: hole.hole_number,
+				det_sco_hole_name: hole.hole_name
 				// Add any other hole properties you want to include in the detailed scores
 			};
 		});
+		console.log('Detailed scores (after processing holes):', detailedScores);
 		return detailedScores;
 	}
 
 	fetchData();
+
+	onMount(async () => {
+		console.log('onMount started');
+		await fetchData();
+		loading = false;
+		console.log('onMount finished');
+	});
 </script>
 
 <button
 	class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
 	on:click={handleClick}
+	disabled={loading}
 >
 	Start
 </button>
