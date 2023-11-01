@@ -1,106 +1,245 @@
 <script lang="ts">
-	import { supabase } from '../../supabaseClient'; // Make sure to import supabase
+	import { supabase } from '../../supabaseClient';
+	import { onMount } from 'svelte';
 
-	let pros = [];
-	let teams = [];
-	let groups = [];
+	let loading = true;
+	let holes; // Define holes in a broader scope
+	let score = { score_id: 0 /* ... other default values ... */ };
 
-	// Fetch data for pros, teams, and groups
 	async function fetchData() {
-		try {
-			let { data: prosData, error: prosError } = await supabase.from('pros').select('pro_id');
+		// Step 1: Fetch the scores
+		const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff'; // Update this with the desired UUID
+		const { data: scores, error: scoresError } = await supabase
+			.from('scores')
+			.select('*')
+			.eq('score_scorer_uuid_ref', scorerUuid);
 
-			let { data: teamsData, error: teamsError } = await supabase.from('teams').select('team_id');
-
-			let { data: groupsData, error: groupsError } = await supabase
-				.from('groups')
-				.select('group_id');
-
-			if (prosError) {
-				console.error(prosError);
-			} else {
-				pros = prosData;
-			}
-
-			if (teamsError) {
-				console.error(teamsError);
-			} else {
-				teams = teamsData;
-			}
-
-			if (groupsError) {
-				console.error(groupsError);
-			} else {
-				groups = groupsData;
-			}
-		} catch (error) {
-			console.error(error);
+		// Check for any errors
+		if (scoresError) {
+			console.error('Error fetching scores:', scoresError);
+			return;
 		}
+
+		// Log the score_group_id
+		scores?.forEach((score) => {
+			console.log(score.score_id);
+		});
+
+		// If there's only one score, display its info in a form
+		if (scores && scores.length === 1) {
+			score = scores[0]; // Update the top-level score variable
+			displayScoreForm(score);
+
+			// Step 2: Fetch the referenced group
+			const { data: group, error: groupError } = await supabase
+				.from('groups')
+				.select('*')
+				.eq('group_id', score.score_group_id_ref)
+				.single(); // Use single() to get a single record
+
+			// Check for any errors
+			if (groupError) {
+				console.error('Error fetching group:', groupError);
+				return;
+			}
+
+			// Log the referenced group
+			console.log(group);
+
+			// Step 3: Fetch the referenced pairing
+			const { data: pairing, error: pairingError } = await supabase
+				.from('pairings')
+				.select('*')
+				.eq('pairings_id', group.group_pairing_ref)
+				.single(); // Use single() to get a single record
+
+			// Check for any errors
+			if (pairingError) {
+				console.error('Error fetching pairing:', pairingError);
+				return;
+			}
+
+			// Log the referenced pairing
+			console.log(pairing);
+
+			// Step 3.1: Fetch team_a
+			const { data: team_a, error: team_aError } = await supabase
+				.from('teams')
+				.select('*')
+				.eq('team_id', pairing.team_a)
+				.single(); // Use single() to get a single record
+
+			// ...
+
+			// Step 3.2: Fetch team_b
+			const { data: team_b, error: team_bError } = await supabase
+				.from('teams')
+				.select('*')
+				.eq('team_id', pairing.team_b)
+				.single(); // Use single() to get a single record
+
+			// ...
+
+			// Step 3.3: Fetch team_a_pros
+			const { data: team_a_pros, error: team_a_prosError } = await supabase
+				.from('pros')
+				.select('*')
+				.eq('team_id', team_a.team_id);
+
+			// Check for any errors
+			if (team_a_prosError) {
+				console.error('Error fetching team_a pros:', team_a_prosError);
+				return;
+			}
+
+			// Log the referenced team_a_pros
+			console.log(team_a_pros);
+
+			// Step 3.4: Fetch team_b_pros
+			const { data: team_b_pros, error: team_b_prosError } = await supabase
+				.from('pros')
+				.select('*')
+				.eq('team_id', team_b.team_id);
+
+			// Check for any errors
+			if (team_b_prosError) {
+				console.error('Error fetching team_b pros:', team_b_prosError);
+				return;
+			}
+
+			// Log the referenced team_b_pros
+			console.log(team_b_pros);
+
+			// Step 4: Fetch the referenced tournament
+			const { data: tournament, error: tournamentError } = await supabase
+				.from('tournaments')
+				.select('*')
+				.eq('tournament_id', pairing.tour_ref)
+				.single(); // Use single() to get a single record
+
+			// Check for any errors
+			if (tournamentError) {
+				console.error('Error fetching tournament:', tournamentError);
+				return;
+			}
+
+			// Log the referenced tournament
+			console.log(tournament);
+
+			// Step 5: Fetch the referenced venue
+			const { data: venue, error: venueError } = await supabase
+				.from('venues')
+				.select('*')
+				.eq('venue_id', tournament.venue_id)
+				.single(); // Use single() to get a single record
+
+			// Check for any errors
+			if (venueError) {
+				console.error('Error fetching venue:', venueError);
+				return;
+			}
+
+			// Log the referenced venue
+			console.log(venue);
+
+			// Step 6: Fetch the referenced holes
+			const { data, error: holesError } = await supabase
+				.from('holes')
+				.select('*')
+				.eq('venue_id', venue.venue_id) // Use the venue_id to filter holes
+				.eq('not_using', false); // Filter out holes where not_using is true
+
+			// Check for any errors
+			if (holesError) {
+				console.error('Error fetching holes:', holesError);
+				return;
+			}
+
+			// Assign the fetched holes data to the holes variable
+			holes = data;
+
+			// Log the referenced holes
+			console.log(holes);
+		}
+	}
+
+	function displayScoreForm(score) {
+		// TODO: Implement this function to display the score info in a form
+	}
+
+	async function handleClick() {
+		if (!score) {
+			console.error('Score is not defined');
+			return;
+		}
+		const detailedScores = buildDetailedScores(holes);
+		console.log(detailedScores);
+		await updateDetailedScores(score.score_id, detailedScores);
+	}
+
+	async function updateDetailedScores(score_id, detailedScores) {
+		console.log(
+			'updateDetailedScores started with score_id:',
+			score_id,
+			'and detailedScores:',
+			detailedScores
+		);
+
+		// Convert detailedScores to a JSON string if it's an object
+		const updatedScores =
+			typeof detailedScores === 'object' ? JSON.stringify(detailedScores) : detailedScores;
+		console.log('Updated scores (after JSON.stringify if needed):', updatedScores);
+
+		// Update the scores in the database
+		const { data, error } = await supabase
+			.from('scores')
+			.update({ detailed_scores: updatedScores })
+			.eq('score_id', score_id);
+
+		// Handle any errors that occurred during the update
+		if (error) {
+			console.error('Error updating detailed scores:', error);
+			return;
+		}
+
+		// Log the updated scores this returns null fix later
+		console.log('Updated detailed scores:', data);
+
+		// Return the updated scores data
+		return data;
+	}
+
+	function buildDetailedScores(holes) {
+		console.log('buildDetailedScores started with holes:', holes);
+
+		// Process the array of holes and convert it into a JSON object
+		const detailedScores = {};
+		holes.forEach((hole) => {
+			detailedScores[hole.hole_id] = {
+				det_sco_par: hole.par,
+				det_sco_hole_number: hole.hole_number,
+				det_sco_hole_name: hole.hole_name
+				// Add any other hole properties you want to include in the detailed scores
+			};
+		});
+		console.log('Detailed scores (after processing holes):', detailedScores);
+		return detailedScores;
 	}
 
 	fetchData();
 
-	let startingHole = 1; // Modify this as needed
-	let totalHoles = 18; // Modify this as needed
-	let proId = null;
-	let teamId = null;
-	let groupId = null;
-	let score = null;
-
-	// Function to calculate holeNumber based on startingHole and totalHoles
-	function calculateHoleNumber() {
-		return startingHole + (parseInt(holeNumber) - 1);
-	}
-
-	async function handleSubmit() {
-		if (!proId || !groupId || !score || isNaN(parseInt(score))) {
-			alert('Please fill in all fields, and ensure the score is a valid number.');
-			return;
-		}
-
-		const holeNum = calculateHoleNumber();
-
-		// You can now use proId, teamId, groupId, holeNum, and score to insert into the database
-
-		// Example:
-		// const result = await insertScore(proId, teamId, groupId, holeNum, score);
-
-		// Handle the result (success or error) as needed
-		// alert(result);
-	}
+	onMount(async () => {
+		console.log('onMount started');
+		await fetchData();
+		loading = false;
+		console.log('onMount finished');
+	});
 </script>
 
-<main>
-	<h2>Enter Score</h2>
-	<form on:submit|preventDefault={handleSubmit}>
-		<label for="proId">Pro ID:</label>
-		<select id="proId" class="text-black" bind:value={proId}>
-			{#each pros as pro}
-				<option value={pro.pro_id}>{pro.pro_id}</option>
-			{/each}
-		</select>
-
-		<label for="teamId">Team ID:</label>
-		<select id="teamId" class="text-black" bind:value={teamId}>
-			{#each teams as team}
-				<option value={team.team_id}>{team.team_id}</option>
-			{/each}
-		</select>
-
-		<label for="groupId">Group ID:</label>
-		<select id="groupId" class="text-black" bind:value={groupId}>
-			{#each groups as group}
-				<option value={group.group_id}>{group.group_id}</option>
-			{/each}
-		</select>
-
-		<label for="score">Score:</label>
-		<input type="text" id="score" class="text-black" bind:value={score} />
-
-		<button type="submit">Submit</button>
-	</form>
-</main>
-
-<style>
-	/* Add your CSS styles here if needed */
-</style>
+<button
+	class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+	on:click={handleClick}
+	disabled={loading}
+>
+	Start
+</button>
