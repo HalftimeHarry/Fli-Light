@@ -1,66 +1,32 @@
 <script lang="ts">
-    import { writable } from 'svelte/store';
+  import { onMount } from 'svelte';
+  import { supabase } from '../../supabaseClient';
 
-    // Replace these with your actual data types
-    interface Hole {
-        det_sco_par: number;
-        det_sco_hole_number: number;
-        det_sco_hole_name: string;
+  async function fetchScoringData() {
+    try {
+      // Step 1: Fetch the scores
+      const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff'; // Update this with the desired UUID
+      const { data: scores, error: scoresError } = await supabase
+        .from('scores')
+        .select('*')
+        .eq('score_scorer_uuid_ref', scorerUuid);
+
+      if (scoresError) {
+        throw scoresError;
+      }
+
+      console.log(scores); // Log the fetched scores
+
+      // Log the detailed_scores property from the fetched data
+      if (scores && scores[0] && scores[0].detailed_scores) {
+        console.log(scores[0].detailed_scores);
+      }
+    } catch (error) {
+      console.error('Error fetching scoring data:', error);
     }
+  }
 
-    interface Score {
-        hole: Hole;
-        score: number;
-    }
-
-    const scores = writable<Score[]>([]);
-
-    let currentHole: Hole | undefined;
-    let score: number; // declare the score variable
-
-    const updateScore = (hole: Hole, score: number) => {
-        scores.update((currentScores) => {
-            const index = currentScores.findIndex(
-                (s) => s.hole.det_sco_hole_number === hole.det_sco_hole_number
-            );
-
-            if (index !== -1) {
-                currentScores[index].score = score;
-            } else {
-                currentScores.push({ hole, score });
-            }
-
-            return currentScores;
-        });
-    };
-
-    const handleSubmit = () => {
-        scores.subscribe((currentScores) => {
-            console.log(currentScores);
-            // Handle the form submission here
-            // For example, send the scores to a server
-        });
-    };
+  onMount(() => {
+    fetchScoringData();
+  });
 </script>
-
-<main>
-    <h1>Enter Scoring Form</h1>
-
-    {#if currentHole}
-        <h2>{currentHole.det_sco_hole_name}</h2>
-        <p>Par: {currentHole.det_sco_par}</p>
-
-        <form on:submit|preventDefault={handleSubmit}>
-            <label for="score">Score:</label>
-            <input type="number" id="score" bind:value={score} min="1" required />
-
-            <button type="submit">Submit</button>
-        </form>
-    {:else}
-        <p>Loading...</p>
-    {/if}
-</main>
-
-<style>
-    /* Add your styles here */
-</style>

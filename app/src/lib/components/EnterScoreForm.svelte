@@ -258,9 +258,7 @@
 			detailedScores[hole.hole_id] = {
 				det_sco_par: hole.par,
 				det_sco_hole_number: hole.hole_number,
-				det_sco_hole_name: hole.hole_name,
 				det_sco_hole_start: score.score_hole_start,
-				det_sco_group_id: group.group_id,
 				det_sco_group_name: group.group_name,
 				det_sco_group_tee_time: group.tee_time,
 				det_sco_female_a: female_pro_a_id,
@@ -268,7 +266,11 @@
 				det_sco_female_b: female_pro_b_id,
 				det_sco_male_b: male_pro_b_id,
 				det_sco_team_b_id: team_b_id,
-				det_sco_team_a_id: team_a_id
+				det_sco_team_a_id: team_a_id,
+				det_sco_on_this_hole: false,
+				det_sco_completed_this_hole: false,
+				det_sco_verified_this_hole: false,
+				det_sco_active_hole: false
 				// ... add any other group properties you want to include
 			};
 		});
