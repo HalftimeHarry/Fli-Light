@@ -75,7 +75,7 @@
 						/>
 					</svg>
 					<span class={active ? 'active-hole' : ''}>{name}</span>
-					<span class="hidden sm:inline-flex sm:ml-2">{id === 1 ? 'Info' : ''}</span>
+
 				</span>
 			</li>
 		{/each}
