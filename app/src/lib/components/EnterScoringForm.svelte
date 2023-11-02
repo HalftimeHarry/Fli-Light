@@ -27,11 +27,9 @@
 				const detailedScores = scores[0].detailed_scores;
 
 				// Use the detailed_scores data to set the active step and update the steps array
-				const activeHole = detailedScores.det_sco_active_hole;
-				const startHole = detailedScores.det_sco_hole_start;
-
-				steps = Array.from({ length: 18 }, (_, i) => {
-					const holeNumber = i + 1;
+				steps = Object.values(detailedScores).map((hole) => {
+					const holeNumber = hole?.det_sco_hole_number ?? 0;
+					const startHole = hole?.det_sco_hole_start ?? 1; // use the det_sco_hole_start value from the data
 					return {
 						id: holeNumber,
 						name: `Hole ${holeNumber}`,
