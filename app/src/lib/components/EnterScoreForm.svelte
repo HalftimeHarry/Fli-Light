@@ -228,6 +228,7 @@
 		});
 
 		console.log('Detailed scores (after processing holes and group):', detailedScores);
+		updateDetailedScores(score.score_id, detailedScores)
 		return detailedScores;
 	}
 
