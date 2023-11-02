@@ -5,6 +5,13 @@
 	let loading = true;
 	let holes; // Define holes in a broader scope
 	let score = { score_id: 0 /* ... other default values ... */ };
+	let group; // Define group in a broader scope
+	let female_pro_a_id;
+	let male_pro_a_id;
+	let female_pro_b_id;
+	let male_pro_b_id;
+	let team_b_id;
+	let team_a_id;
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
@@ -22,7 +29,7 @@
 
 		// Log the score_group_id
 		scores?.forEach((score) => {
-			console.log(score.score_id);
+			console.log(score.score_hole_start);
 		});
 
 		// If there's only one score, display its info in a form
@@ -70,6 +77,8 @@
 				.single(); // Use single() to get a single record
 
 			// ...
+			team_a_id = team_a.team_id;
+			console.log(team_a_id);
 
 			// Step 3.2: Fetch team_b
 			const { data: team_b, error: team_bError } = await supabase
@@ -79,6 +88,8 @@
 				.single(); // Use single() to get a single record
 
 			// ...
+			team_b_id = team_b.team_id;
+			console.log(team_b_id);
 
 			// Step 3.3: Fetch team_a_pros
 			const { data: team_a_pros, error: team_a_prosError } = await supabase
@@ -94,6 +105,10 @@
 
 			// Log the referenced team_a_pros
 			console.log(team_a_pros);
+			female_pro_a_id = team_a_pros[0].pro_id;
+			console.log(female_pro_a_id);
+			male_pro_a_id = team_a_pros[1].pro_id;
+			console.log(male_pro_a_id);
 
 			// Step 3.4: Fetch team_b_pros
 			const { data: team_b_pros, error: team_b_prosError } = await supabase
@@ -106,6 +121,12 @@
 				console.error('Error fetching team_b pros:', team_b_prosError);
 				return;
 			}
+
+			console.log(team_b_pros);
+			female_pro_b_id = team_b_pros[0].pro_id;
+			console.log(female_pro_b_id);
+			male_pro_b_id = team_b_pros[1].pro_id;
+			console.log(male_pro_b_id);
 
 			// Log the referenced team_b_pros
 			console.log(team_b_pros);
@@ -160,21 +181,24 @@
 
 			// Log the referenced holes
 			console.log(holes);
+
+			const detailedScores = buildDetailedScores(
+				holes,
+				score,
+				group,
+				female_pro_a_id,
+				male_pro_a_id,
+				female_pro_b_id,
+				male_pro_b_id,
+				team_b_id,
+				team_a_id
+			);
+			console.log(detailedScores);
 		}
 	}
 
 	function displayScoreForm(score) {
 		// TODO: Implement this function to display the score info in a form
-	}
-
-	async function handleClick() {
-		if (!score) {
-			console.error('Score is not defined');
-			return;
-		}
-		const detailedScores = buildDetailedScores(holes);
-		console.log(detailedScores);
-		await updateDetailedScores(score.score_id, detailedScores);
 	}
 
 	async function updateDetailedScores(score_id, detailedScores) {
@@ -193,13 +217,12 @@
 		// Update the scores in the database
 		const { data, error } = await supabase
 			.from('scores')
-			.update({ detailed_scores: updatedScores })
+			.update({ detailed_scores: updatedScores }) // Updated from buildDetailedScores to updatedScores
 			.eq('score_id', score_id);
 
 		// Handle any errors that occurred during the update
 		if (error) {
-			console.error('Error updating detailed scores:', error);
-			return;
+			throw new Error('Error updating detailed scores: ' + error.message); // Throw error to be caught in the calling function
 		}
 
 		// Log the updated scores this returns null fix later
@@ -209,21 +232,73 @@
 		return data;
 	}
 
-	function buildDetailedScores(holes) {
+	function buildDetailedScores(
+		holes,
+		score,
+		group,
+		female_pro_a_id,
+		male_pro_a_id,
+		female_pro_b_id,
+		male_pro_b_id,
+		team_b_id,
+		team_a_id
+	) {
 		console.log('buildDetailedScores started with holes:', holes);
+		console.log('buildDetailedScores started with score:', score);
+		console.log('buildDetailedScores started with group:', group);
+		console.log('buildDetailedScores started with group:', female_pro_a_id);
+		console.log('buildDetailedScores started with group:', male_pro_a_id);
+		console.log('buildDetailedScores started with group:', female_pro_b_id);
+		console.log('buildDetailedScores started with group:', male_pro_b_id);
+		console.log('buildDetailedScores started with group:', team_b_id);
+		console.log('buildDetailedScores started with group:', team_a_id);
 
-		// Process the array of holes and convert it into a JSON object
 		const detailedScores = {};
 		holes.forEach((hole) => {
 			detailedScores[hole.hole_id] = {
 				det_sco_par: hole.par,
 				det_sco_hole_number: hole.hole_number,
-				det_sco_hole_name: hole.hole_name
-				// Add any other hole properties you want to include in the detailed scores
+				det_sco_hole_start: score.score_hole_start,
+				det_sco_group_name: group.group_name,
+				det_sco_group_tee_time: group.tee_time,
+				det_sco_female_a: female_pro_a_id,
+				det_sco_male_a: male_pro_a_id,
+				det_sco_female_b: female_pro_b_id,
+				det_sco_male_b: male_pro_b_id,
+				det_sco_team_b_id: team_b_id,
+				det_sco_team_a_id: team_a_id,
+				det_sco_on_this_hole: false,
+				det_sco_completed_this_hole: false,
+				det_sco_verified_this_hole: false,
+				det_sco_active_hole: false
+				// ... add any other group properties you want to include
 			};
 		});
-		console.log('Detailed scores (after processing holes):', detailedScores);
+
+		console.log('Detailed scores (after processing holes and group):', detailedScores);
+		updateDetailedScores(score.score_id, detailedScores);
 		return detailedScores;
+	}
+
+	async function handleClick(group) {
+		console.log('clicked');
+		console.log('group:', group); // Add this line
+		if (!score || !score.score_hole_start) {
+			console.error('Score is not defined or does not have score_hole_start property');
+			return;
+		}
+		if (!group) {
+			console.error('Group is not defined');
+			return;
+		}
+		const detailedScores = buildDetailedScores(holes, score, group);
+		console.log(detailedScores);
+		try {
+			const updatedScores = await updateDetailedScores(score.score_id, detailedScores);
+			console.log('Scores updated successfully:', updatedScores);
+		} catch (error) {
+			console.error('Failed to update scores:', error);
+		}
 	}
 
 	fetchData();
@@ -239,7 +314,6 @@
 <button
 	class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
 	on:click={handleClick}
-	disabled={loading}
 >
 	Start
 </button>
