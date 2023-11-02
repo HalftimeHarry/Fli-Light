@@ -14,15 +14,24 @@
 				.select('*')
 				.eq('score_scorer_uuid_ref', scorerUuid);
 
+			startHole = scores[0].score_hole_start;
+
+			console.log(startHole);
+
 			if (scoresError) {
 				throw scoresError;
 			}
 
-			if (scores && scores[0] && scores[0].detailed_scores) {
+			if (scores && scores[0]) {
 				let detailedScores = scores[0].detailed_scores;
-
-				startHole = scores[0].score_hole_start;
-				console.log(startHole);
+				if (typeof detailedScores === 'string') {
+					try {
+						detailedScores = JSON.parse(detailedScores);
+					} catch (error) {
+						console.error('Error parsing detailed_scores:', error);
+						return;
+					}
+				}
 
 				steps = Object.entries(detailedScores).map(([key, holeData]: [string, any]) => {
 					const holeNumber = holeData.det_sco_hole_number;
@@ -72,9 +81,3 @@
 		{/each}
 	</ol>
 </main>
-
-<style>
-	.active-hole {
-		@apply text-red-500;
-	}
-</style>
