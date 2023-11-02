@@ -10,6 +10,8 @@
 	let male_pro_a_id;
 	let female_pro_b_id;
 	let male_pro_b_id;
+	let team_b_id;
+	let team_a_id;
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
@@ -75,6 +77,8 @@
 				.single(); // Use single() to get a single record
 
 			// ...
+			team_a_id = team_a.team_id;
+			console.log(team_a_id);
 
 			// Step 3.2: Fetch team_b
 			const { data: team_b, error: team_bError } = await supabase
@@ -84,6 +88,8 @@
 				.single(); // Use single() to get a single record
 
 			// ...
+			team_b_id = team_b.team_id;
+			console.log(team_b_id);
 
 			// Step 3.3: Fetch team_a_pros
 			const { data: team_a_pros, error: team_a_prosError } = await supabase
@@ -183,7 +189,9 @@
 				female_pro_a_id,
 				male_pro_a_id,
 				female_pro_b_id,
-				male_pro_b_id
+				male_pro_b_id,
+				team_b_id,
+				team_a_id
 			);
 			console.log(detailedScores);
 		}
@@ -231,7 +239,9 @@
 		female_pro_a_id,
 		male_pro_a_id,
 		female_pro_b_id,
-		male_pro_b_id
+		male_pro_b_id,
+		team_b_id,
+		team_a_id
 	) {
 		console.log('buildDetailedScores started with holes:', holes);
 		console.log('buildDetailedScores started with score:', score);
@@ -240,6 +250,8 @@
 		console.log('buildDetailedScores started with group:', male_pro_a_id);
 		console.log('buildDetailedScores started with group:', female_pro_b_id);
 		console.log('buildDetailedScores started with group:', male_pro_b_id);
+		console.log('buildDetailedScores started with group:', team_b_id);
+		console.log('buildDetailedScores started with group:', team_a_id);
 
 		const detailedScores = {};
 		holes.forEach((hole) => {
@@ -254,7 +266,9 @@
 				det_sco_female_a: female_pro_a_id,
 				det_sco_male_a: male_pro_a_id,
 				det_sco_female_b: female_pro_b_id,
-				det_sco_male_b: male_pro_b_id
+				det_sco_male_b: male_pro_b_id,
+				det_sco_team_b_id: team_b_id,
+				det_sco_team_a_id: team_a_id
 				// ... add any other group properties you want to include
 			};
 		});
