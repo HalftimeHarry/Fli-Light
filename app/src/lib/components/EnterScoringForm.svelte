@@ -4,6 +4,7 @@
 
 	let activeStep = 1;
 	let steps = [];
+	let startHole;
 
 	async function fetchScoringData() {
 		try {
@@ -18,19 +19,15 @@
 			}
 
 			if (scores && scores[0] && scores[0].detailed_scores) {
-				let detailedScores;
-				try {
-					detailedScores = JSON.parse(scores[0].detailed_scores);
-				} catch (error) {
-					console.error('Error parsing detailed_scores:', error);
-					return;
-				}
+				let detailedScores = scores[0].detailed_scores;
 
-				const startHole = scores[0].det_sco_hole_start;
+				startHole = scores[0].score_hole_start;
+				console.log(startHole);
 
 				steps = Object.entries(detailedScores).map(([key, holeData]: [string, any]) => {
 					const holeNumber = holeData.det_sco_hole_number;
-					const isActiveHole = holeNumber === startHole && holeData.det_sco_active_hole;
+					const isActiveHole = holeNumber === startHole; // Compare holeNumber with startHole
+					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
 					return {
 						id: holeNumber,
 						name: `Hole ${holeNumber}`,
