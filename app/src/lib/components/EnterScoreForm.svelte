@@ -7,6 +7,7 @@
 	let score = { score_id: 0 /* ... other default values ... */ };
 	let group; // Define group in a broader scope
 	let female_pro_a_id;
+	let male_pro_a_id;
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
@@ -98,7 +99,7 @@
 			console.log(team_a_pros);
 			female_pro_a_id = team_a_pros[0].pro_id;
 			console.log(female_pro_a_id);
-			const male_pro_a_id = team_a_pros[1].pro_id;
+			male_pro_a_id = team_a_pros[1].pro_id;
 			console.log(male_pro_a_id);
 
 			// Step 3.4: Fetch team_b_pros
@@ -167,7 +168,7 @@
 			// Log the referenced holes
 			console.log(holes);
 
-			const detailedScores = buildDetailedScores(holes, score, group, female_pro_a_id); // Pass female_pro_a_id as fourth parameter
+			const detailedScores = buildDetailedScores(holes, score, group, female_pro_a_id, male_pro_a_id); // Pass female_pro_a_id as fourth parameter
 			console.log(detailedScores);
 		}
 	}
@@ -207,11 +208,12 @@
 		return data;
 	}
 
-	function buildDetailedScores(holes, score, group, female_pro_a_id) {
+	function buildDetailedScores(holes, score, group, female_pro_a_id, male_pro_a_id) {
 		console.log('buildDetailedScores started with holes:', holes);
 		console.log('buildDetailedScores started with score:', score);
 		console.log('buildDetailedScores started with group:', group);
 		console.log('buildDetailedScores started with group:', female_pro_a_id);
+		console.log('buildDetailedScores started with group:', male_pro_a_id);
 
 		const detailedScores = {};
 		holes.forEach((hole) => {
@@ -223,7 +225,8 @@
 				det_sco_group_id: group.group_id,
 				det_sco_group_name: group.group_name,
 				det_sco_group_tee_time: group.tee_time,
-				det_sco_female_a: female_pro_a_id
+				det_sco_female_a: female_pro_a_id,
+				det_sco_male_a: male_pro_a_id
 				// ... add any other group properties you want to include
 			};
 		});
