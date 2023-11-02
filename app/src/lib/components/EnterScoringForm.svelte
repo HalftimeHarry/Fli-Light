@@ -20,24 +20,26 @@
 
 			console.log(scores); // Log the fetched scores
 
-			// Log the detailed_scores property from the fetched data
 			if (scores && scores[0] && scores[0].detailed_scores) {
-				console.log(scores[0].detailed_scores);
+				let detailedScores;
+				try {
+					detailedScores = JSON.parse(scores[0].detailed_scores);
+				} catch (error) {
+					console.error('Error parsing detailed_scores:', error);
+					return;
+				}
 
-				const detailedScores = scores[0].detailed_scores;
+				const startHole = scores[0].det_sco_hole_start;
 
-				// Use the detailed_scores data to set the active step and update the steps array
-				steps = Object.values(detailedScores).map((hole) => {
-					const holeNumber = hole?.det_sco_hole_number ?? 0;
-					const startHole = hole?.det_sco_hole_start ?? 1; // use the det_sco_hole_start value from the data
+				steps = Object.entries(detailedScores).map(([key, holeData]: [string, any]) => {
+					const holeNumber = holeData.det_sco_hole_number;
+					const isActiveHole = holeNumber === startHole && holeData.det_sco_active_hole;
 					return {
 						id: holeNumber,
 						name: `Hole ${holeNumber}`,
-						active: holeNumber === startHole
+						active: isActiveHole
 					};
 				});
-
-				activeStep = steps.findIndex((step) => step.active) + 1;
 			}
 		} catch (error) {
 			console.error('Error fetching scoring data:', error);
