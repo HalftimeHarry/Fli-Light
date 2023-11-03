@@ -34,6 +34,7 @@
 			startHole = scores[0].score_hole_start;
 
 			console.log(scores[0].detailed_scores);
+			console.log(scores[0].detailed_scores[1].det_sco_group_name);
 
 			if (scoresError) {
 				throw scoresError;
@@ -51,12 +52,15 @@
 				}
 
 				steps = Object.entries(detailedScores).map(([key, holeData]: [string, any]) => {
+					const groupName = holeData.det_sco_group_name;
+					console.log(groupName);
 					const holeNumber = holeData.det_sco_hole_number;
 					const isActiveHole = holeNumber === startHole; // Compare holeNumber with startHole
 					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
 					return {
 						id: holeNumber,
 						hole: `Hole ${holeNumber}`,
+						group: groupName, // Add the group name to the step
 						active: isActiveHole
 					};
 				});
@@ -75,7 +79,7 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { id, hole, active }}
+		{#each steps as { id, hole, group, active }}
 			<li class="flex items-center">
 				<span class="flex items-center">
 					<svg
@@ -97,11 +101,11 @@
 		{/each}
 	</ol>
 	{#if steps.length > 0}
-		{#each steps as { id, hole, active }}
+		{#each steps as { id, hole, group, active }}
 			{#if active}
 				<form on:submit|preventDefault={submitScores}>
 					<fieldset>
-						<legend>{hole} - Enter Scores</legend>
+						<legend>{group}<br />{hole} - Par 4</legend>
 						{#each Object.keys(scoresValue) as pro}
 							<h1 class="mt-4 mb-4">Score for {pro}: {scoresValue[pro]}</h1>
 							<Incrementer {pro} />
