@@ -15,6 +15,10 @@
 	let teams = [];
 	let scoresValue;
 
+	$: if (scoresValue) {
+		console.log('Current scores:', scoresValue);
+	}
+
 	async function loadProsAndTeams(proIds, teamIds) {
 		// Load specific pros based on passed IDs
 		if (proIds && proIds.length) {
@@ -198,9 +202,8 @@
 
 						<!-- Iterate through each score and match pro names to their scores -->
 						{#each Object.keys(scoresValue) as pro_id}
-							<!-- Make sure to find the pro's name using pro_id -->
 							<h1 class="mt-4 mb-4">
-								Score for {pros.find((p) => p.pro_id.toString() === pro_id)?.name || 'Unknown'}: {scoresValue[
+								Score for {pros.find((p) => p.pro_id === pro_id)?.name || 'Unknown'}: {scoresValue[
 									pro_id
 								]}
 							</h1>
@@ -208,7 +211,6 @@
 							<Decrementer {pro_id} />
 							<Resetter {pro_id} />
 						{/each}
-
 						<button type="submit" class="...">Submit Scores</button>
 					</fieldset>
 				</form>
