@@ -178,7 +178,7 @@
 
 						<!-- Display Female A's name and score -->
 						<h1 class="mt-4 mb-4">
-							{teams.find((t) => t.id === team_a)?.name || 'Unknown'}: {pros.find(
+							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}: {pros.find(
 								(p) => p.pro_id === female_a
 							)?.name || 'Unknown'}
 							<br /> Score: {scoresValue[female_a.toString()] || 0}
@@ -187,9 +187,9 @@
 						<Decrementer pro_id={female_a} />
 						<Resetter pro_id={female_a} />
 
-						<!-- Display ale A's name and score -->
+						<!-- Display male A's name and score -->
 						<h1 class="mt-4 mb-4">
-							{teams.find((t) => t.id === team_a)?.name || 'Unknown'}: {pros.find(
+							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}: {pros.find(
 								(p) => p.pro_id === male_a
 							)?.name || 'Unknown'}
 							<br /> Score: {scoresValue[male_a.toString()] || 0}
@@ -200,7 +200,7 @@
 
 						<!-- Display Female B's name and score -->
 						<h1 class="mt-4 mb-4">
-							{teams.find((t) => t.id === team_b)?.name || 'Unknown'}: {pros.find(
+							{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}: {pros.find(
 								(p) => p.pro_id === female_b
 							)?.name || 'Unknown'}
 							<br /> Score: {scoresValue[female_b.toString()] || 0}
@@ -211,7 +211,7 @@
 
 						<!-- Display Male B's name and score -->
 						<h1 class="mt-4 mb-4">
-							{teams.find((t) => t.id === team_b)?.name || 'Unknown'}: {pros.find(
+							{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}: {pros.find(
 								(p) => p.pro_id === male_b
 							)?.name || 'Unknown'}
 							<br /> Score: {scoresValue[male_b.toString()] || 0}
