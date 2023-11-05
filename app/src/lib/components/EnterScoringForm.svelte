@@ -174,8 +174,8 @@
 			{#if active}
 				<form on:submit|preventDefault={submitScores}>
 					<fieldset>
-						<legend>{group} <br />{hole} - Par {par}</legend>
-
+						<div class='mt-6'><legend>{group} <br />{hole} - Par {par}</legend></div>
+						
 						<!-- Display Female A's name and score -->
 						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
 							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
@@ -194,7 +194,7 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === female_a)?.name || 'Unknown'}
 							</div>
-							Score: {scoresValue[female_a.toString()] || 0}
+							<div class="mr-4 ml-4">Score: {scoresValue[female_a.toString()] || 0}</div>
 
 							<Incrementer pro={female_a} />
 							<Decrementer pro={female_a} />
@@ -218,12 +218,14 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === male_a)?.name || 'Unknown'}
 							</div>
-							Score: {scoresValue[male_a.toString()] || 0}
+							<div class="mr-4 ml-4">Score: {scoresValue[male_a.toString()] || 0}</div>
 
 							<Incrementer pro={male_a} />
 							<Decrementer pro={male_a} />
 							<Resetter pro={male_a} />
 						</div>
+
+						<div class="border-t-4 border-yellow-400 my-4" />
 
 						<!-- Display Female B's name and score -->
 						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
@@ -243,7 +245,7 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === female_b)?.name || 'Unknown'}
 							</div>
-							Score: {scoresValue[female_b.toString()] || 0}
+							<div class="mr-4 ml-4">Score: {scoresValue[female_b.toString()] || 0}</div>
 
 							<Incrementer pro={female_b} />
 							<Decrementer pro={female_b} />
@@ -268,7 +270,7 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === male_b)?.name || 'Unknown'}
 							</div>
-							Score: {scoresValue[male_b.toString()] || 0}
+							<div class="mr-4 ml-4">Score: {scoresValue[male_b.toString()] || 0}</div>
 
 							<Incrementer pro={male_b} />
 							<Decrementer pro={male_b} />
