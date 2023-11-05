@@ -183,9 +183,9 @@
 							)?.name || 'Unknown'}
 							<br /> Score: {scoresValue[female_a.toString()] || 0}
 						</h1>
-						<Incrementer pro_id={female_a} />
-						<Decrementer pro_id={female_a} />
-						<Resetter pro_id={female_a} />
+						<Incrementer pro={female_a} />
+						<Decrementer pro={female_a} />
+						<Resetter pro={female_a} />
 
 						<!-- Display male A's name and score -->
 						<h1 class="mt-4 mb-4">
@@ -194,9 +194,9 @@
 							)?.name || 'Unknown'}
 							<br /> Score: {scoresValue[male_a.toString()] || 0}
 						</h1>
-						<Incrementer pro_id={male_a} />
-						<Decrementer pro_id={male_a} />
-						<Resetter pro_id={male_a} />
+						<Incrementer pro={male_a} />
+						<Decrementer pro={male_a} />
+						<Resetter pro={male_a} />
 
 						<!-- Display Female B's name and score -->
 						<h1 class="mt-4 mb-4">
@@ -205,9 +205,9 @@
 							)?.name || 'Unknown'}
 							<br /> Score: {scoresValue[female_b.toString()] || 0}
 						</h1>
-						<Incrementer pro_id={female_b} />
-						<Decrementer pro_id={female_b} />
-						<Resetter pro_id={female_b} />
+						<Incrementer pro={female_b} />
+						<Decrementer pro={female_b} />
+						<Resetter pro={female_b} />
 
 						<!-- Display Male B's name and score -->
 						<h1 class="mt-4 mb-4">
@@ -216,17 +216,9 @@
 							)?.name || 'Unknown'}
 							<br /> Score: {scoresValue[male_b.toString()] || 0}
 						</h1>
-						<Incrementer pro_id={male_b} />
-						<Decrementer pro_id={male_b} />
-						<Resetter pro_id={male_b} />
-
-						<!-- Lookup team names by team ID -->
-						<h1 class="mt-4 mb-4">
-							Team A Name: {teams.find((t) => t.id === team_a)?.name || 'Unknown'}
-						</h1>
-						<h1 class="mt-4 mb-4">
-							Team B Name: {teams.find((t) => t.id === team_b)?.name || 'Unknown'}
-						</h1>
+						<Incrementer pro={male_b} />
+						<Decrementer pro={male_b} />
+						<Resetter pro={male_b} />
 
 						<button type="submit" class="...">Submit Scores</button>
 					</fieldset>
