@@ -177,48 +177,103 @@
 						<legend>{group} <br />{hole} - Par {par}</legend>
 
 						<!-- Display Female A's name and score -->
-						<h1 class="mt-4 mb-4">
-							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}: {pros.find(
-								(p) => p.pro_id === female_a
-							)?.name || 'Unknown'}
-							<br /> Score: {scoresValue[female_a.toString()] || 0}
-						</h1>
-						<Incrementer pro={female_a} />
-						<Decrementer pro={female_a} />
-						<Resetter pro={female_a} />
+						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
+							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
+							<img
+								src={teams.find((t) => t.team_id === team_a)?.team_image_url ||
+									'default_team_image_url'}
+								alt="Team"
+								class="h-12 w-12 rounded-full"
+							/>
+							<img
+								src={pros.find((p) => p.pro_id === female_a)?.pro_image_url ||
+									'default_pro_image_url'}
+								alt="Pro"
+								class="h-10 w-10 rounded-full ml-2"
+							/>
+							<div class="mr-4 ml-4">
+								{pros.find((p) => p.pro_id === female_a)?.name || 'Unknown'}
+							</div>
+							Score: {scoresValue[female_a.toString()] || 0}
 
-						<!-- Display male A's name and score -->
-						<h1 class="mt-4 mb-4">
-							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}: {pros.find(
-								(p) => p.pro_id === male_a
-							)?.name || 'Unknown'}
-							<br /> Score: {scoresValue[male_a.toString()] || 0}
-						</h1>
-						<Incrementer pro={male_a} />
-						<Decrementer pro={male_a} />
-						<Resetter pro={male_a} />
+							<Incrementer pro={female_a} />
+							<Decrementer pro={female_a} />
+							<Resetter pro={female_a} />
+						</div>
+						<!-- Display Male A's name and score -->
+						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
+							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
+							<img
+								src={teams.find((t) => t.team_id === team_a)?.team_image_url ||
+									'default_team_image_url'}
+								alt="Team"
+								class="h-12 w-12 rounded-full"
+							/>
+							<img
+								src={pros.find((p) => p.pro_id === male_a)?.pro_image_url ||
+									'default_pro_image_url'}
+								alt="Pro"
+								class="h-10 w-10 rounded-full ml-2"
+							/>
+							<div class="mr-4 ml-4">
+								{pros.find((p) => p.pro_id === male_a)?.name || 'Unknown'}
+							</div>
+							Score: {scoresValue[male_a.toString()] || 0}
+
+							<Incrementer pro={male_a} />
+							<Decrementer pro={male_a} />
+							<Resetter pro={male_a} />
+						</div>
 
 						<!-- Display Female B's name and score -->
-						<h1 class="mt-4 mb-4">
-							{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}: {pros.find(
-								(p) => p.pro_id === female_b
-							)?.name || 'Unknown'}
-							<br /> Score: {scoresValue[female_b.toString()] || 0}
-						</h1>
-						<Incrementer pro={female_b} />
-						<Decrementer pro={female_b} />
-						<Resetter pro={female_b} />
+						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
+							{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}:
+							<img
+								src={teams.find((t) => t.team_id === team_b)?.team_image_url ||
+									'default_team_image_url'}
+								alt="Team"
+								class="h-12 w-12 rounded-full"
+							/>
+							<img
+								src={pros.find((p) => p.pro_id === female_b)?.pro_image_url ||
+									'default_pro_image_url'}
+								alt="Pro"
+								class="h-10 w-10 rounded-full ml-2"
+							/>
+							<div class="mr-4 ml-4">
+								{pros.find((p) => p.pro_id === female_b)?.name || 'Unknown'}
+							</div>
+							Score: {scoresValue[female_b.toString()] || 0}
+
+							<Incrementer pro={female_b} />
+							<Decrementer pro={female_b} />
+							<Resetter pro={female_b} />
+						</div>
 
 						<!-- Display Male B's name and score -->
-						<h1 class="mt-4 mb-4">
-							{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}: {pros.find(
-								(p) => p.pro_id === male_b
-							)?.name || 'Unknown'}
-							<br /> Score: {scoresValue[male_b.toString()] || 0}
-						</h1>
-						<Incrementer pro={male_b} />
-						<Decrementer pro={male_b} />
-						<Resetter pro={male_b} />
+						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
+							{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}:
+							<img
+								src={teams.find((t) => t.team_id === team_b)?.team_image_url ||
+									'default_team_image_url'}
+								alt="Team"
+								class="h-12 w-12 rounded-full"
+							/>
+							<img
+								src={pros.find((p) => p.pro_id === male_b)?.pro_image_url ||
+									'default_pro_image_url'}
+								alt="Pro"
+								class="h-10 w-10 rounded-full ml-2"
+							/>
+							<div class="mr-4 ml-4">
+								{pros.find((p) => p.pro_id === male_b)?.name || 'Unknown'}
+							</div>
+							Score: {scoresValue[male_b.toString()] || 0}
+
+							<Incrementer pro={male_b} />
+							<Decrementer pro={male_b} />
+							<Resetter pro={male_b} />
+						</div>
 
 						<button type="submit" class="...">Submit Scores</button>
 					</fieldset>
