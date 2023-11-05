@@ -176,41 +176,58 @@
 					<fieldset>
 						<legend>{group} <br />{hole} - Par {par}</legend>
 
-						<!-- Use pro_id to match the correct pro -->
+						<!-- Display Female A's name and score -->
 						<h1 class="mt-4 mb-4">
-							Female A Name: {pros.find((p) => p.pro_id === female_a)?.name || 'Unknown'}
+							{teams.find((t) => t.id === team_a)?.name || 'Unknown'}: {pros.find(
+								(p) => p.pro_id === female_a
+							)?.name || 'Unknown'}
+							<br /> Score: {scoresValue[female_a.toString()] || 0}
+						</h1>
+						<Incrementer pro_id={female_a} />
+						<Decrementer pro_id={female_a} />
+						<Resetter pro_id={female_a} />
+
+						<!-- Display ale A's name and score -->
+						<h1 class="mt-4 mb-4">
+							{teams.find((t) => t.id === team_a)?.name || 'Unknown'}: {pros.find(
+								(p) => p.pro_id === male_a
+							)?.name || 'Unknown'}
+							<br /> Score: {scoresValue[male_a.toString()] || 0}
+						</h1>
+						<Incrementer pro_id={male_a} />
+						<Decrementer pro_id={male_a} />
+						<Resetter pro_id={male_a} />
+
+						<!-- Display Female B's name and score -->
+						<h1 class="mt-4 mb-4">
+							{teams.find((t) => t.id === team_b)?.name || 'Unknown'}: {pros.find(
+								(p) => p.pro_id === female_b
+							)?.name || 'Unknown'}
+							<br /> Score: {scoresValue[female_b.toString()] || 0}
+						</h1>
+						<Incrementer pro_id={female_b} />
+						<Decrementer pro_id={female_b} />
+						<Resetter pro_id={female_b} />
+
+						<!-- Display Male B's name and score -->
+						<h1 class="mt-4 mb-4">
+							{teams.find((t) => t.id === team_b)?.name || 'Unknown'}: {pros.find(
+								(p) => p.pro_id === male_b
+							)?.name || 'Unknown'}
+							<br /> Score: {scoresValue[male_b.toString()] || 0}
+						</h1>
+						<Incrementer pro_id={male_b} />
+						<Decrementer pro_id={male_b} />
+						<Resetter pro_id={male_b} />
+
+						<!-- Lookup team names by team ID -->
+						<h1 class="mt-4 mb-4">
+							Team A Name: {teams.find((t) => t.id === team_a)?.name || 'Unknown'}
 						</h1>
 						<h1 class="mt-4 mb-4">
-							Male A Name: {pros.find((p) => p.pro_id === male_a)?.name || 'Unknown'}
+							Team B Name: {teams.find((t) => t.id === team_b)?.name || 'Unknown'}
 						</h1>
 
-						<!-- Use pro_id to match the correct pro -->
-						<h1 class="mt-4 mb-4">
-							Female B Name: {pros.find((p) => p.pro_id === female_b)?.name || 'Unknown'}
-						</h1>
-						<h1 class="mt-4 mb-4">
-							Male B Name: {pros.find((p) => p.pro_id === male_b)?.name || 'Unknown'}
-						</h1>
-
-						<!-- Lookup team names by team ID, assuming team id property is 'id' -->
-						<h1 class="mt-4 mb-4">
-							Team A Name: {teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}
-						</h1>
-						<h1 class="mt-4 mb-4">
-							Team B Name: {teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}
-						</h1>
-
-						<!-- Iterate through each score and match pro names to their scores -->
-						{#each Object.keys(scoresValue) as pro_id}
-							<h1 class="mt-4 mb-4">
-								Score for {pros.find((p) => p.pro_id === pro_id)?.name || 'Unknown'}: {scoresValue[
-									pro_id
-								]}
-							</h1>
-							<Incrementer {pro_id} />
-							<Decrementer {pro_id} />
-							<Resetter {pro_id} />
-						{/each}
 						<button type="submit" class="...">Submit Scores</button>
 					</fieldset>
 				</form>
