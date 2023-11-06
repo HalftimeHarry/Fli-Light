@@ -5,7 +5,6 @@
 	import Incrementer from '$lib/components/Incrementer.svelte';
 	import Decrementer from '$lib/components/Decrementer.svelte';
 	import Resetter from '$lib/components/Resetter.svelte';
-	import { getTeamColors } from '$lib/utilities/teamColors.ts';
 
 	let activeStep = 1;
 	let steps = [];
@@ -58,7 +57,7 @@
 
 	async function fetchScoringData() {
 		try {
-			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
+			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
 			const { data: scores, error: scoresError } = await supabase
 				.from('scores')
 				.select('*')
@@ -85,21 +84,13 @@
 
 				steps = Object.entries(detailedScores).map(([key, holeData]: [string, any]) => {
 					const groupName = holeData.det_sco_group_name;
-					console.log(groupName);
 					const par = holeData.det_sco_par;
-					console.log(par);
 					const female_a = holeData.det_sco_female_a;
-					console.log(female_a);
 					const male_a = holeData.det_sco_male_a;
-					console.log(male_a);
 					const female_b = holeData.det_sco_female_b;
-					console.log(female_b);
 					const male_b = holeData.det_sco_male_b;
-					console.log(male_b);
 					const team_a = holeData.det_sco_team_a_id;
-					console.log(team_a);
 					const team_b = holeData.det_sco_team_b_id;
-					console.log(team_b);
 					const holeNumber = holeData.det_sco_hole_number;
 					const isActiveHole = holeNumber === startHole; // Compare holeNumber with startHole
 					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
@@ -174,8 +165,9 @@
 			{#if active}
 				<form on:submit|preventDefault={submitScores}>
 					<fieldset>
-						<div class='mt-6'><legend>{group} <br />{hole} - Par {par}</legend></div>
-						
+						<div class="mt-6 flex justify-center">{group}</div>
+						<div class="mt-2 flex justify-center">{hole} - Par {par}</div>
+
 						<!-- Display Female A's name and score -->
 						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
 							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
