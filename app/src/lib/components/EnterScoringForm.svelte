@@ -18,6 +18,10 @@
 		console.log('Current scores:', scoresValue);
 	}
 
+	function handleClick() {
+		console.log('clicked submit scores');
+	}
+
 	async function loadProsAndTeams(proIds, teamIds) {
 		// Load specific pros based on passed IDs
 		if (proIds && proIds.length) {
@@ -57,7 +61,7 @@
 
 	async function fetchScoringData() {
 		try {
-			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
+			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
 			const { data: scores, error: scoresError } = await supabase
 				.from('scores')
 				.select('*')
@@ -144,7 +148,7 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { id, hole, group, par, female_a, male_a, team_a, team_b, active }}
+		{#each steps as { id, hole, group, par, female_a, male_a, team_a, team_b, active, on_hole }}
 			<li class="flex items-center">
 				<span class="flex items-center">
 					<svg
@@ -166,8 +170,8 @@
 		{/each}
 	</ol>
 	{#if steps.length > 0}
-		{#each steps as { id, hole, group, par, female_a, male_a, female_b, male_b, team_a, team_b, active }}
-			{#if active}
+		{#each steps as { id, hole, group, par, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
+			{#if active & on_hole}
 				<form on:submit|preventDefault={submitScores}>
 					<fieldset>
 						<div class="mt-6 flex justify-center">{group}</div>
@@ -274,7 +278,12 @@
 							<Resetter pro={male_b} />
 						</div>
 
-						<button type="submit" class="...">Submit Scores</button>
+						<button
+							on:click={handleClick}
+							class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						>
+							Submit Scores
+						</button>
 					</fieldset>
 				</form>
 			{/if}
