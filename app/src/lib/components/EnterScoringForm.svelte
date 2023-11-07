@@ -113,13 +113,109 @@
 		}
 	}
 
+	// Function to get only the detailed_scores from the scoring data
+	async function getDetailedScores() {
+		try {
+			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
+			const { data: scores, error: scoresError } = await supabase
+				.from('scores')
+				.select('detailed_scores') // Select only the detailed_scores column
+				.eq('score_scorer_uuid_ref', scorerUuid);
+
+			if (scoresError) {
+				throw scoresError;
+			}
+
+			if (scores && scores.length > 0) {
+				const detailedScores = scores[0].detailed_scores;
+
+				// Check if detailedScores is a string and needs parsing
+				if (typeof detailedScores === 'string') {
+					try {
+						return JSON.parse(detailedScores); // Parse and return the JSON object
+					} catch (parseError) {
+						console.error('Error parsing detailed_scores:', parseError);
+					}
+				} else {
+					return detailedScores; // Return it as it is if it's already an object
+				}
+			} else {
+				console.error('No scoring data found for the given scorer UUID');
+				return null; // Return null if no scores are found
+			}
+		} catch (error) {
+			console.error('Error fetching detailed scores:', error);
+			return null; // Return null in case of any error
+		}
+	}
+
+	// Example usage of getDetailedScores
+	(async () => {
+		const detailedScores = await getDetailedScores();
+		if (detailedScores) {
+			// Here you can handle the detailed scores as needed
+			console.log('Retrieved detailed scores:', detailedScores);
+			// If you need to update the scores with new data, call your update function here
+		}
+	})();
+
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number) {
-		// TypeScript type annotation for number
-		if (typeof startHole === 'number') {
-			console.log('startHole is a number with value:', startHole);
-		} else {
+		// Check that startHole is a number
+		if (typeof startHole !== 'number') {
 			console.error('Expected startHole to be a number, but got:', startHole);
+			return;
+		}
+
+		console.log('startHole is a number with value:', startHole);
+
+		// Fetch current detailed scores
+		const currentDetailedScores = await getDetailedScores();
+		if (!currentDetailedScores) {
+			console.error('Failed to retrieve current detailed scores.');
+			return;
+		}
+
+		// Make sure scoresValue is defined and has the new score data
+		if (!scoresValue) {
+			console.error('Scores value is not set.');
+			return;
+		}
+
+		// Here we use scoresValue to update the score for the specific hole
+		const holeDataToUpdate = currentDetailedScores[startHole];
+		if (!holeDataToUpdate) {
+			console.error(`Hole data for number ${startHole} not found.`);
+			return;
+		}
+
+		// Perform the score update logic here
+		// ...
+		// For example, updating the score for this hole
+		holeDataToUpdate.score = scoresValue; // Replace scoresValue with the actual score you want to update
+
+		// Assuming you have the correct scoresId which is the actual row id in the 'scores' table
+		const scoresId = 10; // Replace with actual ID
+
+		// Update the hole data with the new score
+		holeDataToUpdate.score = scoresValue[startHole]; // Assuming scoresValue is structured with keys as hole numbers
+
+		// Construct the update payload with the updated detailed scores
+		const updatePayload = {
+			// Assuming detailed_scores is the column name in your database
+			detailed_scores: currentDetailedScores
+		};
+
+		// Send the update to Supabase
+		const { data, error } = await supabase
+			.from('scores')
+			.update(updatePayload)
+			.eq('score_id', scoresId);
+
+		if (error) {
+			console.error('Error updating scores:', error);
+		} else {
+			console.log('Scores updated successfully:', data);
 		}
 	}
 
