@@ -15,7 +15,7 @@
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
-		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
+		const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff'; // Update this with the desired UUID
 		const { data: scores, error: scoresError } = await supabase
 			.from('scores')
 			.select('*')
@@ -270,7 +270,11 @@
 				det_sco_on_this_hole: false,
 				det_sco_completed_this_hole: false,
 				det_sco_verified_this_hole: false,
-				det_sco_active_hole: false
+				det_sco_active_hole: false,
+				det_sco_female_a_scored: 0,
+				det_sco_male_a_scored: 0,
+				det_sco_female_b_scored: 0,
+				det_sco_male_b_scored: 0
 				// ... add any other group properties you want to include
 			};
 		});

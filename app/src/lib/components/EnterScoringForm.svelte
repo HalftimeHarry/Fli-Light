@@ -14,9 +14,7 @@
 	let teams = [];
 	let scoresValue;
 
-	$: if (scoresValue) {
-		console.log('Current scores:', scoresValue);
-	}
+	$: scoresValue = $scores; // Subscribe to scores store and update scoresValue reactively
 
 	async function loadProsAndTeams(proIds, teamIds) {
 		// Load specific pros based on passed IDs
@@ -160,7 +158,7 @@
 	})();
 
 	// Placeholder for submitting scores
-	async function submitScores(startHole: number) {
+	async function submitScores(startHole: number, $scores: object) {
 		// Check that startHole is a number
 		if (typeof startHole !== 'number') {
 			console.error('Expected startHole to be a number, but got:', startHole);
@@ -168,6 +166,13 @@
 		}
 
 		console.log('startHole is a number with value:', startHole);
+
+		if (typeof scoresValue !== 'object') {
+			console.error('Expected scoresValue to be an object, but got:', scoresValue);
+			return;
+		}
+
+		console.log('scoresValue is a object with value:', scoresValue);
 
 		// Fetch current detailed scores
 		const currentDetailedScores = await getDetailedScores();
