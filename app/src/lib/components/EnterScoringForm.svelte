@@ -18,10 +18,6 @@
 		console.log('Current scores:', scoresValue);
 	}
 
-	function handleClick() {
-		console.log('clicked submit scores');
-	}
-
 	async function loadProsAndTeams(proIds, teamIds) {
 		// Load specific pros based on passed IDs
 		if (proIds && proIds.length) {
@@ -55,8 +51,7 @@
 
 	// Placeholder for submitting scores
 	async function submitScores() {
-		// Implement the logic to submit scores
-		// For instance, you can send currentScores to your backend
+		console.log('clicked submit scores');
 	}
 
 	async function fetchScoringData() {
@@ -279,7 +274,7 @@
 						</div>
 
 						<button
-							on:click={handleClick}
+							on:click={submitScores}
 							class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						>
 							Submit Scores
