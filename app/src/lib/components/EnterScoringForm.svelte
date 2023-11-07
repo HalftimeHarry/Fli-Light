@@ -49,11 +49,6 @@
 		scoresValue = value;
 	});
 
-	// Placeholder for submitting scores
-	async function submitScores() {
-		console.log('clicked submit scores');
-	}
-
 	async function fetchScoringData() {
 		try {
 			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
@@ -118,6 +113,16 @@
 		}
 	}
 
+	// Placeholder for submitting scores
+	async function submitScores(startHole: number) {
+		// TypeScript type annotation for number
+		if (typeof startHole === 'number') {
+			console.log('startHole is a number with value:', startHole);
+		} else {
+			console.error('Expected startHole to be a number, but got:', startHole);
+		}
+	}
+
 	onMount(async () => {
 		await fetchScoringData(); // Assuming this populates the `steps` array.
 
@@ -167,7 +172,7 @@
 	{#if steps.length > 0}
 		{#each steps as { id, hole, group, par, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
 			{#if active & on_hole}
-				<form on:submit|preventDefault={submitScores}>
+				<form on:submit|preventDefault={() => submitScores(startHole)}>
 					<fieldset>
 						<div class="mt-6 flex justify-center">{group}</div>
 						<div class="mt-2 flex justify-center">{hole} - Par {par}</div>
@@ -274,7 +279,7 @@
 						</div>
 
 						<button
-							on:click={submitScores}
+							type="submit"
 							class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 						>
 							Submit Scores
