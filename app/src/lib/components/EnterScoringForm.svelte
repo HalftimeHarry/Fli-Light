@@ -66,6 +66,7 @@
 			startHole = scores[0].score_hole_start;
 
 			console.log(scores[0].detailed_scores);
+			console.log(scores[0].score_fantacy);
 
 			if (scoresError) {
 				throw scoresError;
@@ -94,6 +95,9 @@
 					const holeNumber = holeData.det_sco_hole_number;
 					const isActiveHole = holeNumber === startHole; // Compare holeNumber with startHole
 					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
+					const OnThisHole = isActiveHole; // Since you're starting on this hole, this flag should be true
+					console.log(`Hole on ${holeNumber} active: ${OnThisHole}`);
+
 					return {
 						id: holeNumber,
 						hole: `Hole ${holeNumber}`,
@@ -105,7 +109,8 @@
 						male_b: male_b,
 						team_a: team_a,
 						team_b: team_b,
-						active: isActiveHole
+						active: isActiveHole,
+						on_hole: OnThisHole
 					};
 				});
 			}
