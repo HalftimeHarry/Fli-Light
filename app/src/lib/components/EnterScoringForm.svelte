@@ -26,6 +26,11 @@
 		maleB: $maleB
 	};
 
+	// Some function that will be called when you want to initialize femaleA
+	function initializeFemaleA(value) {
+		femaleA.set(value);
+	}
+
 	async function loadProsAndTeams(proIds, teamIds) {
 		// Load specific pros based on passed IDs
 		if (proIds && proIds.length) {
@@ -319,11 +324,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === female_a)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue.femaleA[female_a.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {$femaleA || 0}</div>
 
-							<Incrementer pro={femaleA} />
-							<Decrementer pro={femaleA} />
-							<Resetter pro={femaleA} />
+							<Incrementer pro="femaleA" />
+							<Decrementer pro="femaleA" />
+							<Resetter pro="femaleA" />
 						</div>
 						<!-- Display Male A's name and score -->
 						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
@@ -343,11 +348,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === male_a)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue.maleA[male_a.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {$maleA || 0}</div>
 
-							<Incrementer pro={maleA} />
-							<Decrementer pro={maleA} />
-							<Resetter pro={maleA} />
+							<Incrementer pro="maleA" />
+							<Decrementer pro="maleA" />
+							<Resetter pro="maleA" />
 						</div>
 
 						<div class="border-t-4 border-yellow-400 my-4" />
@@ -370,11 +375,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === female_b)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue.femaleB[female_b.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {$femaleB || 0}</div>
 
-							<Incrementer pro={femaleB} />
-							<Decrementer pro={femaleB} />
-							<Resetter pro={femaleB} />
+							<Incrementer pro="femaleB" />
+							<Decrementer pro="femaleB" />
+							<Resetter pro="femaleB" />
 						</div>
 
 						<!-- Display Male B's name and score -->
@@ -395,11 +400,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === male_b)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue.maleB[male_b.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {$maleB || 0}</div>
 
-							<Incrementer pro={maleB} />
-							<Decrementer pro={maleB} />
-							<Resetter pro={maleB} />
+							<Incrementer pro="maleB" />
+							<Decrementer pro="maleB" />
+							<Resetter pro="maleB" />
 						</div>
 
 						<button
