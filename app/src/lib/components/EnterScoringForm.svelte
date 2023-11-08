@@ -191,16 +191,21 @@
 
 		console.log('startHole is a number with value:', startHole);
 
+		console.log(scoresValue);
 		if (typeof scoresValue !== 'object') {
 			console.error('Expected scoresValue to be an object, but got:', scoresValue);
 			return;
 		}
+		let proScoredFemaleA = scoresValue.femaleA;
+		let proScoredFemaleB = scoresValue.femaleB;
+		let proScoredMaleA = scoresValue.maleA;
+		let proScoredMaleB = scoresValue.maleB;
 
 		console.log('scoresValue is a object with value:', scoresValue);
-		console.log('Female A Score:', scoresValue.femaleA);
-		console.log('Female B Score:', scoresValue.femaleB);
-		console.log('Male A Score:', scoresValue.maleA);
-		console.log('Male B Score:', scoresValue.maleB);
+		console.log('Female A Score:', proScoredFemaleA);
+		console.log('Male A Score:', proScoredMaleA);
+		console.log('Female B Score:', proScoredFemaleB);
+		console.log('Male B Score:', proScoredMaleB);
 
 		// Fetch current detailed scores
 		const currentDetailedScores = await getDetailedScores();
@@ -231,12 +236,25 @@
 		const scoresId = 10; // Replace with actual ID
 
 		// Update the hole data with the new score
-		holeDataToUpdate.score = scoresValue[startHole]; // Assuming scoresValue is structured with keys as hole numbers
+		holeDataToUpdate.score = scoresValue[startHole]; // Assuming scoresValue is structured with keys as pros example femaleA
 
+		let newScoreFemaleA = $femaleA;
+		let newScoreFemaleB = $femaleB;
+		let newScoreMaleA = $maleA;
+		let newScoreMaleB = $maleB;
+		// Update the holeDataToUpdate object
+		const updatedScores = {
+			...holeDataToUpdate, // Assuming holeDataToUpdate is a regular object, not a Svelte store
+			det_sco_female_a_scored: newScoreFemaleA,
+			det_sco_female_b_scored: newScoreFemaleB,
+			det_sco_male_a_scored: newScoreMaleA,
+			det_sco_male_b_scored: newScoreMaleB
+		};
+		console.log(updatedScores);
 		// Construct the update payload with the updated detailed scores
 		const updatePayload = {
 			// Assuming detailed_scores is the column name in your database
-			detailed_scores: currentDetailedScores
+			detailed_scores: updatedScores
 		};
 
 		// Send the update to Supabase
