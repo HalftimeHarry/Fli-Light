@@ -1,15 +1,23 @@
 <script lang="ts">
-	import { scores } from '$lib/utilities/stores.js';
+	import { femaleA, femaleB, maleA, maleB } from '$lib/utilities/stores.js';
 	import Icon from '@iconify/svelte';
 	export let pro: string;
 
 	function reset() {
-		scores.update((currentScores) => {
-			if (currentScores.hasOwnProperty(pro)) {
-				currentScores[pro] = 0;
-			}
-			return currentScores;
-		});
+		switch (pro) {
+			case 'femaleA':
+				femaleA.set(0);
+				break;
+			case 'femaleB':
+				femaleB.set(0);
+				break;
+			case 'maleA':
+				maleA.set(0);
+				break;
+			case 'maleB':
+				maleB.set(0);
+				break;
+		}
 	}
 </script>
 

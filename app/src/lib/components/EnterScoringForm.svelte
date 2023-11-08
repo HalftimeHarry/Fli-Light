@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
-	import { scores } from '$lib/utilities/stores.js';
+	import { femaleA, femaleB, maleA, maleB } from '$lib/utilities/stores.js';
 	import Incrementer from '$lib/components/Incrementer.svelte';
 	import Decrementer from '$lib/components/Decrementer.svelte';
 	import Resetter from '$lib/components/Resetter.svelte';
@@ -12,9 +12,19 @@
 	let currentScores = {}; // This will hold the current scores for the active hole
 	let pros = [];
 	let teams = [];
-	let scoresValue;
+	let scoresValue = {
+		femaleA: 0,
+		femaleB: 0,
+		maleA: 0,
+		maleB: 0
+	};
 
-	$: scoresValue = $scores; // Subscribe to scores store and update scoresValue reactively
+	$: scoresValue = {
+		femaleA: $femaleA,
+		femaleB: $femaleB,
+		maleA: $maleA,
+		maleB: $maleB
+	};
 
 	async function loadProsAndTeams(proIds, teamIds) {
 		// Load specific pros based on passed IDs
@@ -43,8 +53,17 @@
 	}
 
 	// Subscribe to the scores store
-	scores.subscribe((value) => {
-		scoresValue = value;
+	femaleA.subscribe((value) => {
+		scoresValue.femaleA = value;
+	});
+	femaleB.subscribe((value) => {
+		scoresValue.femaleB = value;
+	});
+	maleA.subscribe((value) => {
+		scoresValue.maleA = value;
+	});
+	maleB.subscribe((value) => {
+		scoresValue.maleB = value;
 	});
 
 	async function fetchScoringData() {
@@ -173,6 +192,10 @@
 		}
 
 		console.log('scoresValue is a object with value:', scoresValue);
+		console.log('Female A Score:', scoresValue.femaleA);
+		console.log('Female B Score:', scoresValue.femaleB);
+		console.log('Male A Score:', scoresValue.maleA);
+		console.log('Male B Score:', scoresValue.maleB);
 
 		// Fetch current detailed scores
 		const currentDetailedScores = await getDetailedScores();
@@ -296,11 +319,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === female_a)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue[female_a.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {scoresValue.femaleA[female_a.toString()] || 0}</div>
 
-							<Incrementer pro={female_a} />
-							<Decrementer pro={female_a} />
-							<Resetter pro={female_a} />
+							<Incrementer pro={femaleA} />
+							<Decrementer pro={femaleA} />
+							<Resetter pro={femaleA} />
 						</div>
 						<!-- Display Male A's name and score -->
 						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
@@ -320,11 +343,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === male_a)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue[male_a.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {scoresValue.maleA[male_a.toString()] || 0}</div>
 
-							<Incrementer pro={male_a} />
-							<Decrementer pro={male_a} />
-							<Resetter pro={male_a} />
+							<Incrementer pro={maleA} />
+							<Decrementer pro={maleA} />
+							<Resetter pro={maleA} />
 						</div>
 
 						<div class="border-t-4 border-yellow-400 my-4" />
@@ -347,11 +370,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === female_b)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue[female_b.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {scoresValue.femaleB[female_b.toString()] || 0}</div>
 
-							<Incrementer pro={female_b} />
-							<Decrementer pro={female_b} />
-							<Resetter pro={female_b} />
+							<Incrementer pro={femaleB} />
+							<Decrementer pro={femaleB} />
+							<Resetter pro={femaleB} />
 						</div>
 
 						<!-- Display Male B's name and score -->
@@ -372,11 +395,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === male_b)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue[male_b.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {scoresValue.maleB[male_b.toString()] || 0}</div>
 
-							<Incrementer pro={male_b} />
-							<Decrementer pro={male_b} />
-							<Resetter pro={male_b} />
+							<Incrementer pro={maleB} />
+							<Decrementer pro={maleB} />
+							<Resetter pro={maleB} />
 						</div>
 
 						<button
