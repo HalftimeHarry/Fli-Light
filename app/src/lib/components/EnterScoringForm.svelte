@@ -290,6 +290,7 @@
 		// we need to check && currentHoleIndex
 		if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
 			// Create a copy of the upcoming hole with updated properties
+			console.log(currentHoleIndex);
 			let upComingHole = {
 				...steps[currentHoleIndex],
 				active: false,
@@ -305,9 +306,9 @@
 
 			// Check if there's a next hole
 			const nextIndex = currentHoleIndex + 1;
-			console.log(nextIndex);
 			if (nextIndex < steps.length) {
 				// Activate next hole
+				console.log('nextIndex', nextIndex);
 				steps[nextIndex] = { ...steps[nextIndex] };
 			} else {
 				// Handle the end of the round
