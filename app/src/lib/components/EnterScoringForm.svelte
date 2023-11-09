@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
-	import { scores } from '$lib/utilities/stores.js';
+	import { femaleA, femaleB, maleA, maleB } from '$lib/utilities/stores.js';
 	import Incrementer from '$lib/components/Incrementer.svelte';
 	import Decrementer from '$lib/components/Decrementer.svelte';
 	import Resetter from '$lib/components/Resetter.svelte';
@@ -12,10 +12,23 @@
 	let currentScores = {}; // This will hold the current scores for the active hole
 	let pros = [];
 	let teams = [];
-	let scoresValue;
+	let scoresValue = {
+		femaleA: 0,
+		femaleB: 0,
+		maleA: 0,
+		maleB: 0
+	};
 
-	$: if (scoresValue) {
-		console.log('Current scores:', scoresValue);
+	$: scoresValue = {
+		femaleA: $femaleA,
+		femaleB: $femaleB,
+		maleA: $maleA,
+		maleB: $maleB
+	};
+
+	// Some function that will be called when you want to initialize femaleA
+	function initializeFemaleA(value) {
+		femaleA.set(value);
 	}
 
 	async function loadProsAndTeams(proIds, teamIds) {
@@ -45,15 +58,18 @@
 	}
 
 	// Subscribe to the scores store
-	scores.subscribe((value) => {
-		scoresValue = value;
+	femaleA.subscribe((value) => {
+		scoresValue.femaleA = value;
 	});
-
-	// Placeholder for submitting scores
-	async function submitScores() {
-		// Implement the logic to submit scores
-		// For instance, you can send currentScores to your backend
-	}
+	femaleB.subscribe((value) => {
+		scoresValue.femaleB = value;
+	});
+	maleA.subscribe((value) => {
+		scoresValue.maleA = value;
+	});
+	maleB.subscribe((value) => {
+		scoresValue.maleB = value;
+	});
 
 	async function fetchScoringData() {
 		try {
@@ -66,6 +82,7 @@
 			startHole = scores[0].score_hole_start;
 
 			console.log(scores[0].detailed_scores);
+			console.log(scores[0].score_fantacy);
 
 			if (scoresError) {
 				throw scoresError;
@@ -82,6 +99,7 @@
 					}
 				}
 
+				console.log(startHole);
 				steps = Object.entries(detailedScores).map(([key, holeData]: [string, any]) => {
 					const groupName = holeData.det_sco_group_name;
 					const par = holeData.det_sco_par;
@@ -94,9 +112,12 @@
 					const holeNumber = holeData.det_sco_hole_number;
 					const isActiveHole = holeNumber === startHole; // Compare holeNumber with startHole
 					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
+					const OnThisHole = isActiveHole; // Since you're starting on this hole, this flag should be true
+					console.log(`We are scoring hole ${holeNumber} : ${OnThisHole}`);
+
 					return {
-						id: holeNumber,
-						hole: `Hole ${holeNumber}`,
+						step_id: holeNumber,
+						hole: holeNumber, // you could use `Hole ${holeNumber}`
 						group: groupName, // Add the group name to the step
 						par: par,
 						female_a: female_a,
@@ -105,7 +126,8 @@
 						male_b: male_b,
 						team_a: team_a,
 						team_b: team_b,
-						active: isActiveHole
+						active: isActiveHole,
+						on_hole: OnThisHole
 					};
 				});
 			}
@@ -113,6 +135,198 @@
 			console.error('Error fetching scoring data:', error);
 		}
 	}
+
+	// Function to get only the detailed_scores from the scoring data
+	async function getDetailedScores() {
+		try {
+			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
+			const { data: scores, error: scoresError } = await supabase
+				.from('scores')
+				.select('detailed_scores') // Select only the detailed_scores column
+				.eq('score_scorer_uuid_ref', scorerUuid);
+
+			if (scoresError) {
+				throw scoresError;
+			}
+
+			if (scores && scores.length > 0) {
+				const detailedScores = scores[0].detailed_scores;
+
+				// Check if detailedScores is a string and needs parsing
+				if (typeof detailedScores === 'string') {
+					try {
+						return JSON.parse(detailedScores); // Parse and return the JSON object
+					} catch (parseError) {
+						console.error('Error parsing detailed_scores:', parseError);
+					}
+				} else {
+					return detailedScores; // Return it as it is if it's already an object
+				}
+			} else {
+				console.error('No scoring data found for the given scorer UUID');
+				return null; // Return null if no scores are found
+			}
+		} catch (error) {
+			console.error('Error fetching detailed scores:', error);
+			return null; // Return null in case of any error
+		}
+	}
+
+	// Example usage of getDetailedScores
+	(async () => {
+		const detailedScores = await getDetailedScores();
+		if (detailedScores) {
+			// Here you can handle the detailed scores as needed
+			console.log('Retrieved detailed scores:', detailedScores);
+			// If you need to update the scores with new data, call your update function here
+		}
+	})();
+
+	// Placeholder for submitting scores
+	async function submitScores(startHole: number, $scores: object) {
+		// Check that startHole is a number
+		if (typeof startHole !== 'number') {
+			console.error('Expected startHole to be a number, but got:', startHole);
+			return;
+		}
+
+		console.log('startHole is a number with value:', startHole);
+
+		console.log(scoresValue);
+		if (typeof scoresValue !== 'object') {
+			console.error('Expected scoresValue to be an object, but got:', scoresValue);
+			return;
+		}
+		let proScoredFemaleA = scoresValue.femaleA;
+		let proScoredFemaleB = scoresValue.femaleB;
+		let proScoredMaleA = scoresValue.maleA;
+		let proScoredMaleB = scoresValue.maleB;
+
+		console.log('scoresValue is a object with value:', scoresValue);
+		console.log('Female A Score:', proScoredFemaleA);
+		console.log('Male A Score:', proScoredMaleA);
+		console.log('Female B Score:', proScoredFemaleB);
+		console.log('Male B Score:', proScoredMaleB);
+
+		const originalDetailedScores = await getDetailedScores();
+
+		// Select the object to update using startHole as index
+		let holeDataToUpdate = originalDetailedScores[startHole];
+
+		if (!holeDataToUpdate) {
+			console.error('No hole data found to update at index:', startHole);
+			return;
+		}
+
+		// Update the selected object with new scores from Svelte stores
+		holeDataToUpdate.det_sco_female_a_scored = $femaleA;
+		holeDataToUpdate.det_sco_female_b_scored = $femaleB;
+		holeDataToUpdate.det_sco_male_a_scored = $maleA;
+		holeDataToUpdate.det_sco_male_b_scored = $maleB;
+
+		// Fetch current detailed scores
+		const currentDetailedScores = await getDetailedScores();
+		if (!currentDetailedScores) {
+			console.error('Failed to retrieve current detailed scores.');
+			return;
+		}
+
+		// Make sure scoresValue is defined and has the new score data
+		if (!scoresValue) {
+			console.error('Scores value is not set.');
+			return;
+		}
+
+		// Here we use scoresValue to update the score for the specific hole
+		holeDataToUpdate = currentDetailedScores[startHole];
+		if (!holeDataToUpdate) {
+			console.error(`Hole data for number ${startHole} not found.`);
+			return;
+		}
+
+		// Perform the score update logic here
+		// ...
+		// For example, updating the score for this hole
+		holeDataToUpdate.score = scoresValue; // Replace scoresValue with the actual score you want to update
+
+		// Assuming you have the correct scoresId which is the actual row id in the 'scores' table
+		const scoresId = 1; // Replace with actual ID
+
+		// Update the hole data with the new score
+		holeDataToUpdate.score = scoresValue[startHole]; // Assuming scoresValue is structured with keys as pros example femaleA
+
+		let newScoreFemaleA = $femaleA;
+		let newScoreFemaleB = $femaleB;
+		let newScoreMaleA = $maleA;
+		let newScoreMaleB = $maleB;
+		console.log('startHole value:', startHole);
+		if (typeof startHole !== 'number' || isNaN(startHole)) {
+			console.error('startHole is not a number:', startHole);
+			return; // Exit the function if startHole is not a valid number
+		}
+		let currentHoleIndex = startHole;
+		console.log(currentHoleIndex);
+		// Update the holeDataToUpdate object
+		const updatedScores = {
+			...holeDataToUpdate, // Assuming holeDataToUpdate is a regular object, not a Svelte store
+			det_sco_female_a_scored: newScoreFemaleA,
+			det_sco_female_b_scored: newScoreFemaleB,
+			det_sco_male_a_scored: newScoreMaleA,
+			det_sco_male_b_scored: newScoreMaleB
+		};
+		console.log(updatedScores);
+		// Send the entire updated array back to the database
+		const updatePayload = {
+			detailed_scores: originalDetailedScores
+		};
+		// Send the update to Supabase
+		const { data, error } = await supabase
+			.from('scores')
+			.update(updatePayload)
+			.eq('score_id', scoresId);
+
+		console.log('Index:', currentHoleIndex);
+		// After submission, move to the next hole:
+		// we need to check && currentHoleIndex
+		if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
+			// Create a copy of the upcoming hole with updated properties
+			console.log(currentHoleIndex);
+			let upComingHole = {
+				...steps[currentHoleIndex],
+				active: false,
+				det_sco_this_is_the_upcoming_hole: true
+			};
+			console.log(upComingHole);
+			// Create a new array with the updated hole
+			steps = [
+				...steps.slice(0, currentHoleIndex),
+				upComingHole,
+				...steps.slice(currentHoleIndex + 1)
+			];
+
+			// Check if there's a next hole
+			const nextIndex = currentHoleIndex + 1;
+			if (nextIndex < steps.length) {
+				// Activate next hole
+				console.log('nextIndex', nextIndex);
+				steps[nextIndex] = { ...steps[nextIndex] };
+			} else {
+				// Handle the end of the round
+				console.log('End of round');
+				// Possibly reset or update other component state as necessary
+			}
+		} else {
+			console.error('Invalid currentHoleIndex or steps length:', currentHoleIndex, steps.length);
+		}
+
+		if (error) {
+			console.error('Error updating scores:', error);
+		} else {
+			console.log('Scores updated successfully:', currentHoleIndex);
+		}
+	} // Ensure this is the actual end of the function
+
+	// Other code or logic...
 
 	onMount(async () => {
 		await fetchScoringData(); // Assuming this populates the `steps` array.
@@ -139,7 +353,7 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { id, hole, group, par, female_a, male_a, team_a, team_b, active }}
+		{#each steps as { step_id, hole, group, par, female_a, male_a, team_a, team_b, active, on_hole }}
 			<li class="flex items-center">
 				<span class="flex items-center">
 					<svg
@@ -161,12 +375,12 @@
 		{/each}
 	</ol>
 	{#if steps.length > 0}
-		{#each steps as { id, hole, group, par, female_a, male_a, female_b, male_b, team_a, team_b, active }}
-			{#if active}
-				<form on:submit|preventDefault={submitScores}>
+		{#each steps as { step_id, hole, group, par, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
+			{#if active & on_hole}
+				<form on:submit|preventDefault={() => submitScores(startHole)}>
 					<fieldset>
 						<div class="mt-6 flex justify-center">{group}</div>
-						<div class="mt-2 flex justify-center">{hole} - Par {par}</div>
+						<div class="mt-2 flex justify-center">Scoring Hole {hole} - Par {par}</div>
 
 						<!-- Display Female A's name and score -->
 						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
@@ -186,11 +400,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === female_a)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue[female_a.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {$femaleA || 0}</div>
 
-							<Incrementer pro={female_a} />
-							<Decrementer pro={female_a} />
-							<Resetter pro={female_a} />
+							<Incrementer pro="femaleA" />
+							<Decrementer pro="femaleA" />
+							<Resetter pro="femaleA" />
 						</div>
 						<!-- Display Male A's name and score -->
 						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
@@ -210,11 +424,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === male_a)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue[male_a.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {$maleA || 0}</div>
 
-							<Incrementer pro={male_a} />
-							<Decrementer pro={male_a} />
-							<Resetter pro={male_a} />
+							<Incrementer pro="maleA" />
+							<Decrementer pro="maleA" />
+							<Resetter pro="maleA" />
 						</div>
 
 						<div class="border-t-4 border-yellow-400 my-4" />
@@ -237,11 +451,11 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === female_b)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue[female_b.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {$femaleB || 0}</div>
 
-							<Incrementer pro={female_b} />
-							<Decrementer pro={female_b} />
-							<Resetter pro={female_b} />
+							<Incrementer pro="femaleB" />
+							<Decrementer pro="femaleB" />
+							<Resetter pro="femaleB" />
 						</div>
 
 						<!-- Display Male B's name and score -->
@@ -262,14 +476,19 @@
 							<div class="mr-4 ml-4">
 								{pros.find((p) => p.pro_id === male_b)?.name || 'Unknown'}
 							</div>
-							<div class="mr-4 ml-4">Score: {scoresValue[male_b.toString()] || 0}</div>
+							<div class="mr-4 ml-4">Score: {$maleB || 0}</div>
 
-							<Incrementer pro={male_b} />
-							<Decrementer pro={male_b} />
-							<Resetter pro={male_b} />
+							<Incrementer pro="maleB" />
+							<Decrementer pro="maleB" />
+							<Resetter pro="maleB" />
 						</div>
 
-						<button type="submit" class="...">Submit Scores</button>
+						<button
+							type="submit"
+							class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+						>
+							Submit Scores
+						</button>
 					</fieldset>
 				</form>
 			{/if}

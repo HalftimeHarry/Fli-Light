@@ -15,7 +15,7 @@
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
-		const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff'; // Update this with the desired UUID
+		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
 		const { data: scores, error: scoresError } = await supabase
 			.from('scores')
 			.select('*')
@@ -258,7 +258,6 @@
 			detailedScores[hole.hole_id] = {
 				det_sco_par: hole.par,
 				det_sco_hole_number: hole.hole_number,
-				det_sco_hole_start: score.score_hole_start,
 				det_sco_group_name: group.group_name,
 				det_sco_group_tee_time: group.tee_time,
 				det_sco_female_a: female_pro_a_id,
@@ -267,10 +266,18 @@
 				det_sco_male_b: male_pro_b_id,
 				det_sco_team_b_id: team_b_id,
 				det_sco_team_a_id: team_a_id,
-				det_sco_on_this_hole: false,
-				det_sco_completed_this_hole: false,
 				det_sco_verified_this_hole: false,
-				det_sco_active_hole: false
+				det_sco_female_a_scored: 0,
+				det_sco_male_a_scored: 0,
+				det_sco_female_b_scored: 0,
+				det_sco_male_b_scored: 0,
+				det_sco_hole_start: score.score_hole_start,
+				det_sco_completed_this_hole: false,
+				det_sco_on_this_hole: false,
+				det_sco_was_last_hole_updated: false,
+				det_sco_this_is_the_upcoming_hole: false,
+				det_sco_updating_hole: false,
+				det_sco_this_is_the_final_hole: false
 				// ... add any other group properties you want to include
 			};
 		});

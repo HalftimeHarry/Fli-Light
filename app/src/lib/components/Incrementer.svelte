@@ -1,17 +1,43 @@
 <script lang="ts">
-	import { scores } from '$lib/utilities/stores.js';
+	import { femaleA, femaleB, maleA, maleB } from '$lib/utilities/stores.js';
 	import Icon from '@iconify/svelte';
-	export let pro: string;
+
+	export let pro;
 
 	function increment() {
-		scores.update((currentScores) => {
-			currentScores[pro] = (currentScores[pro] || 0) + 1;
-			return currentScores;
-		});
+		switch (pro) {
+			case 'femaleA':
+				femaleA.update((n) => {
+					console.log(`Current femaleA score: ${n}`);
+					return n + 1;
+				});
+				break;
+			case 'femaleB':
+				femaleB.update((n) => {
+					console.log(`Current femaleB score: ${n}`);
+					return n + 1;
+				});
+				break;
+			case 'maleA':
+				maleA.update((n) => {
+					console.log(`Current maleA score: ${n}`);
+					return n + 1;
+				});
+				break;
+			case 'maleB':
+				maleB.update((n) => {
+					console.log(`Current maleB score: ${n}`);
+					return n + 1;
+				});
+				break;
+		}
 	}
 </script>
 
-<button on:click={increment} class="flex items-center justify-center p-2 bg-transparent hover:bg-gray-800 text-green-500">
-	<Icon icon="zondicons:add-solid" class="h-6 w-6" />
-	<span class="ml-2">Add</span>
-</button>
+	<button
+		on:click={increment}
+		class="flex items-center justify-center p-2 bg-transparent hover:bg-gray-800 text-green-500"
+	>
+		<Icon icon="zondicons:add-solid" class="h-6 w-6" />
+		<span class="ml-2">Add</span>
+	</button>
