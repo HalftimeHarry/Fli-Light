@@ -274,9 +274,10 @@
 				det_sco_hole_start: score.score_hole_start,
 				det_sco_completed_this_hole: false,
 				det_sco_on_this_hole: false,
-				det_sco_active_hole: false,
+				det_sco_was_last_hole_updated: false,
 				det_sco_this_is_the_upcoming_hole: false,
-				det_sco_updating_hole: false
+				det_sco_updating_hole: false,
+				det_sco_this_is_the_final_hole: false
 				// ... add any other group properties you want to include
 			};
 		});

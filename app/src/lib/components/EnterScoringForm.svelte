@@ -116,8 +116,8 @@
 					console.log(`We are scoring hole ${holeNumber} : ${OnThisHole}`);
 
 					return {
-						id: holeNumber,
-						hole: `Hole ${holeNumber}`,
+						step_id: holeNumber,
+						hole: holeNumber, // you could use `Hole ${holeNumber}`
 						group: groupName, // Add the group name to the step
 						par: par,
 						female_a: female_a,
@@ -287,19 +287,19 @@
 
 		console.log('Index:', currentHoleIndex);
 		// After submission, move to the next hole:
+		// we need to check && currentHoleIndex
 		if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
-			// Create a copy of the current hole with updated properties
-			let updatedHole = {
+			// Create a copy of the upcoming hole with updated properties
+			let upComingHole = {
 				...steps[currentHoleIndex],
 				active: false,
-				det_sco_on_this_hole: false,
-				det_sco_completed_this_hole: true
+				det_sco_this_is_the_upcoming_hole: true
 			};
-			console.log(updatedHole);
+			console.log(upComingHole);
 			// Create a new array with the updated hole
 			steps = [
 				...steps.slice(0, currentHoleIndex),
-				updatedHole,
+				upComingHole,
 				...steps.slice(currentHoleIndex + 1)
 			];
 
@@ -352,7 +352,7 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { id, hole, group, par, female_a, male_a, team_a, team_b, active, on_hole }}
+		{#each steps as { step_id, hole, group, par, female_a, male_a, team_a, team_b, active, on_hole }}
 			<li class="flex items-center">
 				<span class="flex items-center">
 					<svg
@@ -374,12 +374,12 @@
 		{/each}
 	</ol>
 	{#if steps.length > 0}
-		{#each steps as { id, hole, group, par, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
+		{#each steps as { step_id, hole, group, par, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
 			{#if active & on_hole}
 				<form on:submit|preventDefault={() => submitScores(startHole)}>
 					<fieldset>
 						<div class="mt-6 flex justify-center">{group}</div>
-						<div class="mt-2 flex justify-center">{hole} - Par {par}</div>
+						<div class="mt-2 flex justify-center">Scoring Hole {hole} - Par {par}</div>
 
 						<!-- Display Female A's name and score -->
 						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
