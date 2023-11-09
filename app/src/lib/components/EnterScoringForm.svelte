@@ -207,6 +207,23 @@
 		console.log('Female B Score:', proScoredFemaleB);
 		console.log('Male B Score:', proScoredMaleB);
 
+		const originalDetailedScores = await getDetailedScores();
+
+
+		// Select the object to update using startHole as index
+		let holeDataToUpdate = originalDetailedScores[startHole];
+
+		if (!holeDataToUpdate) {
+			console.error('No hole data found to update at index:', startHole);
+			return;
+		}
+
+		// Update the selected object with new scores from Svelte stores
+		holeDataToUpdate.det_sco_female_a_scored = $femaleA;
+		holeDataToUpdate.det_sco_female_b_scored = $femaleB;
+		holeDataToUpdate.det_sco_male_a_scored = $maleA;
+		holeDataToUpdate.det_sco_male_b_scored = $maleB;
+
 		// Fetch current detailed scores
 		const currentDetailedScores = await getDetailedScores();
 		if (!currentDetailedScores) {
@@ -221,7 +238,7 @@
 		}
 
 		// Here we use scoresValue to update the score for the specific hole
-		const holeDataToUpdate = currentDetailedScores[startHole];
+		holeDataToUpdate = currentDetailedScores[startHole];
 		if (!holeDataToUpdate) {
 			console.error(`Hole data for number ${startHole} not found.`);
 			return;
@@ -251,12 +268,11 @@
 			det_sco_male_b_scored: newScoreMaleB
 		};
 		console.log(updatedScores);
-		// Construct the update payload with the updated detailed scores
-		const updatePayload = {
-			// Assuming detailed_scores is the column name in your database
-			detailed_scores: updatedScores
-		};
 
+		// Send the entire updated array back to the database
+		const updatePayload = {
+			detailed_scores: originalDetailedScores
+		};
 		// Send the update to Supabase
 		const { data, error } = await supabase
 			.from('scores')
