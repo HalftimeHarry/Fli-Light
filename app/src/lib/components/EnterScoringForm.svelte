@@ -73,7 +73,7 @@
 
 	async function fetchScoringData() {
 		try {
-			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
+			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
 			const { data: scores, error: scoresError } = await supabase
 				.from('scores')
 				.select('*')
@@ -99,6 +99,7 @@
 					}
 				}
 
+				console.log(startHole);
 				steps = Object.entries(detailedScores).map(([key, holeData]: [string, any]) => {
 					const groupName = holeData.det_sco_group_name;
 					const par = holeData.det_sco_par;
@@ -112,7 +113,7 @@
 					const isActiveHole = holeNumber === startHole; // Compare holeNumber with startHole
 					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
 					const OnThisHole = isActiveHole; // Since you're starting on this hole, this flag should be true
-					console.log(`Hole on ${holeNumber} active: ${OnThisHole}`);
+					console.log(`We are scoring hole ${holeNumber} : ${OnThisHole}`);
 
 					return {
 						id: holeNumber,
@@ -138,7 +139,7 @@
 	// Function to get only the detailed_scores from the scoring data
 	async function getDetailedScores() {
 		try {
-			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
+			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
 			const { data: scores, error: scoresError } = await supabase
 				.from('scores')
 				.select('detailed_scores') // Select only the detailed_scores column
@@ -249,7 +250,7 @@
 		holeDataToUpdate.score = scoresValue; // Replace scoresValue with the actual score you want to update
 
 		// Assuming you have the correct scoresId which is the actual row id in the 'scores' table
-		const scoresId = 10; // Replace with actual ID
+		const scoresId = 1; // Replace with actual ID
 
 		// Update the hole data with the new score
 		holeDataToUpdate.score = scoresValue[startHole]; // Assuming scoresValue is structured with keys as pros example femaleA
@@ -274,7 +275,6 @@
 			det_sco_male_b_scored: newScoreMaleB
 		};
 		console.log(updatedScores);
-
 		// Send the entire updated array back to the database
 		const updatePayload = {
 			detailed_scores: originalDetailedScores
@@ -288,15 +288,27 @@
 		console.log('Index:', currentHoleIndex);
 		// After submission, move to the next hole:
 		if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
-			// Deactivate current hole
-			steps[currentHoleIndex] = { ...steps[currentHoleIndex], active: false, det_sco_on_this_hole: false };
+			// Create a copy of the current hole with updated properties
+			let updatedHole = {
+				...steps[currentHoleIndex],
+				active: false,
+				det_sco_on_this_hole: false,
+				det_sco_completed_this_hole: true
+			};
+			console.log(updatedHole);
+			// Create a new array with the updated hole
+			steps = [
+				...steps.slice(0, currentHoleIndex),
+				updatedHole,
+				...steps.slice(currentHoleIndex + 1)
+			];
 
 			// Check if there's a next hole
 			const nextIndex = currentHoleIndex + 1;
 			console.log(nextIndex);
 			if (nextIndex < steps.length) {
 				// Activate next hole
-				steps[nextIndex] = { ...steps[nextIndex], active: true, det_sco_on_this_hole: true };
+				steps[nextIndex] = { ...steps[nextIndex] };
 			} else {
 				// Handle the end of the round
 				console.log('End of round');
@@ -309,7 +321,7 @@
 		if (error) {
 			console.error('Error updating scores:', error);
 		} else {
-			console.log('Scores updated successfully:', data);
+			console.log('Scores updated successfully:', currentHoleIndex);
 		}
 	} // Ensure this is the actual end of the function
 
