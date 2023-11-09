@@ -209,7 +209,6 @@
 
 		const originalDetailedScores = await getDetailedScores();
 
-
 		// Select the object to update using startHole as index
 		let holeDataToUpdate = originalDetailedScores[startHole];
 
@@ -259,6 +258,12 @@
 		let newScoreFemaleB = $femaleB;
 		let newScoreMaleA = $maleA;
 		let newScoreMaleB = $maleB;
+		console.log('startHole value:', startHole);
+		if (typeof startHole !== 'number' || isNaN(startHole)) {
+			console.error('startHole is not a number:', startHole);
+			return; // Exit the function if startHole is not a valid number
+		}
+		let currentHoleIndex = startHole;
 		// Update the holeDataToUpdate object
 		const updatedScores = {
 			...holeDataToUpdate, // Assuming holeDataToUpdate is a regular object, not a Svelte store
@@ -279,12 +284,34 @@
 			.update(updatePayload)
 			.eq('score_id', scoresId);
 
+		console.log('Index:', currentHoleIndex);
+		// After submission, move to the next hole:
+		if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
+			steps[currentHoleIndex].active = false;
+			steps[currentHoleIndex].det_sco_on_this_hole = true;
+
+			let nextHoleIndex = currentHoleIndex + 1;
+			if (nextHoleIndex < steps.length) {
+				currentHoleIndex = nextHoleIndex;
+				steps[currentHoleIndex].active = true;
+				steps[currentHoleIndex].det_sco_on_this_hole = true;
+			} else {
+				// Handle the end of the round
+				console.log('End of round');
+				// Possibly reset or update other component state as necessary
+			}
+		} else {
+			console.error('Invalid currentHoleIndex or steps length:', currentHoleIndex, steps.length);
+		}
+
 		if (error) {
 			console.error('Error updating scores:', error);
 		} else {
 			console.log('Scores updated successfully:', data);
 		}
-	}
+	} // Ensure this is the actual end of the function
+
+	// Other code or logic...
 
 	onMount(async () => {
 		await fetchScoringData(); // Assuming this populates the `steps` array.
