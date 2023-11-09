@@ -264,6 +264,7 @@
 			return; // Exit the function if startHole is not a valid number
 		}
 		let currentHoleIndex = startHole;
+		console.log(currentHoleIndex);
 		// Update the holeDataToUpdate object
 		const updatedScores = {
 			...holeDataToUpdate, // Assuming holeDataToUpdate is a regular object, not a Svelte store
@@ -287,14 +288,15 @@
 		console.log('Index:', currentHoleIndex);
 		// After submission, move to the next hole:
 		if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
-			steps[currentHoleIndex].active = false;
-			steps[currentHoleIndex].det_sco_on_this_hole = true;
+			// Deactivate current hole
+			steps[currentHoleIndex] = { ...steps[currentHoleIndex], active: false, det_sco_on_this_hole: false };
 
-			let nextHoleIndex = currentHoleIndex + 1;
-			if (nextHoleIndex < steps.length) {
-				currentHoleIndex = nextHoleIndex;
-				steps[currentHoleIndex].active = true;
-				steps[currentHoleIndex].det_sco_on_this_hole = true;
+			// Check if there's a next hole
+			const nextIndex = currentHoleIndex + 1;
+			console.log(nextIndex);
+			if (nextIndex < steps.length) {
+				// Activate next hole
+				steps[nextIndex] = { ...steps[nextIndex], active: true, det_sco_on_this_hole: true };
 			} else {
 				// Handle the end of the round
 				console.log('End of round');
