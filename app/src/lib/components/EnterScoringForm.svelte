@@ -9,7 +9,6 @@
 	let activeStep = 1;
 	let steps = [];
 	let startHole;
-	let currentScores = {}; // This will hold the current scores for the active hole
 	let pros = [];
 	let teams = [];
 	let scoresValue = {
@@ -25,11 +24,6 @@
 		maleA: $maleA,
 		maleB: $maleB
 	};
-
-	// Some function that will be called when you want to initialize femaleA
-	function initializeFemaleA(value) {
-		femaleA.set(value);
-	}
 
 	async function loadProsAndTeams(proIds, teamIds) {
 		// Load specific pros based on passed IDs
@@ -212,6 +206,8 @@
 
 		// Select the object to update using startHole as index
 		let holeDataToUpdate = originalDetailedScores[startHole];
+		let nextHoleDataToUpdate = originalDetailedScores[startHole];
+		let lastHoleDataToUpdate = originalDetailedScores[startHole];
 
 		if (!holeDataToUpdate) {
 			console.error('No hole data found to update at index:', startHole);
@@ -236,8 +232,24 @@
 			console.error('Scores value is not set.');
 			return;
 		}
-
-		// Here we use scoresValue to update the score for the specific hole
+		// Here we fetch next hole
+		let nextHole = startHole + 1;
+		nextHoleDataToUpdate = currentDetailedScores[nextHole];
+		console.log(nextHoleDataToUpdate);
+		// Here we fetch next hole
+		let is_lastHole = steps.length;
+		let lastHole;
+		if (startHole === 1) {
+			// When starting at hole 1, set lastHole to the last hole in the array
+			lastHoleDataToUpdate = currentDetailedScores[is_lastHole];
+			console.log(lastHoleDataToUpdate);
+		} else {
+			// When starting at a hole other than 1, set lastHole to startHole - 1
+			lastHole = startHole - 1;
+			console.log(lastHole);
+		}
+		lastHoleDataToUpdate = currentDetailedScores[lastHole];
+		// Here we fetch Very 1st hole
 		holeDataToUpdate = currentDetailedScores[startHole];
 		if (!holeDataToUpdate) {
 			console.error(`Hole data for number ${startHole} not found.`);
@@ -265,7 +277,28 @@
 			return; // Exit the function if startHole is not a valid number
 		}
 		let currentHoleIndex = startHole;
-		console.log(currentHoleIndex);
+		// We need to add the next Hole and Last Hole based om the amount of steps
+		// on the last hole we need to set det_sco_this_is_the_final_hole = true;
+		// on the next hole we need to set det_sco_this_is_the_upcoming_hole = true;
+
+		// First, update the properties of the current hole, if necessary
+		if (currentHoleIndex < steps.length) {
+			steps[currentHoleIndex] = {
+				...steps[currentHoleIndex],
+				det_sco_this_is_the_final_hole: currentHoleIndex === steps.length - 1 // Set to true if it's the last hole
+				// other properties for the current hole
+			};
+		}
+
+		// If there is a next hole
+		if (currentHoleIndex < steps.length - 1) {
+			const nextHoleIndex = currentHoleIndex + 1;
+			steps[nextHoleIndex] = {
+				...steps[nextHoleIndex],
+				det_sco_this_is_the_upcoming_hole: true
+				// other properties for the next hole
+			};
+		}
 		// Update the holeDataToUpdate object
 		const updatedScores = {
 			...holeDataToUpdate, // Assuming holeDataToUpdate is a regular object, not a Svelte store
@@ -274,7 +307,7 @@
 			det_sco_male_a_scored: newScoreMaleA,
 			det_sco_male_b_scored: newScoreMaleB
 		};
-		console.log(updatedScores);
+		console.log(originalDetailedScores);
 		// Send the entire updated array back to the database
 		const updatePayload = {
 			detailed_scores: originalDetailedScores
@@ -381,108 +414,126 @@
 					<fieldset>
 						<div class="mt-6 flex justify-center">{group}</div>
 						<div class="mt-2 flex justify-center">Scoring Hole {hole} - Par {par}</div>
-
-						<!-- Display Female A's name and score -->
-						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
-							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
-							<img
-								src={teams.find((t) => t.team_id === team_a)?.team_image_url ||
-									'default_team_image_url'}
-								alt="Team"
-								class="h-12 w-12 rounded-full"
-							/>
-							<img
-								src={pros.find((p) => p.pro_id === female_a)?.pro_image_url ||
-									'default_pro_image_url'}
-								alt="Pro"
-								class="h-10 w-10 rounded-full ml-2"
-							/>
-							<div class="mr-4 ml-4">
-								{pros.find((p) => p.pro_id === female_a)?.name || 'Unknown'}
+						<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+							<!-- Display Female A's name and score -->
+							<div class="mb-4 border border-white p-4">
+								<!-- Female A Team and Pro Information -->
+								<div class="score-entry">
+									{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
+									<img
+										src={teams.find((t) => t.team_id === team_a)?.team_image_url ||
+											'default_team_image_url'}
+										alt="Team"
+										class="h-12 w-12 rounded-full"
+									/>
+								</div>
+								<div class="score-entry">
+									<img
+										src={pros.find((p) => p.pro_id === female_a)?.pro_image_url ||
+											'default_pro_image_url'}
+										alt="Pro"
+										class="h-10 w-10 rounded-full"
+									/>
+									<div>{pros.find((p) => p.pro_id === female_a)?.name || 'Unknown'}</div>
+								</div>
+								<div class="score-entry">Score: {$femaleA || 0}</div>
+								<!-- Increment, Decrement, and Reset for Female A -->
+								<div class="score-entry">
+									<Incrementer pro="femaleA" />
+									<Decrementer pro="femaleA" />
+									<Resetter pro="femaleA" />
+								</div>
 							</div>
-							<div class="mr-4 ml-4">Score: {$femaleA || 0}</div>
-
-							<Incrementer pro="femaleA" />
-							<Decrementer pro="femaleA" />
-							<Resetter pro="femaleA" />
-						</div>
-						<!-- Display Male A's name and score -->
-						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
-							{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
-							<img
-								src={teams.find((t) => t.team_id === team_a)?.team_image_url ||
-									'default_team_image_url'}
-								alt="Team"
-								class="h-12 w-12 rounded-full"
-							/>
-							<img
-								src={pros.find((p) => p.pro_id === male_a)?.pro_image_url ||
-									'default_pro_image_url'}
-								alt="Pro"
-								class="h-10 w-10 rounded-full ml-2"
-							/>
-							<div class="mr-4 ml-4">
-								{pros.find((p) => p.pro_id === male_a)?.name || 'Unknown'}
+							<!-- Display Male A's name and score -->
+							<div class="mb-4 border border-white p-4">
+								<!-- Male A Team and Pro Information -->
+								<div class="score-entry">
+									{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
+									<img
+										src={teams.find((t) => t.team_id === team_a)?.team_image_url ||
+											'default_team_image_url'}
+										alt="Team"
+										class="h-12 w-12 rounded-full"
+									/>
+								</div>
+								<div class="score-entry">
+									<img
+										src={pros.find((p) => p.pro_id === male_a)?.pro_image_url ||
+											'default_pro_image_url'}
+										alt="Pro"
+										class="h-10 w-10 rounded-full"
+									/>
+									<div>{pros.find((p) => p.pro_id === male_a)?.name || 'Unknown'}</div>
+								</div>
+								<div class="score-entry">Score: {$maleA || 0}</div>
+								<!-- Increment, Decrement, and Reset for Male A -->
+								<div class="score-entry">
+									<Incrementer pro="maleA" />
+									<Decrementer pro="maleA" />
+									<Resetter pro="maleA" />
+								</div>
 							</div>
-							<div class="mr-4 ml-4">Score: {$maleA || 0}</div>
-
-							<Incrementer pro="maleA" />
-							<Decrementer pro="maleA" />
-							<Resetter pro="maleA" />
 						</div>
-
-						<div class="border-t-4 border-yellow-400 my-4" />
-
-						<!-- Display Female B's name and score -->
-						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
-							{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}:
-							<img
-								src={teams.find((t) => t.team_id === team_b)?.team_image_url ||
-									'default_team_image_url'}
-								alt="Team"
-								class="h-12 w-12 rounded-full"
-							/>
-							<img
-								src={pros.find((p) => p.pro_id === female_b)?.pro_image_url ||
-									'default_pro_image_url'}
-								alt="Pro"
-								class="h-10 w-10 rounded-full ml-2"
-							/>
-							<div class="mr-4 ml-4">
-								{pros.find((p) => p.pro_id === female_b)?.name || 'Unknown'}
+						<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+							<!-- Display Female B's name and score -->
+							<div class="mb-4 border border-white p-4">
+								<!-- Female B Team and Pro Information -->
+								<div class="score-entry">
+									{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}:
+									<img
+										src={teams.find((t) => t.team_id === team_b)?.team_image_url ||
+											'default_team_image_url'}
+										alt="Team"
+										class="h-12 w-12 rounded-full"
+									/>
+								</div>
+								<div class="score-entry">
+									<img
+										src={pros.find((p) => p.pro_id === female_b)?.pro_image_url ||
+											'default_pro_image_url'}
+										alt="Pro"
+										class="h-10 w-10 rounded-full"
+									/>
+									<div>{pros.find((p) => p.pro_id === female_b)?.name || 'Unknown'}</div>
+								</div>
+								<div class="score-entry">Score: {$femaleB || 0}</div>
+								<!-- Increment, Decrement, and Reset for Female B -->
+								<div class="score-entry">
+									<Incrementer pro="femaleB" />
+									<Decrementer pro="femaleB" />
+									<Resetter pro="femaleB" />
+								</div>
 							</div>
-							<div class="mr-4 ml-4">Score: {$femaleB || 0}</div>
-
-							<Incrementer pro="femaleB" />
-							<Decrementer pro="femaleB" />
-							<Resetter pro="femaleB" />
-						</div>
-
-						<!-- Display Male B's name and score -->
-						<div class="mt-4 mb-4 ml-4 mr-4 pl-4 border border-white flex items-center space-x-4">
-							{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}:
-							<img
-								src={teams.find((t) => t.team_id === team_b)?.team_image_url ||
-									'default_team_image_url'}
-								alt="Team"
-								class="h-12 w-12 rounded-full"
-							/>
-							<img
-								src={pros.find((p) => p.pro_id === male_b)?.pro_image_url ||
-									'default_pro_image_url'}
-								alt="Pro"
-								class="h-10 w-10 rounded-full ml-2"
-							/>
-							<div class="mr-4 ml-4">
-								{pros.find((p) => p.pro_id === male_b)?.name || 'Unknown'}
+							<!-- Display Male B's name and score -->
+							<div class="mb-4 border border-white p-4">
+								<!-- Male B Team and Pro Information -->
+								<div class="score-entry">
+									{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}:
+									<img
+										src={teams.find((t) => t.team_id === team_b)?.team_image_url ||
+											'default_team_image_url'}
+										alt="Team"
+										class="h-12 w-12 rounded-full"
+									/>
+								</div>
+								<div class="score-entry">
+									<img
+										src={pros.find((p) => p.pro_id === male_b)?.pro_image_url ||
+											'default_pro_image_url'}
+										alt="Pro"
+										class="h-10 w-10 rounded-full"
+									/>
+									<div>{pros.find((p) => p.pro_id === male_b)?.name || 'Unknown'}</div>
+								</div>
+								<div class="score-entry">Score: {$maleB || 0}</div>
+								<!-- Increment, Decrement, and Reset for Male B -->
+								<div class="score-entry">
+									<Incrementer pro="maleB" />
+									<Decrementer pro="maleB" />
+									<Resetter pro="maleB" />
+								</div>
 							</div>
-							<div class="mr-4 ml-4">Score: {$maleB || 0}</div>
-
-							<Incrementer pro="maleB" />
-							<Decrementer pro="maleB" />
-							<Resetter pro="maleB" />
 						</div>
-
 						<button
 							type="submit"
 							class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -505,6 +556,7 @@
 
 	.score-entry label {
 		margin-right: 0.5rem;
+		text: bold;
 	}
 
 	.submit-scores {
