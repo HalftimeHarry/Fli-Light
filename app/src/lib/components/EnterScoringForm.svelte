@@ -6,6 +6,7 @@
 	import Decrementer from '$lib/components/Decrementer.svelte';
 	import Resetter from '$lib/components/Resetter.svelte';
 
+	let scoresInitialized = false;
 	let activeStep = 1;
 	let steps = [];
 	let startHole;
@@ -24,6 +25,11 @@
 		maleA: $maleA,
 		maleB: $maleB
 	};
+
+	async function handleInitializeScores($scores) {
+		await initializeScores(startHole, $scores);
+		scoresInitialized = true;
+	}
 
 	async function loadProsAndTeams(proIds, teamIds) {
 		// Load specific pros based on passed IDs
@@ -183,7 +189,7 @@
 			return;
 		}
 
-		console.log('startHole is a number with value:', startHole);
+		console.log('initialize startHole is a number with value:', startHole);
 
 		const intitOriginalDetailedScores = await getDetailedScores();
 
@@ -586,6 +592,15 @@
 				</form>
 			{/if}
 		{/each}
+	{/if}
+	<!-- Button to initialize scores -->
+	{#if !scoresInitialized}
+		<button
+			on:click={handleInitializeScores}
+			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+		>
+			Initialize Scores
+		</button>
 	{/if}
 </main>
 
