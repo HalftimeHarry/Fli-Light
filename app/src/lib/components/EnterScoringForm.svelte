@@ -73,7 +73,7 @@
 
 	async function fetchScoringData() {
 		try {
-			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
+			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
 			const { data: scores, error: scoresError } = await supabase
 				.from('scores')
 				.select('*')
@@ -139,7 +139,7 @@
 	// Function to get only the detailed_scores from the scoring data
 	async function getDetailedScores() {
 		try {
-			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
+			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
 			const { data: scores, error: scoresError } = await supabase
 				.from('scores')
 				.select('detailed_scores') // Select only the detailed_scores column
@@ -197,6 +197,8 @@
 		let nextHoleDataToUpdate = intitOriginalDetailedScores[startHole];
 		let lastHoleDataToUpdate = intitOriginalDetailedScores[startHole];
 
+		const scoresId = 10; // Replace with actual ID
+
 		if (!nextHoleDataToUpdate) {
 			console.error('No hole data found to update at index:', startHole);
 			return;
@@ -204,21 +206,21 @@
 
 		// Here we fetch next hole
 		let nextHole = startHole + 1;
-		nextHoleDataToUpdate = currentDetailedScores[nextHole];
+		nextHoleDataToUpdate = intitOriginalDetailedScores[nextHole];
 		console.log(nextHoleDataToUpdate);
 		// Here we fetch next hole
 		let is_lastHole = steps.length;
 		let lastHole;
 		if (startHole === 1) {
 			// When starting at hole 1, set lastHole to the last hole in the array
-			lastHoleDataToUpdate = currentDetailedScores[is_lastHole];
+			lastHoleDataToUpdate = intitOriginalDetailedScores[is_lastHole];
 			console.log(lastHoleDataToUpdate);
 		} else {
 			// When starting at a hole other than 1, set lastHole to startHole - 1
 			lastHole = startHole - 1;
 			console.log(lastHole);
 		}
-		lastHoleDataToUpdate = currentDetailedScores[lastHole];
+		lastHoleDataToUpdate = intitOriginalDetailedScores[lastHole];
 
 		console.log('startHole value:', startHole);
 		if (typeof startHole !== 'number' || isNaN(startHole)) {
@@ -228,11 +230,12 @@
 		let currentHoleIndex = startHole;
 
 		// Update the nextHoleDataToUpdate object
-		const updatedScores = {
+		console.log(nextHoleDataToUpdate);
+		const updatedNext = {
 			...nextHoleDataToUpdate, // Assuming nextHoleDataToUpdate is a regular object, not a Svelte store
 			det_sco_this_is_the_upcoming_hole: true
 		};
-		console.log(intitOriginalDetailedScores);
+		console.log(updatedNext);
 		// Send the entire updated array back to the database
 		const updateIntPayload = {
 			detailed_scores: intitOriginalDetailedScores
@@ -310,7 +313,7 @@
 		holeDataToUpdate.score = scoresValue; // Replace scoresValue with the actual score you want to update
 
 		// Assuming you have the correct scoresId which is the actual row id in the 'scores' table
-		const scoresId = 1; // Replace with actual ID
+		const scoresId = 10; // Replace with actual ID
 
 		// Update the hole data with the new score
 		holeDataToUpdate.score = scoresValue[startHole]; // Assuming scoresValue is structured with keys as pros example femaleA
@@ -342,8 +345,7 @@
 		if (currentHoleIndex < steps.length - 1) {
 			const nextHoleIndex = currentHoleIndex + 1;
 			steps[nextHoleIndex] = {
-				...steps[nextHoleIndex],
-				det_sco_this_is_the_upcoming_hole: true
+				...steps[nextHoleIndex]
 				// other properties for the next hole
 			};
 		}

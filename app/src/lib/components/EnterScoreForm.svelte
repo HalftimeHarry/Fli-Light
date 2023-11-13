@@ -15,7 +15,7 @@
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
-		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
+		const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff'; // Update this with the desired UUID
 		const { data: scores, error: scoresError } = await supabase
 			.from('scores')
 			.select('*')
@@ -204,9 +204,9 @@
 	async function updateDetailedScores(score_id, detailedScores) {
 		console.log(
 			'updateDetailedScores started with score_id:',
-			score_id,
+			'score_id',
 			'and detailedScores:',
-			detailedScores
+			'detailedScore'
 		);
 
 		// Convert detailedScores to a JSON string if it's an object
