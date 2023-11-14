@@ -204,9 +204,9 @@
 	async function updateDetailedScores(score_id, detailedScores) {
 		console.log(
 			'updateDetailedScores started with score_id:',
-			score_id,
+			'score_id',
 			'and detailedScores:',
-			detailedScores
+			'detailedScore'
 		);
 
 		// Convert detailedScores to a JSON string if it's an object
