@@ -195,7 +195,7 @@
 
 		// Select the object to update using startHole as index
 		let nextHoleDataToUpdate = intitOriginalDetailedScores[startHole];
-		let lastHoleDataToUpdate = intitOriginalDetailedScores[startHole];
+		let lastHoleDataToUpdate;
 
 		const scoresId = 10; // Replace with actual ID
 
@@ -204,48 +204,49 @@
 			return;
 		}
 
-		// Here we fetch next hole
+		// Update for the next hole
 		let nextHole = startHole + 1;
 		nextHoleDataToUpdate = intitOriginalDetailedScores[nextHole];
-		console.log(nextHoleDataToUpdate);
-		// Here we fetch next hole
-		let is_lastHole = steps.length;
-		let lastHole;
-		if (startHole === 1) {
-			// When starting at hole 1, set lastHole to the last hole in the array
-			lastHoleDataToUpdate = intitOriginalDetailedScores[is_lastHole];
-			console.log(lastHoleDataToUpdate);
-		} else {
-			// When starting at a hole other than 1, set lastHole to startHole - 1
-			lastHole = startHole - 1;
-			console.log(lastHole);
+		if (nextHoleDataToUpdate) {
+			nextHoleDataToUpdate.det_sco_this_is_the_upcoming_hole = true;
 		}
-		lastHoleDataToUpdate = intitOriginalDetailedScores[lastHole];
+		console.log('Next Hole Data:', nextHoleDataToUpdate);
 
-		console.log('startHole value:', startHole);
+		// Update for the last hole
+		let is_lastHole = steps.length - 1;
+		if (startHole === 1) {
+			lastHoleDataToUpdate = intitOriginalDetailedScores[is_lastHole];
+		} else {
+			let lastHole = startHole - 1;
+			lastHoleDataToUpdate = intitOriginalDetailedScores[lastHole];
+		}
+		if (lastHoleDataToUpdate) {
+			lastHoleDataToUpdate.det_sco_this_is_the_final_hole = startHole === is_lastHole;
+		}
+		console.log('Last Hole Data:', lastHoleDataToUpdate);
+
 		if (typeof startHole !== 'number' || isNaN(startHole)) {
 			console.error('startHole is not a number:', startHole);
-			return; // Exit the function if startHole is not a valid number
+			return;
 		}
-		let currentHoleIndex = startHole;
-
-		// Update the nextHoleDataToUpdate object
-		console.log(nextHoleDataToUpdate);
-		const updatedNext = {
-			...nextHoleDataToUpdate, // Assuming nextHoleDataToUpdate is a regular object, not a Svelte store
-			det_sco_this_is_the_upcoming_hole: true
-		};
-		console.log(updatedNext);
-		// Send the entire updated array back to the database
-		const updateIntPayload = {
+		// Prepare the update payload
+		const updatePayload = {
 			detailed_scores: intitOriginalDetailedScores
 		};
+
 		// Send the update to Supabase
 		const { data, error } = await supabase
 			.from('scores')
-			.update(updateIntPayload)
+			.update(updatePayload)
 			.eq('score_id', scoresId);
-	} // Ensure this is the actual end of the function
+
+		if (error) {
+			console.error('Error updating scores:', error);
+			return;
+		}
+
+		console.log('Scores updated successfully:', data);
+	}
 
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
