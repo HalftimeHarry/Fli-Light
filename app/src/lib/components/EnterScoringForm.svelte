@@ -204,7 +204,7 @@
 		let lastHoleDataToUpdate;
 		if (startHole === 1) {
 			// If starting at the first hole, use steps.length to find the last hole
-			let is_lastHole = steps.length - 1;
+			let is_lastHole = steps.length;
 			lastHoleDataToUpdate = intitOriginalDetailedScores[is_lastHole];
 		} else {
 			// Otherwise, the last hole is the one before the startHole
