@@ -211,17 +211,18 @@
 			nextHoleDataToUpdate.det_sco_this_is_the_upcoming_hole = true;
 		}
 		console.log('Next Hole Data:', nextHoleDataToUpdate);
-
+		console.log(steps.length);
 		// Update for the last hole
-		let is_lastHole = steps.length - 1;
-		if (startHole === 1) {
-			lastHoleDataToUpdate = intitOriginalDetailedScores[is_lastHole];
+		let is_lastHole = startHole - 1;
+		lastHoleDataToUpdate = intitOriginalDetailedScores[is_lastHole];
+		if (lastHoleDataToUpdate) {
+			lastHoleDataToUpdate.det_sco_this_is_the_final_hole = true;
 		} else {
 			let lastHole = startHole - 1;
 			lastHoleDataToUpdate = intitOriginalDetailedScores[lastHole];
 		}
 		if (lastHoleDataToUpdate) {
-			lastHoleDataToUpdate.det_sco_this_is_the_final_hole = startHole === is_lastHole;
+			lastHoleDataToUpdate.det_sco_this_is_the_final_hole = true;
 		}
 		console.log('Last Hole Data:', lastHoleDataToUpdate);
 
@@ -245,7 +246,7 @@
 			return;
 		}
 
-		console.log('Scores updated successfully:', data);
+		console.log('Scores updated successfully:', updatePayload);
 	}
 
 	// Placeholder for submitting scores
