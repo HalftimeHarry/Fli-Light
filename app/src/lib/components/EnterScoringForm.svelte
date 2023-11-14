@@ -73,7 +73,7 @@
 
 	async function fetchScoringData() {
 		try {
-			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
+			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
 			const { data: scores, error: scoresError } = await supabase
 				.from('scores')
 				.select('*')
@@ -139,7 +139,7 @@
 	// Function to get only the detailed_scores from the scoring data
 	async function getDetailedScores() {
 		try {
-			const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff';
+			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
 			const { data: scores, error: scoresError } = await supabase
 				.from('scores')
 				.select('detailed_scores') // Select only the detailed_scores column
@@ -193,60 +193,45 @@
 
 		const intitOriginalDetailedScores = await getDetailedScores();
 
-		// Select the object to update using startHole as index
-		let nextHoleDataToUpdate = intitOriginalDetailedScores[startHole];
-		let lastHoleDataToUpdate;
-
-		const scoresId = 10; // Replace with actual ID
-
-		if (!nextHoleDataToUpdate) {
-			console.error('No hole data found to update at index:', startHole);
-			return;
-		}
-
 		// Update for the next hole
 		let nextHole = startHole + 1;
-		nextHoleDataToUpdate = intitOriginalDetailedScores[nextHole];
+		let nextHoleDataToUpdate = intitOriginalDetailedScores[nextHole];
 		if (nextHoleDataToUpdate) {
 			nextHoleDataToUpdate.det_sco_this_is_the_upcoming_hole = true;
 		}
-		console.log('Next Hole Data:', nextHoleDataToUpdate);
-		console.log(steps.length);
+
 		// Update for the last hole
-		let is_lastHole = startHole - 1;
-		lastHoleDataToUpdate = intitOriginalDetailedScores[is_lastHole];
-		if (lastHoleDataToUpdate) {
-			lastHoleDataToUpdate.det_sco_this_is_the_final_hole = true;
+		let lastHoleDataToUpdate;
+		if (startHole === 1) {
+			// If starting at the first hole, use steps.length to find the last hole
+			let is_lastHole = steps.length - 1;
+			lastHoleDataToUpdate = intitOriginalDetailedScores[is_lastHole];
 		} else {
+			// Otherwise, the last hole is the one before the startHole
 			let lastHole = startHole - 1;
 			lastHoleDataToUpdate = intitOriginalDetailedScores[lastHole];
 		}
+
 		if (lastHoleDataToUpdate) {
 			lastHoleDataToUpdate.det_sco_this_is_the_final_hole = true;
 		}
+
 		console.log('Last Hole Data:', lastHoleDataToUpdate);
 
-		if (typeof startHole !== 'number' || isNaN(startHole)) {
-			console.error('startHole is not a number:', startHole);
-			return;
-		}
 		// Prepare the update payload
 		const updatePayload = {
 			detailed_scores: intitOriginalDetailedScores
 		};
 
 		// Send the update to Supabase
-		const { data, error } = await supabase
-			.from('scores')
-			.update(updatePayload)
-			.eq('score_id', scoresId);
+		const { data, error } = await supabase.from('scores').update(updatePayload).eq('score_id', 1);
 
 		if (error) {
 			console.error('Error updating scores:', error);
 			return;
 		}
 
-		console.log('Scores updated successfully:', updatePayload);
+		console.log('Scores updated successfully:', data);
 	}
 
 	// Placeholder for submitting scores
