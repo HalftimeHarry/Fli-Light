@@ -34,6 +34,22 @@
 		scoresInitialized = true;
 	}
 
+	async function getUserId() {
+		try {
+			const user = await getCurrentUser();
+			if (user) {
+				console.log('User ID in getUserId:', user.id); // Log the user ID
+				return user.id;
+			} else {
+				console.log('No user found in getUserId');
+				return null;
+			}
+		} catch (error) {
+			console.error('Error in getUserId:', error);
+			return null;
+		}
+	}
+
 	// Subscribe to the scores store
 	femaleA.subscribe((value) => {
 		scoresValue.femaleA = value;
@@ -48,13 +64,18 @@
 		scoresValue.maleB = value;
 	});
 
-	async function fetchScoringData(userId) {
-		try {
-			const scorerUuid = userId; // Assign the user ID to scorerUuid
-			const { data: scores, error: scoresError } = await supabase
-				.from('scores')
-				.select('*')
-				.eq('score_scorer_uuid_ref', scorerUuid);
+	async function fetchScoringData() {
+    try {
+        const scorerUuid = await getUserId(); // Get the user ID
+        if (!scorerUuid) {
+            console.error('No user ID available in fetchScoringData');
+            return null;
+        }
+
+        const { data: scores, error: scoresError } = await supabase
+            .from('scores')
+            .select('*')
+            .eq('score_scorer_uuid_ref', scorerUuid);
 
 			startHole = scores[0].score_hole_start;
 
@@ -114,14 +135,18 @@
 	}
 
 	// Function to get only the detailed_scores from the scoring data
-	async function getDetailedScores(userId) {
-		console.log(userId);
-		try {
-			const scorerUuid = userId; // Assign the user ID to scorerUuid
-			const { data: scores, error: scoresError } = await supabase
-				.from('scores')
-				.select('detailed_scores') // Select only the detailed_scores column
-				.eq('score_scorer_uuid_ref', scorerUuid);
+	async function getDetailedScores() {
+    try {
+        const scorerUuid = await getUserId(); // Get the user ID
+        if (!scorerUuid) {
+            console.error('No user ID available in getDetailedScores');
+            return null;
+        }
+
+        const { data: scores, error: scoresError } = await supabase
+            .from('scores')
+            .select('detailed_scores') // Select only the detailed_scores column
+            .eq('score_scorer_uuid_ref', scorerUuid);
 
 			if (scoresError) {
 				throw scoresError;

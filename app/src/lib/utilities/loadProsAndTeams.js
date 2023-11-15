@@ -16,7 +16,6 @@ export async function loadProsAndTeams(proIds, teamIds) {
             let prosResponse = await supabase.from('pros').select('*').in('pro_id', proIds);
             if (prosResponse.error) throw prosResponse.error;
             pros = prosResponse.data;
-            console.log("Pros data:", pros); // Log pros data
         }
 
         // Load specific teams based on passed IDs
@@ -24,7 +23,6 @@ export async function loadProsAndTeams(proIds, teamIds) {
             let teamsResponse = await supabase.from('teams').select('*').in('team_id', teamIds);
             if (teamsResponse.error) throw teamsResponse.error;
             teams = teamsResponse.data;
-            console.log("Teams data:", teams); // Log teams data
         }
     } catch (error) {
         console.error('Error loading data:', error);
