@@ -13,6 +13,7 @@
 	let activeStep = 1;
 	let steps = [];
 	let startHole;
+	let scoresId;
 	let pros = [];
 	let teams = [];
 	let scoresValue = {
@@ -65,19 +66,20 @@
 	});
 
 	async function fetchScoringData() {
-    try {
-        const scorerUuid = await getUserId(); // Get the user ID
-        if (!scorerUuid) {
-            console.error('No user ID available in fetchScoringData');
-            return null;
-        }
+		try {
+			const scorerUuid = await getUserId(); // Get the user ID
+			if (!scorerUuid) {
+				console.error('No user ID available in fetchScoringData');
+				return null;
+			}
 
-        const { data: scores, error: scoresError } = await supabase
-            .from('scores')
-            .select('*')
-            .eq('score_scorer_uuid_ref', scorerUuid);
+			const { data: scores, error: scoresError } = await supabase
+				.from('scores')
+				.select('*')
+				.eq('score_scorer_uuid_ref', scorerUuid);
 
 			startHole = scores[0].score_hole_start;
+			scoresId = scores[0].score_id;
 
 			console.log(scores[0].detailed_scores);
 			console.log(scores[0].score_fantacy);
@@ -136,17 +138,17 @@
 
 	// Function to get only the detailed_scores from the scoring data
 	async function getDetailedScores() {
-    try {
-        const scorerUuid = await getUserId(); // Get the user ID
-        if (!scorerUuid) {
-            console.error('No user ID available in getDetailedScores');
-            return null;
-        }
+		try {
+			const scorerUuid = await getUserId(); // Get the user ID
+			if (!scorerUuid) {
+				console.error('No user ID available in getDetailedScores');
+				return null;
+			}
 
-        const { data: scores, error: scoresError } = await supabase
-            .from('scores')
-            .select('detailed_scores') // Select only the detailed_scores column
-            .eq('score_scorer_uuid_ref', scorerUuid);
+			const { data: scores, error: scoresError } = await supabase
+				.from('scores')
+				.select('detailed_scores') // Select only the detailed_scores column
+				.eq('score_scorer_uuid_ref', scorerUuid);
 
 			if (scoresError) {
 				throw scoresError;
@@ -302,11 +304,10 @@
 		// For example, updating the score for this hole
 		holeDataToUpdate.score = scoresValue; // Replace scoresValue with the actual score you want to update
 
-		// Assuming you have the correct scoresId which is the actual row id in the 'scores' table
-		const scoresId = 10; // Replace with actual ID
-
 		// Update the hole data with the new score
 		holeDataToUpdate.score = scoresValue[startHole]; // Assuming scoresValue is structured with keys as pros example femaleA
+
+		console.log(scoresId);
 
 		let newScoreFemaleA = $femaleA;
 		let newScoreFemaleB = $femaleB;
@@ -419,7 +420,6 @@
 					if (step.male_b) proIds.add(step.male_b);
 					if (step.team_a) teamIds.add(step.team_a);
 					if (step.team_b) teamIds.add(step.team_b);
-					console.log('Team A ID:', step.team_a, 'Team B ID:', step.team_b);
 				});
 
 				// Load pros and teams data
