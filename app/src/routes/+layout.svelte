@@ -24,7 +24,16 @@
 	let isHomePage = false;
 
 	let session: AuthSession | null = null;
-	let role: 'Admin' | 'Participant' | 'Pro' | 'Subscriber' | null = null;
+	let role:
+		| 'Admin'
+		| 'Participant'
+		| 'Pro'
+		| 'Subscriber'
+		| 'Venue'
+		| 'Team'
+		| 'Scorer'
+		| 'Past Subscriber'
+		| null = null;
 	let showUpdatePasswordForm = false;
 	let newPassword = '';
 	let userRole = null;
@@ -45,11 +54,20 @@
 		userRole = data.role;
 		hasSigned = data.has_signed;
 
-		// Check conditions and redirect as necessary
-		if (userRole === 'Pro' && !hasSigned) {
-			window.location.href = '/intent';
-		} else {
-			window.location.href = '/';
+		// Redirect based on user role
+		switch (userRole) {
+			case 'Scorer':
+				goto('/scoring'); // Redirect Scorer to the scoring page
+				break;
+			case 'Pro':
+				if (!hasSigned) {
+					goto('/intent'); // Redirect to the 'intent' route for Pros who haven't signed
+				}
+				break;
+			// Add other cases for different roles as needed
+			default:
+				goto('/'); // Redirect to the home page for other roles or conditions
+				break;
 		}
 	}
 
@@ -95,9 +113,12 @@
 		if (session) {
 			const userProfile = await fetchUserProfile(session.user.id);
 			role = userProfile?.role || null;
-			const hasSigned = userProfile?.has_signed || false;
+			hasSigned = userProfile?.has_signed || false;
 
-			if (role === 'Pro' && !hasSigned) {
+			// Redirect based on user role
+			if (role === 'Scorer') {
+				goto('/scoring'); // Redirects to the 'scoring' route
+			} else if (role === 'Pro' && !hasSigned) {
 				goto('/intent'); // Redirects to the 'intent' route
 			} else {
 				goto('/'); // Redirects to the root route

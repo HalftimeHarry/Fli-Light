@@ -5,7 +5,10 @@
 	import Incrementer from '$lib/components/Incrementer.svelte';
 	import Decrementer from '$lib/components/Decrementer.svelte';
 	import Resetter from '$lib/components/Resetter.svelte';
+	import { getCurrentUser } from '$lib/utilities/getUser.js'; // Adjust the path as necessary
+	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams'; // Adjust the import path
 
+	let user = null;
 	let scoresInitialized = false;
 	let activeStep = 1;
 	let steps = [];
@@ -31,29 +34,19 @@
 		scoresInitialized = true;
 	}
 
-	async function loadProsAndTeams(proIds, teamIds) {
-		// Load specific pros based on passed IDs
-		if (proIds && proIds.length) {
-			let prosQuery = `pro_id=in.(${proIds.join(',')})`;
-			let prosResponse = await supabase.from('pros').select('*').in('pro_id', proIds);
-
-			if (prosResponse.error) {
-				console.error('Error loading pros:', prosResponse.error);
+	async function getUserId() {
+		try {
+			const user = await getCurrentUser();
+			if (user) {
+				console.log('User ID in getUserId:', user.id); // Log the user ID
+				return user.id;
 			} else {
-				pros = prosResponse.data;
+				console.log('No user found in getUserId');
+				return null;
 			}
-		}
-
-		// Load specific teams based on passed IDs
-		if (teamIds && teamIds.length) {
-			let teamsQuery = `id=in.(${teamIds.join(',')})`; // This creates a query string for multiple IDs
-			let teamsResponse = await supabase.from('teams').select('*').in('team_id', teamIds);
-
-			if (teamsResponse.error) {
-				console.error('Error loading teams:', teamsResponse.error);
-			} else {
-				teams = teamsResponse.data;
-			}
+		} catch (error) {
+			console.error('Error in getUserId:', error);
+			return null;
 		}
 	}
 
@@ -72,12 +65,17 @@
 	});
 
 	async function fetchScoringData() {
-		try {
-			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
-			const { data: scores, error: scoresError } = await supabase
-				.from('scores')
-				.select('*')
-				.eq('score_scorer_uuid_ref', scorerUuid);
+    try {
+        const scorerUuid = await getUserId(); // Get the user ID
+        if (!scorerUuid) {
+            console.error('No user ID available in fetchScoringData');
+            return null;
+        }
+
+        const { data: scores, error: scoresError } = await supabase
+            .from('scores')
+            .select('*')
+            .eq('score_scorer_uuid_ref', scorerUuid);
 
 			startHole = scores[0].score_hole_start;
 
@@ -138,12 +136,17 @@
 
 	// Function to get only the detailed_scores from the scoring data
 	async function getDetailedScores() {
-		try {
-			const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f';
-			const { data: scores, error: scoresError } = await supabase
-				.from('scores')
-				.select('detailed_scores') // Select only the detailed_scores column
-				.eq('score_scorer_uuid_ref', scorerUuid);
+    try {
+        const scorerUuid = await getUserId(); // Get the user ID
+        if (!scorerUuid) {
+            console.error('No user ID available in getDetailedScores');
+            return null;
+        }
+
+        const { data: scores, error: scoresError } = await supabase
+            .from('scores')
+            .select('detailed_scores') // Select only the detailed_scores column
+            .eq('score_scorer_uuid_ref', scorerUuid);
 
 			if (scoresError) {
 				throw scoresError;
@@ -399,23 +402,40 @@
 	// Other code or logic...
 
 	onMount(async () => {
-		await fetchScoringData(); // Assuming this populates the `steps` array.
+		try {
+			const user = await getCurrentUser();
+			if (user) {
+				// Fetch scoring data for the current user
+				await fetchScoringData(user.id);
 
-		// Now that we have the `steps` data, we can extract the necessary IDs.
-		const proIds = new Set();
-		const teamIds = new Set();
+				// Assuming fetchScoringData populates the `steps` array
+				const proIds = new Set();
+				const teamIds = new Set();
 
-		steps.forEach((step) => {
-			if (step.female_a) proIds.add(step.female_a);
-			if (step.male_a) proIds.add(step.male_a);
-			if (step.female_b) proIds.add(step.female_b);
-			if (step.male_b) proIds.add(step.male_b);
-			if (step.team_a) teamIds.add(step.team_a);
-			if (step.team_b) teamIds.add(step.team_b);
-		});
+				steps.forEach((step) => {
+					if (step.female_a) proIds.add(step.female_a);
+					if (step.male_a) proIds.add(step.male_a);
+					if (step.female_b) proIds.add(step.female_b);
+					if (step.male_b) proIds.add(step.male_b);
+					if (step.team_a) teamIds.add(step.team_a);
+					if (step.team_b) teamIds.add(step.team_b);
+					console.log('Team A ID:', step.team_a, 'Team B ID:', step.team_b);
+				});
 
-		// Convert the Sets to arrays before passing them to loadProsAndTeams
-		await loadProsAndTeams([...proIds], [...teamIds]);
+				// Load pros and teams data
+				const proIdsArray = Array.from(proIds);
+				const teamIdsArray = Array.from(teamIds);
+				const loadedData = await loadProsAndTeams(proIdsArray, teamIdsArray);
+
+				pros = loadedData.pros; // Update pros variable with loaded data
+				teams = loadedData.teams; // Update teams variable with loaded data
+
+				// Fetch detailed scores if needed
+				await getDetailedScores(user.id);
+			}
+		} catch (error) {
+			console.error('Error in onMount:', error);
+		}
 	});
 </script>
 
@@ -459,15 +479,14 @@
 									{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
 									<img
 										src={teams.find((t) => t.team_id === team_a)?.team_image_url ||
-											'default_team_image_url'}
+											'team_image_url'}
 										alt="Team"
 										class="h-12 w-12 rounded-full"
 									/>
 								</div>
 								<div class="score-entry">
 									<img
-										src={pros.find((p) => p.pro_id === female_a)?.pro_image_url ||
-											'default_pro_image_url'}
+										src={pros.find((p) => p.pro_id === female_a)?.pro_image_url || 'pro_image_url'}
 										alt="Pro"
 										class="h-10 w-10 rounded-full"
 									/>
@@ -488,15 +507,14 @@
 									{teams.find((t) => t.team_id === team_a)?.name || 'Unknown'}:
 									<img
 										src={teams.find((t) => t.team_id === team_a)?.team_image_url ||
-											'default_team_image_url'}
+											'team_image_url'}
 										alt="Team"
 										class="h-12 w-12 rounded-full"
 									/>
 								</div>
 								<div class="score-entry">
 									<img
-										src={pros.find((p) => p.pro_id === male_a)?.pro_image_url ||
-											'default_pro_image_url'}
+										src={pros.find((p) => p.pro_id === male_a)?.pro_image_url || 'pro_image_url'}
 										alt="Pro"
 										class="h-10 w-10 rounded-full"
 									/>
@@ -519,15 +537,14 @@
 									{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}:
 									<img
 										src={teams.find((t) => t.team_id === team_b)?.team_image_url ||
-											'default_team_image_url'}
+											'team_image_url'}
 										alt="Team"
 										class="h-12 w-12 rounded-full"
 									/>
 								</div>
 								<div class="score-entry">
 									<img
-										src={pros.find((p) => p.pro_id === female_b)?.pro_image_url ||
-											'default_pro_image_url'}
+										src={pros.find((p) => p.pro_id === female_b)?.pro_image_url || 'pro_image_url'}
 										alt="Pro"
 										class="h-10 w-10 rounded-full"
 									/>
@@ -548,15 +565,14 @@
 									{teams.find((t) => t.team_id === team_b)?.name || 'Unknown'}:
 									<img
 										src={teams.find((t) => t.team_id === team_b)?.team_image_url ||
-											'default_team_image_url'}
+											'team_image_url'}
 										alt="Team"
 										class="h-12 w-12 rounded-full"
 									/>
 								</div>
 								<div class="score-entry">
 									<img
-										src={pros.find((p) => p.pro_id === male_b)?.pro_image_url ||
-											'default_pro_image_url'}
+										src={pros.find((p) => p.pro_id === male_b)?.pro_image_url || 'pro_image_url'}
 										alt="Pro"
 										class="h-10 w-10 rounded-full"
 									/>
