@@ -7,6 +7,7 @@
 	import Resetter from '$lib/components/Resetter.svelte';
 	import { getCurrentUser } from '$lib/utilities/getUser.js'; // Adjust the path as necessary
 	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams'; // Adjust the import path
+	import { calculateFantasyScore } from '$lib/utilities/calculateFantasyScore.js';
 
 	let scoresId = null;
 	let user = null;
@@ -275,11 +276,49 @@
 			return;
 		}
 
+		// Calculate fantasy scores for each player
+		let fantasyScoreFemaleA = calculateFantasyScore(
+			scoresValue.femaleA,
+			holeDataToUpdate.det_sco_par
+		);
+		let fantasyScoreFemaleB = calculateFantasyScore(
+			scoresValue.femaleB,
+			holeDataToUpdate.det_sco_par
+		);
+		let fantasyScoreMaleA = calculateFantasyScore(scoresValue.maleA, holeDataToUpdate.det_sco_par);
+		let fantasyScoreMaleB = calculateFantasyScore(scoresValue.maleB, holeDataToUpdate.det_sco_par);
+		// ... calculations for other players ...
+
+		// Update holeDataToUpdate with actual and fantasy scores
+		holeDataToUpdate.det_sco_female_a_scored = scoresValue.femaleA;
+		holeDataToUpdate.det_sco_female_a_fantasy_result_for_this_hole = fantasyScoreFemaleA;
+
 		// Update the selected object with new scores from Svelte stores
 		holeDataToUpdate.det_sco_female_a_scored = $femaleA;
 		holeDataToUpdate.det_sco_female_b_scored = $femaleB;
 		holeDataToUpdate.det_sco_male_a_scored = $maleA;
 		holeDataToUpdate.det_sco_male_b_scored = $maleB;
+		// Update the holeDataToUpdate object with fantasy scores
+		holeDataToUpdate.det_sco_female_a_fantasy_result_for_this_hole = fantasyScoreFemaleA;
+		holeDataToUpdate.det_sco_female_b_fantasy_result_for_this_hole = fantasyScoreFemaleB;
+		holeDataToUpdate.det_sco_male_a_fantasy_result_for_this_hole = fantasyScoreMaleA;
+		holeDataToUpdate.det_sco_male_b_fantasy_result_for_this_hole = fantasyScoreMaleB;
+
+		// Calculate and update team fantasy scores
+		holeDataToUpdate.det_sco_team_a_fantasy_result_for_this_hole =
+			fantasyScoreFemaleA + fantasyScoreMaleA;
+		holeDataToUpdate.det_sco_team_b_fantasy_result_for_this_hole =
+			fantasyScoreFemaleB + fantasyScoreMaleB;
+
+		// ... rest of your existing code for updating the scores in the database ...
+
+		// Check if this is the final hole and handle overall aggregation if necessary
+		if (holeDataToUpdate.det_sco_this_is_the_final_hole) {
+			// Aggregate overall results here
+			// ...
+		}
+
+		// ... rest of your function ...
 
 		// Fetch current detailed scores
 		const currentDetailedScores = await getDetailedScores();
