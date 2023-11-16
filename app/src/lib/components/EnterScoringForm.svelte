@@ -8,6 +8,7 @@
 	import { getCurrentUser } from '$lib/utilities/getUser.js'; // Adjust the path as necessary
 	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams'; // Adjust the import path
 
+	let scoresId = null;
 	let user = null;
 	let scoresInitialized = false;
 	let activeStep = 1;
@@ -65,28 +66,26 @@
 	});
 
 	async function fetchScoringData() {
-    try {
-        const scorerUuid = await getUserId(); // Get the user ID
-        if (!scorerUuid) {
-            console.error('No user ID available in fetchScoringData');
-            return null;
-        }
+		try {
+			const scorerUuid = await getUserId();
+			if (!scorerUuid) {
+				console.error('No user ID available in fetchScoringData');
+				return;
+			}
 
-        const { data: scores, error: scoresError } = await supabase
-            .from('scores')
-            .select('*')
-            .eq('score_scorer_uuid_ref', scorerUuid);
-
-			startHole = scores[0].score_hole_start;
-
-			console.log(scores[0].detailed_scores);
-			console.log(scores[0].score_fantacy);
+			const { data: scores, error: scoresError } = await supabase
+				.from('scores')
+				.select('*')
+				.eq('score_scorer_uuid_ref', scorerUuid);
 
 			if (scoresError) {
 				throw scoresError;
 			}
 
 			if (scores && scores[0]) {
+				startHole = scores[0].score_hole_start;
+				scoresId = scores[0].score_id; // Assign the score ID here
+
 				let detailedScores = scores[0].detailed_scores;
 				if (typeof detailedScores === 'string') {
 					try {
@@ -136,17 +135,17 @@
 
 	// Function to get only the detailed_scores from the scoring data
 	async function getDetailedScores() {
-    try {
-        const scorerUuid = await getUserId(); // Get the user ID
-        if (!scorerUuid) {
-            console.error('No user ID available in getDetailedScores');
-            return null;
-        }
+		try {
+			const scorerUuid = await getUserId(); // Get the user ID
+			if (!scorerUuid) {
+				console.error('No user ID available in getDetailedScores');
+				return null;
+			}
 
-        const { data: scores, error: scoresError } = await supabase
-            .from('scores')
-            .select('detailed_scores') // Select only the detailed_scores column
-            .eq('score_scorer_uuid_ref', scorerUuid);
+			const { data: scores, error: scoresError } = await supabase
+				.from('scores')
+				.select('detailed_scores') // Select only the detailed_scores column
+				.eq('score_scorer_uuid_ref', scorerUuid);
 
 			if (scoresError) {
 				throw scoresError;
@@ -227,7 +226,10 @@
 		};
 
 		// Send the update to Supabase
-		const { data, error } = await supabase.from('scores').update(updatePayload).eq('score_id', 1);
+		const { data, error } = await supabase
+			.from('scores')
+			.update(updatePayload)
+			.eq('score_id', scoresId);
 
 		if (error) {
 			console.error('Error updating scores:', error);
@@ -303,7 +305,6 @@
 		holeDataToUpdate.score = scoresValue; // Replace scoresValue with the actual score you want to update
 
 		// Assuming you have the correct scoresId which is the actual row id in the 'scores' table
-		const scoresId = 10; // Replace with actual ID
 
 		// Update the hole data with the new score
 		holeDataToUpdate.score = scoresValue[startHole]; // Assuming scoresValue is structured with keys as pros example femaleA
