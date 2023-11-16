@@ -1,4 +1,5 @@
 # Fli-Light
+
 I am a scalled down version of Fli Golf
 
 Database Design:
@@ -28,14 +29,15 @@ Leaderboards (Live Tournaments):
 leaderboard_id, tournament_id (foreign key), pro_id (foreign key), team_id (foreign key), score, position
 Note: The earnings and points fields in both the Pros and Teams tables will be used to track cumulative earnings and points.
 
-
 # How to Setup a Tournament using "Svelte UI" and "Supabase"
 
 ## Step 1: Manually Input Data
+
 - Add a row in the "Tournaments" table.
 - Add a row in the "Venues" table.
 
 ## Step 2: Import Holes Data using CSV
+
 Utilize a CSV file to populate the holes. Below is the sample structure of the CSV file:
 
 hole_id,hole_number,hole_name,par,distance,venue_id,hole_type
@@ -44,6 +46,7 @@ hole_id,hole_number,hole_name,par,distance,venue_id,hole_type
 34,5,,3,325,4,
 
 ## Step 3: Import Pairings Data using CSV
+
 Use a CSV file to input pairings data. For this example, we have used Chat GPT to randomly generate pairings. Here is a sample CSV:
 
 pairings_id,tour_ref,team_a,team_b,pairing_name
@@ -55,11 +58,10 @@ pairings_id,tour_ref,team_a,team_b,pairing_name
 12,3,9,4,
 
 ## Step 4: Import Groups Data using CSV
+
 Utilize a CSV file to input groups data. In this instance, Chat GPT was used to set group names based on the pairings. Below is a sample CSV:
 
-
-
-## Real-time Updates:
+## Real-time Updates and scoring system:
 
 Supabase supports real-time functionality. You can utilize this feature to make sure that when the leaderboard data changes (scores, positions), it updates instantly for the users viewing the app.
 API Endpoints:
@@ -121,3 +123,8 @@ Implement a verification mechanism to ensure the accuracy of entered scores.
 You can add a verification step in the user interface where users with appropriate permissions can review and confirm the entered scores.
 This verification step can be a separate page or section where scorers or other authorized users can review and make corrections if necessary.
 Once all the scores are verified, you can mark the scores as final.
+
+## Real-time Set-up Scorers:
+
+Very important to HARDCODE only the uuid in the EnterScoreForm.svelte simply do this 6 times run a differant uuid but it needs to be
+assigned or referenced to the row in the scores table. This system if done correctly we shlould end up with a result and historical data with only 1 row per group on average 6 groups per round.
