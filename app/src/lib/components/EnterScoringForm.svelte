@@ -226,19 +226,35 @@
 			detailed_scores: intitOriginalDetailedScores
 		};
 
-		// Send the update to Supabase
-		const { data, error } = await supabase
-			.from('scores')
-			.update(updatePayload)
-			.eq('score_id', scoresId);
+    // Send the update to Supabase for detailed scores
+    let { data, error } = await supabase
+        .from('scores')
+        .update(updatePayload)
+        .eq('score_id', scoresId);
 
-		if (error) {
-			console.error('Error updating scores:', error);
-			return;
-		}
+    if (error) {
+        console.error('Error updating detailed scores:', error);
+        return;
+    }
 
-		console.log('Scores updated successfully:', data);
-	}
+    console.log('Detailed scores updated successfully:', data);
+
+    // Now update the 'score_initialized' field to true
+    const scoreInitUpdatePayload = {
+        score_initialized: true
+    };
+
+    ({ data, error } = await supabase
+        .from('scores')
+        .update(scoreInitUpdatePayload)
+        .eq('score_id', scoresId));
+
+    if (error) {
+        console.error('Error updating score initialization:', error);
+    } else {
+        console.log('Score initialization updated successfully:', data);
+    }
+}
 
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
