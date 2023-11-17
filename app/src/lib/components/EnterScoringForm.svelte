@@ -8,6 +8,7 @@
 	import { getCurrentUser } from '$lib/utilities/getUser.js'; // Adjust the path as necessary
 	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams'; // Adjust the import path
 
+	let scoresId = null;
 	let user = null;
 	let scoresInitialized = false;
 	let activeStep = 1;
@@ -67,28 +68,41 @@
 
 	async function fetchScoringData() {
 		try {
+<<<<<<< HEAD
 			const scorerUuid = await getUserId(); // Get the user ID
 			if (!scorerUuid) {
 				console.error('No user ID available in fetchScoringData');
 				return null;
+=======
+			const scorerUuid = await getUserId();
+			if (!scorerUuid) {
+				console.error('No user ID available in fetchScoringData');
+				return;
+>>>>>>> 4dff015 (Fix hardcode in scoreForm)
 			}
 
 			const { data: scores, error: scoresError } = await supabase
 				.from('scores')
 				.select('*')
 				.eq('score_scorer_uuid_ref', scorerUuid);
+<<<<<<< HEAD
 
 			startHole = scores[0].score_hole_start;
 			scoresId = scores[0].score_id;
 
 			console.log(scores[0].detailed_scores);
 			console.log(scores[0].score_fantacy);
+=======
+>>>>>>> 4dff015 (Fix hardcode in scoreForm)
 
 			if (scoresError) {
 				throw scoresError;
 			}
 
 			if (scores && scores[0]) {
+				startHole = scores[0].score_hole_start;
+				scoresId = scores[0].score_id; // Assign the score ID here
+
 				let detailedScores = scores[0].detailed_scores;
 				if (typeof detailedScores === 'string') {
 					try {
@@ -229,7 +243,10 @@
 		};
 
 		// Send the update to Supabase
-		const { data, error } = await supabase.from('scores').update(updatePayload).eq('score_id', 1);
+		const { data, error } = await supabase
+			.from('scores')
+			.update(updatePayload)
+			.eq('score_id', scoresId);
 
 		if (error) {
 			console.error('Error updating scores:', error);
@@ -304,6 +321,11 @@
 		// For example, updating the score for this hole
 		holeDataToUpdate.score = scoresValue; // Replace scoresValue with the actual score you want to update
 
+<<<<<<< HEAD
+=======
+		// Assuming you have the correct scoresId which is the actual row id in the 'scores' table
+
+>>>>>>> 4dff015 (Fix hardcode in scoreForm)
 		// Update the hole data with the new score
 		holeDataToUpdate.score = scoresValue[startHole]; // Assuming scoresValue is structured with keys as pros example femaleA
 
