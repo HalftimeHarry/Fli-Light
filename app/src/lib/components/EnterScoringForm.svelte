@@ -11,7 +11,7 @@
 
 	let scoresId = null;
 	let user = null;
-	let scoresInitialized = false;
+	let isScoresInitializationButtonVisible = true;
 	let activeStep = 1;
 	let steps = [];
 	let startHole;
@@ -33,7 +33,8 @@
 
 	async function handleInitializeScores($scores) {
 		await initializeScores(startHole, $scores);
-		scoresInitialized = true;
+		// After initializing, hide the button
+		isScoresInitializationButtonVisible = false;
 	}
 
 	async function getUserId() {
@@ -226,35 +227,35 @@
 			detailed_scores: intitOriginalDetailedScores
 		};
 
-    // Send the update to Supabase for detailed scores
-    let { data, error } = await supabase
-        .from('scores')
-        .update(updatePayload)
-        .eq('score_id', scoresId);
+		// Send the update to Supabase for detailed scores
+		let { data, error } = await supabase
+			.from('scores')
+			.update(updatePayload)
+			.eq('score_id', scoresId);
 
-    if (error) {
-        console.error('Error updating detailed scores:', error);
-        return;
-    }
+		if (error) {
+			console.error('Error updating detailed scores:', error);
+			return;
+		}
 
-    console.log('Detailed scores updated successfully:', data);
+		console.log('Detailed scores updated successfully:', data);
 
-    // Now update the 'score_initialized' field to true
-    const scoreInitUpdatePayload = {
-        score_initialized: true
-    };
+		// Now update the 'score_initialized' field to true
+		const scoreInitUpdatePayload = {
+			score_initialized: true
+		};
 
-    ({ data, error } = await supabase
-        .from('scores')
-        .update(scoreInitUpdatePayload)
-        .eq('score_id', scoresId));
+		({ data, error } = await supabase
+			.from('scores')
+			.update(scoreInitUpdatePayload)
+			.eq('score_id', scoresId));
 
-    if (error) {
-        console.error('Error updating score initialization:', error);
-    } else {
-        console.log('Score initialization updated successfully:', data);
-    }
-}
+		if (error) {
+			console.error('Error updating score initialization:', error);
+		} else {
+			console.log('Score initialization updated successfully:', data);
+		}
+	}
 
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
@@ -461,33 +462,51 @@
 		try {
 			const user = await getCurrentUser();
 			if (user) {
-				// Fetch scoring data for the current user
+				// Fetch scoring data for the current user, which should set the scoresId
 				await fetchScoringData(user.id);
 
-				// Assuming fetchScoringData populates the `steps` array
+				// Now you can use scoresId to fetch the score initialization status
+				const { data, error } = await supabase
+					.from('scores')
+					.select('score_initialized')
+					.eq('score_id', scoresId) // scoresId is now set by fetchScoringData
+					.single();
+
+				if (error) {
+					console.error('Error fetching score initialization status:', error);
+					return;
+				}
+
+				// Hide the button if scores are already initialized
+				if (data?.score_initialized) {
+					isScoresInitializationButtonVisible = false;
+				}
+
+				// Further processing (e.g., loading pros and teams data)
 				const proIds = new Set();
 				const teamIds = new Set();
 
 				steps.forEach((step) => {
+					// Add IDs to sets for loading related data
 					if (step.female_a) proIds.add(step.female_a);
 					if (step.male_a) proIds.add(step.male_a);
 					if (step.female_b) proIds.add(step.female_b);
 					if (step.male_b) proIds.add(step.male_b);
 					if (step.team_a) teamIds.add(step.team_a);
 					if (step.team_b) teamIds.add(step.team_b);
-					console.log('Team A ID:', step.team_a, 'Team B ID:', step.team_b);
 				});
 
-				// Load pros and teams data
 				const proIdsArray = Array.from(proIds);
 				const teamIdsArray = Array.from(teamIds);
 				const loadedData = await loadProsAndTeams(proIdsArray, teamIdsArray);
 
-				pros = loadedData.pros; // Update pros variable with loaded data
-				teams = loadedData.teams; // Update teams variable with loaded data
+				pros = loadedData.pros;
+				teams = loadedData.teams;
 
-				// Fetch detailed scores if needed
+				// If additional detailed scores are needed, fetch them
 				await getDetailedScores(user.id);
+			} else {
+				console.error('No user found');
 			}
 		} catch (error) {
 			console.error('Error in onMount:', error);
@@ -655,7 +674,7 @@
 		{/each}
 	{/if}
 	<!-- Button to initialize scores -->
-	{#if !scoresInitialized}
+	{#if isScoresInitializationButtonVisible}
 		<button
 			on:click={handleInitializeScores}
 			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
