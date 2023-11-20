@@ -12,7 +12,6 @@
 	let scoresId = null;
 	let user = null;
 	let isScoresInitializationButtonVisible = true;
-	let activeStep = 1;
 	let steps = [];
 	let startHole;
 	let pros = [];
@@ -257,6 +256,49 @@
 		}
 	}
 
+async function submitStepUpdate(startHole: number) {
+    let error = null;
+    try {
+        let currentHoleIndex = startHole - 1; // Convert to 0-based index
+
+        if (currentHoleIndex >= 0 && currentHoleIndex < steps.length - 1) { // Ensure we have a next hole
+            // Deactivate the current hole
+            steps[currentHoleIndex] = {
+                ...steps[currentHoleIndex],
+                active: false,
+                det_sco_this_is_the_upcoming_hole: false // Update if necessary
+            };
+
+            let nextHoleIndex = currentHoleIndex + 1;
+
+            // Activate the next hole
+            steps[nextHoleIndex] = {
+                ...steps[nextHoleIndex],
+                active: true,
+                det_sco_this_is_the_upcoming_hole: true // Update if necessary
+            };
+
+            console.log('Moving to next hole.', steps[nextHoleIndex].active);
+            startHole = nextHoleIndex + 1; // Convert back to 1-based index
+            console.log(startHole);
+
+        } else {
+            // Handle the case when there is no next hole
+            console.error('No next hole available. Current hole is the last one.');
+        }
+    } catch (err) {
+        error = err;
+        console.error('Error updating scores:', error);
+    }
+
+    if (error) {
+        // Handle any additional error scenarios
+    } else {
+        console.log('Scores updated successfully:', startHole);
+    }
+}
+
+
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
 		// Check that startHole is a number
@@ -374,28 +416,6 @@
 			console.error('startHole is not a number:', startHole);
 			return; // Exit the function if startHole is not a valid number
 		}
-		let currentHoleIndex = startHole;
-		// We need to add the next Hole and Last Hole based om the amount of steps
-		// on the last hole we need to set det_sco_this_is_the_final_hole = true;
-		// on the next hole we need to set det_sco_this_is_the_upcoming_hole = true;
-
-		// First, update the properties of the current hole, if necessary
-		if (currentHoleIndex < steps.length) {
-			steps[currentHoleIndex] = {
-				...steps[currentHoleIndex],
-				det_sco_this_is_the_final_hole: currentHoleIndex === steps.length - 1 // Set to true if it's the last hole
-				// other properties for the current hole
-			};
-		}
-
-		// If there is a next hole
-		if (currentHoleIndex < steps.length - 1) {
-			const nextHoleIndex = currentHoleIndex + 1;
-			steps[nextHoleIndex] = {
-				...steps[nextHoleIndex]
-				// other properties for the next hole
-			};
-		}
 		// Update the holeDataToUpdate object
 		const updatedScores = {
 			...holeDataToUpdate, // Assuming holeDataToUpdate is a regular object, not a Svelte store
@@ -413,50 +433,8 @@
 		const { data, error } = await supabase
 			.from('scores')
 			.update(updatePayload)
-			.eq('score_id', scoresId);
-
-		console.log('Index:', currentHoleIndex);
-		// After submission, move to the next hole:
-		// we need to check && currentHoleIndex
-		if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
-			// Create a copy of the upcoming hole with updated properties
-			console.log(currentHoleIndex);
-			let upComingHole = {
-				...steps[currentHoleIndex],
-				active: false,
-				det_sco_this_is_the_upcoming_hole: true
-			};
-			console.log(upComingHole);
-			// Create a new array with the updated hole
-			steps = [
-				...steps.slice(0, currentHoleIndex),
-				upComingHole,
-				...steps.slice(currentHoleIndex + 1)
-			];
-
-			// Check if there's a next hole
-			const nextIndex = currentHoleIndex + 1;
-			if (nextIndex < steps.length) {
-				// Activate next hole
-				console.log('nextIndex', nextIndex);
-				steps[nextIndex] = { ...steps[nextIndex] };
-			} else {
-				// Handle the end of the round
-				console.log('End of round');
-				// Possibly reset or update other component state as necessary
-			}
-		} else {
-			console.error('Invalid currentHoleIndex or steps length:', currentHoleIndex, steps.length);
-		}
-
-		if (error) {
-			console.error('Error updating scores:', error);
-		} else {
-			console.log('Scores updated successfully:', currentHoleIndex);
-		}
-	} // Ensure this is the actual end of the function
-
-	// Other code or logic...
+			.eq('score_id', scoresId);		
+	}
 
 	onMount(async () => {
 		try {
@@ -518,7 +496,7 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { step_id, hole, group, par, female_a, male_a, team_a, team_b, active, on_hole }}
+		{#each steps as { step_id, hole, group, par, female_a, male_a, team_a, team_b, active, on_hole }, index}
 			<li class="flex items-center">
 				<span class="flex items-center">
 					<svg
@@ -534,7 +512,7 @@
 							d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
 						/>
 					</svg>
-					<span class={active ? 'active-hole' : ''}>{hole}</span>
+					<span class={index === startHole ? 'active-hole' : ''}>{hole}</span>
 				</span>
 			</li>
 		{/each}
@@ -662,12 +640,6 @@
 								</div>
 							</div>
 						</div>
-						<button
-							type="submit"
-							class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						>
-							Submit Scores
-						</button>
 					</fieldset>
 				</form>
 			{/if}
@@ -680,6 +652,15 @@
 			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 		>
 			Initialize Scores
+		</button>
+	{/if}
+	<!-- Button to initialize scores -->
+	{#if !isScoresInitializationButtonVisible}
+		<button
+			on:click|preventDefault={() => submitStepUpdate(startHole)}
+			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+		>
+			Submit Scores
 		</button>
 	{/if}
 </main>
