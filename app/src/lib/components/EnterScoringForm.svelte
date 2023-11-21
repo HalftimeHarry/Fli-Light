@@ -13,7 +13,7 @@
 	let user = null;
 	let isScoresInitializationButtonVisible = true;
 	let steps = [];
-	let startHole;
+	let startHole = 1;
 	let pros = [];
 	let teams = [];
 	let scoresValue = {
@@ -256,48 +256,87 @@
 		}
 	}
 
-async function submitStepUpdate(startHole: number) {
-    let error = null;
-    try {
-        let currentHoleIndex = startHole - 1; // Convert to 0-based index
+	async function loadNextHole(newStartHole: number, $scores: object) {
+		try {
+			// Validate the newStartHole
+			if (typeof newStartHole !== 'number') {
+				console.error('Expected newStartHole to be a number, but got:', newStartHole);
+				return;
+			}
 
-        if (currentHoleIndex >= 0 && currentHoleIndex < steps.length - 1) { // Ensure we have a next hole
-            // Deactivate the current hole
-            steps[currentHoleIndex] = {
-                ...steps[currentHoleIndex],
-                active: false,
-                det_sco_this_is_the_upcoming_hole: false // Update if necessary
-            };
+			console.log('initialize newStartHole is a number with value:', newStartHole);
 
-            let nextHoleIndex = currentHoleIndex + 1;
+			// Fetch the original detailed scores
+			const originalDetailedScores = await getDetailedScores();
 
-            // Activate the next hole
-            steps[nextHoleIndex] = {
-                ...steps[nextHoleIndex],
-                active: true,
-                det_sco_this_is_the_upcoming_hole: true // Update if necessary
-            };
+			// Update for the next hole
+			let nextHole = newStartHole + 1;
+			let nextHoleDataToUpdate = originalDetailedScores[nextHole - 1]; // Adjust index for 0-based array
+			if (nextHoleDataToUpdate) {
+				nextHoleDataToUpdate.det_sco_this_is_the_upcoming_hole = true;
 
-            console.log('Moving to next hole.', steps[nextHoleIndex].active);
-            startHole = nextHoleIndex + 1; // Convert back to 1-based index
-            console.log(startHole);
+				// Update the state or perform additional operations as needed
+				// For example, update $scores or any other relevant state
 
-        } else {
-            // Handle the case when there is no next hole
-            console.error('No next hole available. Current hole is the last one.');
-        }
-    } catch (err) {
-        error = err;
-        console.error('Error updating scores:', error);
-    }
+				console.log('Updated next hole data:', nextHoleDataToUpdate);
+			} else {
+				console.log('No data found for the next hole:', nextHole);
+			}
 
-    if (error) {
-        // Handle any additional error scenarios
-    } else {
-        console.log('Scores updated successfully:', startHole);
-    }
-}
+			// Additional logic to handle the update in your application
+			// ...
+		} catch (error) {
+			console.error('Error in loadNextHole:', error);
+		}
+	}
 
+	async function submitStepUpdate(startHole: number) {
+		let error = null;
+		try {
+			let currentHoleIndex = startHole - 1; // Convert to 0-based index
+
+			if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
+				if (currentHoleIndex < steps.length - 1) {
+					// There is a next hole
+					// Deactivate the current hole
+					steps[currentHoleIndex] = {
+						...steps[currentHoleIndex],
+						active: false,
+						det_sco_this_is_the_upcoming_hole: false
+					};
+
+					let nextHoleIndex = currentHoleIndex + 1;
+					
+
+					// Activate the next hole
+					steps[nextHoleIndex] = {
+						...steps[nextHoleIndex],
+						active: true,
+						det_sco_this_is_the_upcoming_hole: true
+					};
+
+					startHole = nextHoleIndex + 1; // Convert back to 1-based index
+					sessionStorage.setItem('startHole', startHole.toString());
+					console.log('Moving to next hole.', startHole);
+				} else {
+					// Current hole is the last one
+					console.log('No next hole available. Current hole is the last one.');
+					// You can add additional logic here if needed for the last hole
+				}
+			} else {
+				console.error('Invalid currentHoleIndex:', currentHoleIndex);
+			}
+		} catch (err) {
+			error = err;
+			console.error('Error updating scores:', error);
+		}
+
+		if (error) {
+			// Handle any additional error scenarios
+		} else {
+			console.log('Scores updated successfully:', startHole);
+		}
+	}
 
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
@@ -433,11 +472,18 @@ async function submitStepUpdate(startHole: number) {
 		const { data, error } = await supabase
 			.from('scores')
 			.update(updatePayload)
-			.eq('score_id', scoresId);		
+			.eq('score_id', scoresId);
 	}
 
 	onMount(async () => {
 		try {
+			// Restore startHole from sessionStorage
+			const savedStartHole = sessionStorage.getItem('startHole');
+			if (savedStartHole) {
+				startHole = parseInt(savedStartHole, 10);
+			}
+
+			// Fetch user and other data
 			const user = await getCurrentUser();
 			if (user) {
 				// Fetch scoring data for the current user, which should set the scoresId
