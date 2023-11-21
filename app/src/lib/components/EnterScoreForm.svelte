@@ -257,6 +257,7 @@
 		holes.forEach((hole) => {
 			detailedScores[hole.hole_id] = {
 				det_sco_par: hole.par,
+				det_sco_distance: hole.distance,
 				det_sco_hole_number: hole.hole_number,
 				det_sco_group_name: group.group_name,
 				det_sco_group_tee_time: group.tee_time,

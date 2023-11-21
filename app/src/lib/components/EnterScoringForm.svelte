@@ -9,6 +9,7 @@
 	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams'; // Adjust the import path
 	import { calculateFantasyScore } from '$lib/utilities/calculateFantasyScore.js';
 
+	let nextHoleDataToUpdate = {}; // Initialize with an empty object
 	let scoresId = null;
 	let user = null;
 	let isScoresInitializationButtonVisible = true;
@@ -101,6 +102,7 @@
 				steps = Object.entries(detailedScores).map(([key, holeData]: [string, any]) => {
 					const groupName = holeData.det_sco_group_name;
 					const par = holeData.det_sco_par;
+					const distance = holeData.det_sco_distance;
 					const female_a = holeData.det_sco_female_a;
 					const male_a = holeData.det_sco_male_a;
 					const female_b = holeData.det_sco_female_b;
@@ -118,6 +120,7 @@
 						hole: holeNumber, // you could use `Hole ${holeNumber}`
 						group: groupName, // Add the group name to the step
 						par: par,
+						distance: distance,
 						female_a: female_a,
 						male_a: male_a,
 						female_b: female_b,
@@ -282,9 +285,14 @@
 			} else {
 				console.log('No data found for the next hole:', nextHole);
 			}
-
-			// Additional logic to handle the update in your application
-			// ...
+			if (nextHoleDataToUpdate) {
+				// Update the steps array with the new hole data
+				steps[nextHole - 1] = nextHoleDataToUpdate; // Update the steps array at the correct index
+				return nextHoleDataToUpdate;
+			} else {
+				console.error('No data found for the next hole:', nextHole);
+				return null;
+			}
 		} catch (error) {
 			console.error('Error in loadNextHole:', error);
 		}
@@ -296,8 +304,8 @@
 			let currentHoleIndex = startHole - 1; // Convert to 0-based index
 
 			if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
+				// Check if there is a next hole
 				if (currentHoleIndex < steps.length - 1) {
-					// There is a next hole
 					// Deactivate the current hole
 					steps[currentHoleIndex] = {
 						...steps[currentHoleIndex],
@@ -314,14 +322,19 @@
 						det_sco_this_is_the_upcoming_hole: true
 					};
 
+					// Update startHole for the next hole
 					startHole = nextHoleIndex + 1; // Convert back to 1-based index
 					sessionStorage.setItem('startHole', startHole.toString());
 					console.log('Moving to next hole.', startHole);
-					loadNextHole(startHole);
+
+					// Load next hole data
+					const nextHoleData = await loadNextHole(startHole);
+					if (nextHoleData) {
+						console.log('UI updated with next hole data:', nextHoleData);
+					}
 				} else {
-					// Current hole is the last one
 					console.log('No next hole available. Current hole is the last one.');
-					// You can add additional logic here if needed for the last hole
+					// Additional logic for the last hole, if needed
 				}
 			} else {
 				console.error('Invalid currentHoleIndex:', currentHoleIndex);
@@ -477,12 +490,6 @@
 
 	onMount(async () => {
 		try {
-			// Restore startHole from sessionStorage
-			const savedStartHole = sessionStorage.getItem('startHole');
-			if (savedStartHole) {
-				startHole = parseInt(savedStartHole, 10);
-			}
-
 			// Fetch user and other data
 			const user = await getCurrentUser();
 			if (user) {
@@ -542,7 +549,7 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { step_id, hole, group, par, female_a, male_a, team_a, team_b, active, on_hole }, index}
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, team_a, team_b, active, on_hole }, index}
 			<li class="flex items-center">
 				<span class="flex items-center">
 					<svg
@@ -564,12 +571,15 @@
 		{/each}
 	</ol>
 	{#if steps.length > 0}
-		{#each steps as { step_id, hole, group, par, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
-			{#if active & on_hole}
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
+			{#if active}
 				<form on:submit|preventDefault={() => submitScores(startHole)}>
 					<fieldset>
 						<div class="mt-6 flex justify-center">{group}</div>
-						<div class="mt-2 flex justify-center">Scoring Hole {hole} - Par {par}</div>
+						<div class="mt-2 flex justify-center">
+							Scoring Hole {hole} - Par {par}
+							{distance} feet
+						</div>
 						<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
 							<!-- Display Female A's name and score -->
 							<div class="mb-4 border border-white p-4">
