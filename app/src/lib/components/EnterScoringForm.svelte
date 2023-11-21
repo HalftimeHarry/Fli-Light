@@ -306,7 +306,6 @@
 					};
 
 					let nextHoleIndex = currentHoleIndex + 1;
-					
 
 					// Activate the next hole
 					steps[nextHoleIndex] = {
@@ -318,6 +317,7 @@
 					startHole = nextHoleIndex + 1; // Convert back to 1-based index
 					sessionStorage.setItem('startHole', startHole.toString());
 					console.log('Moving to next hole.', startHole);
+					loadNextHole(startHole);
 				} else {
 					// Current hole is the last one
 					console.log('No next hole available. Current hole is the last one.');
