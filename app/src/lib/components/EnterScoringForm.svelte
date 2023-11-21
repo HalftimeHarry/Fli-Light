@@ -5,11 +5,10 @@
 	import Incrementer from '$lib/components/Incrementer.svelte';
 	import Decrementer from '$lib/components/Decrementer.svelte';
 	import Resetter from '$lib/components/Resetter.svelte';
-	import { getCurrentUser } from '$lib/utilities/getUser.js'; // Adjust the path as necessary
-	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams'; // Adjust the import path
+	import { getCurrentUser } from '$lib/utilities/getUser.js';
+	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams';
 	import { calculateFantasyScore } from '$lib/utilities/calculateFantasyScore.js';
 
-	let nextHoleDataToUpdate = {}; // Initialize with an empty object
 	let scoresId = null;
 	let user = null;
 	let isScoresInitializationButtonVisible = true;
@@ -110,12 +109,13 @@
 					const team_a = holeData.det_sco_team_a_id;
 					const team_b = holeData.det_sco_team_b_id;
 					const holeNumber = holeData.det_sco_hole_number;
-					const isActiveHole = holeNumber === startHole; // Compare holeNumber with startHole
+					const isActiveHole = holeData.det_sco_on_this_hole;
 					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
-					const OnThisHole = isActiveHole; // Since you're starting on this hole, this flag should be true
-					console.log(`We are scoring hole ${holeNumber} : ${OnThisHole}`);
+					const isUpcomingHole = holeData.det_sco_this_is_the_upcoming_hole;
+					const isFinalHole = holeData.det_sco_this_is_the_final_hole;
 
 					return {
+						...holeData,
 						step_id: holeNumber,
 						hole: holeNumber, // you could use `Hole ${holeNumber}`
 						group: groupName, // Add the group name to the step
@@ -128,7 +128,8 @@
 						team_a: team_a,
 						team_b: team_b,
 						active: isActiveHole,
-						on_hole: OnThisHole
+						upcoming: isUpcomingHole,
+						on_hole: holeNumber === startHole // Compare holeNumber with startHole
 					};
 				});
 			}
@@ -305,82 +306,81 @@
 		}
 	}
 
-async function submitStepUpdate(startHole: number) {
-    // Reset score values when moving to the next hole
-    $femaleA = 0;
-    $maleA = 0;
-    $femaleB = 0;
-    $maleB = 0;
-    let error = null;
+	async function submitStepUpdate(startHole: number) {
+		// Reset score values when moving to the next hole
+		$femaleA = 0;
+		$maleA = 0;
+		$femaleB = 0;
+		$maleB = 0;
+		let error = null;
 
-    try {
-        let currentHoleIndex = startHole - 1; // Convert to 0-based index
+		try {
+			let currentHoleIndex = startHole - 1; // Convert to 0-based index
 
-        if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
-            // Fetch the detailed scores
-            let detailedScores = await getDetailedScores();
-            
-            // Check if there is a next hole
-            if (currentHoleIndex < steps.length - 1) {
-                // Deactivate the current hole and update the detailed scores
-                steps[currentHoleIndex].active = false;
-                steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
-                detailedScores[startHole].det_sco_on_this_hole = false;
+			if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
+				// Fetch the detailed scores
+				let detailedScores = await getDetailedScores();
 
-                let nextHoleIndex = currentHoleIndex + 1;
-                
-                // Activate the next hole and update the detailed scores
-                steps[nextHoleIndex].active = true;
-                steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
-                detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
-                
-                // Check if the next hole is the final hole
-                if (nextHoleIndex === steps.length - 1) {
-                    detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
-                }
+				// Check if there is a next hole
+				if (currentHoleIndex < steps.length - 1) {
+					// Deactivate the current hole and update the detailed scores
+					steps[currentHoleIndex].active = false;
+					steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
+					detailedScores[startHole].det_sco_on_this_hole = false;
 
-                // Update startHole for the next hole
-                startHole = nextHoleIndex + 1; // Convert back to 1-based index
-                sessionStorage.setItem('startHole', startHole.toString());
-                console.log('Moving to next hole.', startHole);
+					let nextHoleIndex = currentHoleIndex + 1;
 
-                // Persist the updated detailed scores back to the database
-                await updateDetailedScores(detailedScores);
-            } else {
-                console.log('No next hole available. Current hole is the last one.');
-                // Set the current hole as the final hole
-                detailedScores[startHole].det_sco_this_is_the_final_hole = true;
-                await updateDetailedScores(detailedScores);
-            }
-        } else {
-            console.error('Invalid currentHoleIndex:', currentHoleIndex);
-        }
-    } catch (err) {
-        error = err;
-        console.error('Error updating scores:', error);
-    }
+					// Activate the next hole and update the detailed scores
+					steps[nextHoleIndex].active = true;
+					steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
+					detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
 
-    if (error) {
-        // Handle any additional error scenarios
-    } else {
-        console.log('Scores updated successfully:', startHole);
-    }
-}
+					// Check if the next hole is the final hole
+					if (nextHoleIndex === steps.length - 1) {
+						detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
+					}
 
-// Function to persist the updated detailed scores to the database
-async function updateDetailedScores(detailedScores) {
-    try {
-        const { error } = await supabase
-            .from('scores')
-            .update({ detailed_scores: detailedScores })
-            .eq('score_id', scoresId); // Ensure you have the correct score_id
-        
-        if (error) throw error;
-    } catch (error) {
-        console.error('Error updating detailed scores:', error);
-    }
-}
+					// Update startHole for the next hole
+					startHole = nextHoleIndex + 1; // Convert back to 1-based index
+					sessionStorage.setItem('startHole', startHole.toString());
+					console.log('Moving to next hole.', startHole);
 
+					// Persist the updated detailed scores back to the database
+					await updateDetailedScores(detailedScores);
+				} else {
+					console.log('No next hole available. Current hole is the last one.');
+					// Set the current hole as the final hole
+					detailedScores[startHole].det_sco_this_is_the_final_hole = true;
+					await updateDetailedScores(detailedScores);
+				}
+			} else {
+				console.error('Invalid currentHoleIndex:', currentHoleIndex);
+			}
+		} catch (err) {
+			error = err;
+			console.error('Error updating scores:', error);
+		}
+
+		if (error) {
+			// Handle any additional error scenarios
+		} else {
+			console.log('Scores updated successfully:', startHole);
+		}
+	}
+
+	// Function to persist the updated detailed scores to the database
+	async function updateDetailedScores(detailedScores) {
+		try {
+			const { error } = await supabase
+				.from('scores')
+				.update({ detailed_scores: detailedScores })
+				.eq('score_id', scoresId); // Ensure you have the correct score_id
+
+			if (error) throw error;
+		} catch (error) {
+			console.error('Error updating detailed scores:', error);
+		}
+	}
 
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
@@ -600,15 +600,16 @@ async function updateDetailedScores(detailedScores) {
 						<span class={startHole ? 'active-hole' : ''}>{hole}</span>
 					</span>
 				</li>
-        {:else}
-            <!-- Rendering for undefined holes -->
-            <li class="flex items-center">
-                ...
-                <span class="inactive-hole">Next: {index + 1}</span> <!-- Displaying next index -->
-                ...
-            </li>
-        {/if}
-    {/each}
+			{:else}
+				<!-- Rendering for undefined holes -->
+				<li class="flex items-center">
+					...
+					<span class="inactive-hole">Next: {index + 1}</span>
+					<!-- Displaying next index -->
+					...
+				</li>
+			{/if}
+		{/each}
 	</ol>
 	{#if steps.length > 0}
 		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
