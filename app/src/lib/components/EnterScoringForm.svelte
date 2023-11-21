@@ -113,6 +113,7 @@
 					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
 					const isUpcomingHole = holeData.det_sco_this_is_the_upcoming_hole;
 					const isFinalHole = holeData.det_sco_this_is_the_final_hole;
+					const isCompleted = holeData.det_sco_completed_this_hole; // Added completed status
 
 					return {
 						...holeData,
@@ -129,7 +130,8 @@
 						team_b: team_b,
 						active: isActiveHole,
 						upcoming: isUpcomingHole,
-						on_hole: holeNumber === startHole // Compare holeNumber with startHole
+						final: isFinalHole,
+						completed: isCompleted // Added completed status to the returned object
 					};
 				});
 			}
@@ -312,71 +314,62 @@
 		$maleA = 0;
 		$femaleB = 0;
 		$maleB = 0;
-		let error = null;
 
 		try {
 			let currentHoleIndex = startHole - 1; // Convert to 0-based index
-
-			if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
-				// Fetch the detailed scores
-				let detailedScores = await getDetailedScores();
-
-				// Check if there is a next hole
-				if (currentHoleIndex < steps.length - 1) {
-					// Deactivate the current hole and update the detailed scores
-					steps[currentHoleIndex].active = false;
-					steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
-					detailedScores[startHole].det_sco_on_this_hole = false;
-
-					let nextHoleIndex = currentHoleIndex + 1;
-
-					// Activate the next hole and update the detailed scores
-					steps[nextHoleIndex].active = true;
-					steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
-					detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
-
-					// Check if the next hole is the final hole
-					if (nextHoleIndex === steps.length - 1) {
-						detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
-					}
-
-					// Update startHole for the next hole
-					startHole = nextHoleIndex + 1; // Convert back to 1-based index
-					sessionStorage.setItem('startHole', startHole.toString());
-					console.log('Moving to next hole.', startHole);
-
-					// Persist the updated detailed scores back to the database
-					await updateDetailedScores(detailedScores);
-				} else {
-					console.log('No next hole available. Current hole is the last one.');
-					// Set the current hole as the final hole
-					detailedScores[startHole].det_sco_this_is_the_final_hole = true;
-					await updateDetailedScores(detailedScores);
-				}
-			} else {
-				console.error('Invalid currentHoleIndex:', currentHoleIndex);
+			if (currentHoleIndex < 0 || currentHoleIndex >= steps.length) {
+				throw new Error('Invalid currentHoleIndex: ' + currentHoleIndex);
 			}
-		} catch (err) {
-			error = err;
-			console.error('Error updating scores:', error);
-		}
 
-		if (error) {
-			// Handle any additional error scenarios
-		} else {
+			let detailedScores = await getDetailedScores();
+
+			// Update current and next hole states
+			if (currentHoleIndex < steps.length - 1) {
+				let nextHoleIndex = currentHoleIndex + 1;
+
+				// Update current hole
+				steps[currentHoleIndex].active = false;
+				steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
+				detailedScores[startHole].det_sco_on_this_hole = false;
+				detailedScores[startHole].det_sco_completed_this_hole = true;
+
+				// Update next hole
+				steps[nextHoleIndex].active = true;
+				steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
+				detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
+
+				// Update sessionStorage
+				startHole = nextHoleIndex + 1; // Convert back to 1-based index
+				sessionStorage.setItem('startHole', startHole.toString());
+
+				if (nextHoleIndex === steps.length - 1) {
+					detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
+				}
+
+				console.log('Moving to next hole.', startHole);
+			} else {
+				console.log('No next hole available. Current hole is the last one.');
+				detailedScores[startHole].det_sco_this_is_the_final_hole = true;
+			}
+
+			// Persist the updated detailed scores
+			await updateDetailedScores(detailedScores);
 			console.log('Scores updated successfully:', startHole);
+		} catch (error) {
+			console.error('Error updating scores:', error);
 		}
 	}
 
-	// Function to persist the updated detailed scores to the database
 	async function updateDetailedScores(detailedScores) {
 		try {
 			const { error } = await supabase
 				.from('scores')
 				.update({ detailed_scores: detailedScores })
-				.eq('score_id', scoresId); // Ensure you have the correct score_id
+				.eq('score_id', scoresId);
 
-			if (error) throw error;
+			if (error) {
+				throw error;
+			}
 		} catch (error) {
 			console.error('Error updating detailed scores:', error);
 		}
@@ -453,6 +446,11 @@
 			fantasyScoreFemaleB + fantasyScoreMaleB;
 
 		// ... rest of your existing code for updating the scores in the database ...
+		// Inside submitScores function
+		if (holeDataToUpdate.det_sco_completed_this_hole) {
+			console.error('Scoring for this hole is already completed.');
+			return; // Prevent further execution
+		}
 
 		// Check if this is the final hole and handle overall aggregation if necessary
 		if (holeDataToUpdate.det_sco_this_is_the_final_hole) {
@@ -474,6 +472,7 @@
 			console.error('Scores value is not set.');
 			return;
 		}
+		// Select the hole data for the current startHole
 		holeDataToUpdate = currentDetailedScores[startHole];
 		if (!holeDataToUpdate) {
 			console.error(`Hole data for number ${startHole} not found.`);
@@ -580,7 +579,7 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, team_a, team_b, active, on_hole }, index}
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, team_a, team_b, active, completed, on_hole }, index}
 			{#if typeof hole !== 'undefined'}
 				<li class="flex items-center">
 					<span class="flex items-center">
@@ -590,8 +589,9 @@
 							xmlns="http://www.w3.org/2000/svg"
 							fill="currentColor"
 							viewBox="0 0 20 20"
-							class:fill-blue-600={active}
-							class:fill-gray-500={!active}
+							class:fill-blue-600={active && !completed}
+							class:fill-green-600={completed}
+							class:fill-gray-500={!active && !completed}
 						>
 							<path
 								d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
