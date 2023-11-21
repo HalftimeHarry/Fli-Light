@@ -199,6 +199,13 @@
 
 		const intitOriginalDetailedScores = await getDetailedScores();
 
+		// Update for this hole as det_sco_on_this_hole
+		let thisHole = startHole;
+		let thisHoleDataToUpdate = intitOriginalDetailedScores[thisHole];
+		if (thisHoleDataToUpdate) {
+			thisHoleDataToUpdate.det_sco_on_this_hole = true;
+		}
+
 		// Update for the next hole
 		let nextHole = startHole + 1;
 		let nextHoleDataToUpdate = intitOriginalDetailedScores[nextHole];
@@ -298,63 +305,82 @@
 		}
 	}
 
-	async function submitStepUpdate(startHole: number) {
-		// Reset score values when moving to the next hole
-		$femaleA = 0;
-		$maleA = 0;
-		$femaleB = 0;
-		$maleB = 0;
-		let error = null;
-		try {
-			let currentHoleIndex = startHole - 1; // Convert to 0-based index
+async function submitStepUpdate(startHole: number) {
+    // Reset score values when moving to the next hole
+    $femaleA = 0;
+    $maleA = 0;
+    $femaleB = 0;
+    $maleB = 0;
+    let error = null;
 
-			if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
-				// Check if there is a next hole
-				if (currentHoleIndex < steps.length - 1) {
-					// Deactivate the current hole
-					steps[currentHoleIndex] = {
-						...steps[currentHoleIndex],
-						active: false,
-						det_sco_this_is_the_upcoming_hole: false
-					};
+    try {
+        let currentHoleIndex = startHole - 1; // Convert to 0-based index
 
-					let nextHoleIndex = currentHoleIndex + 1;
+        if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
+            // Fetch the detailed scores
+            let detailedScores = await getDetailedScores();
+            
+            // Check if there is a next hole
+            if (currentHoleIndex < steps.length - 1) {
+                // Deactivate the current hole and update the detailed scores
+                steps[currentHoleIndex].active = false;
+                steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
+                detailedScores[startHole].det_sco_on_this_hole = false;
 
-					// Activate the next hole
-					steps[nextHoleIndex] = {
-						...steps[nextHoleIndex],
-						active: true,
-						det_sco_this_is_the_upcoming_hole: true
-					};
+                let nextHoleIndex = currentHoleIndex + 1;
+                
+                // Activate the next hole and update the detailed scores
+                steps[nextHoleIndex].active = true;
+                steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
+                detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
+                
+                // Check if the next hole is the final hole
+                if (nextHoleIndex === steps.length - 1) {
+                    detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
+                }
 
-					// Update startHole for the next hole
-					startHole = nextHoleIndex + 1; // Convert back to 1-based index
-					sessionStorage.setItem('startHole', startHole.toString());
-					console.log('Moving to next hole.', startHole);
+                // Update startHole for the next hole
+                startHole = nextHoleIndex + 1; // Convert back to 1-based index
+                sessionStorage.setItem('startHole', startHole.toString());
+                console.log('Moving to next hole.', startHole);
 
-					// Load next hole data
-					const nextHoleData = await loadNextHole(startHole);
-					if (nextHoleData) {
-						console.log('UI updated with next hole data:', nextHoleData);
-					}
-				} else {
-					console.log('No next hole available. Current hole is the last one.');
-					// Additional logic for the last hole, if needed
-				}
-			} else {
-				console.error('Invalid currentHoleIndex:', currentHoleIndex);
-			}
-		} catch (err) {
-			error = err;
-			console.error('Error updating scores:', error);
-		}
+                // Persist the updated detailed scores back to the database
+                await updateDetailedScores(detailedScores);
+            } else {
+                console.log('No next hole available. Current hole is the last one.');
+                // Set the current hole as the final hole
+                detailedScores[startHole].det_sco_this_is_the_final_hole = true;
+                await updateDetailedScores(detailedScores);
+            }
+        } else {
+            console.error('Invalid currentHoleIndex:', currentHoleIndex);
+        }
+    } catch (err) {
+        error = err;
+        console.error('Error updating scores:', error);
+    }
 
-		if (error) {
-			// Handle any additional error scenarios
-		} else {
-			console.log('Scores updated successfully:', startHole);
-		}
-	}
+    if (error) {
+        // Handle any additional error scenarios
+    } else {
+        console.log('Scores updated successfully:', startHole);
+    }
+}
+
+// Function to persist the updated detailed scores to the database
+async function updateDetailedScores(detailedScores) {
+    try {
+        const { error } = await supabase
+            .from('scores')
+            .update({ detailed_scores: detailedScores })
+            .eq('score_id', scoresId); // Ensure you have the correct score_id
+        
+        if (error) throw error;
+    } catch (error) {
+        console.error('Error updating detailed scores:', error);
+    }
+}
+
 
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
