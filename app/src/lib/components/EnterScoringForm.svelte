@@ -441,6 +441,7 @@
 		let fantasyScoreMaleA = calculateFantasyScore(scoresValue.maleA, holeDataToUpdate.det_sco_par);
 		let fantasyScoreMaleB = calculateFantasyScore(scoresValue.maleB, holeDataToUpdate.det_sco_par);
 		// ... calculations for other players ...
+		
 
 		// Update holeDataToUpdate with actual and fantasy scores
 		holeDataToUpdate.det_sco_female_a_scored = scoresValue.femaleA;
