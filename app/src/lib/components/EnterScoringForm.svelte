@@ -388,7 +388,7 @@
 		console.log('startHole is a number with value:', startHole);
 
 		if (currentStartHole - 1 === startHole) {
-			console.log('we equal');
+			console.log('We need to use this currentStartHole value', currentStartHole);
 		}
 
 		console.log(scoresValue);
