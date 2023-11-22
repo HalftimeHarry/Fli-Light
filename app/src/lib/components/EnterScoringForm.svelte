@@ -338,6 +338,9 @@
 				steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
 				detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
 
+				console.log('steps 0 based index:', steps);
+				console.log('detailedScores 1 based index:', detailedScores);
+
 				// Update sessionStorage
 				startHole = nextHoleIndex + 1; // Convert back to 1-based index
 				sessionStorage.setItem('startHole', startHole.toString());
