@@ -15,7 +15,7 @@
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
-		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
+		const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff'; // Update this with the desired UUID
 		const { data: scores, error: scoresError } = await supabase
 			.from('scores')
 			.select('*')
@@ -257,6 +257,7 @@
 		holes.forEach((hole) => {
 			detailedScores[hole.hole_id] = {
 				det_sco_par: hole.par,
+				det_sco_distance: hole.distance,
 				det_sco_hole_number: hole.hole_number,
 				det_sco_group_name: group.group_name,
 				det_sco_group_tee_time: group.tee_time,

@@ -5,16 +5,15 @@
 	import Incrementer from '$lib/components/Incrementer.svelte';
 	import Decrementer from '$lib/components/Decrementer.svelte';
 	import Resetter from '$lib/components/Resetter.svelte';
-	import { getCurrentUser } from '$lib/utilities/getUser.js'; // Adjust the path as necessary
-	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams'; // Adjust the import path
+	import { getCurrentUser } from '$lib/utilities/getUser.js';
+	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams';
 	import { calculateFantasyScore } from '$lib/utilities/calculateFantasyScore.js';
 
 	let scoresId = null;
 	let user = null;
 	let isScoresInitializationButtonVisible = true;
-	let activeStep = 1;
 	let steps = [];
-	let startHole;
+	let startHole = 1;
 	let pros = [];
 	let teams = [];
 	let scoresValue = {
@@ -102,6 +101,7 @@
 				steps = Object.entries(detailedScores).map(([key, holeData]: [string, any]) => {
 					const groupName = holeData.det_sco_group_name;
 					const par = holeData.det_sco_par;
+					const distance = holeData.det_sco_distance;
 					const female_a = holeData.det_sco_female_a;
 					const male_a = holeData.det_sco_male_a;
 					const female_b = holeData.det_sco_female_b;
@@ -109,16 +109,19 @@
 					const team_a = holeData.det_sco_team_a_id;
 					const team_b = holeData.det_sco_team_b_id;
 					const holeNumber = holeData.det_sco_hole_number;
-					const isActiveHole = holeNumber === startHole; // Compare holeNumber with startHole
+					const isActiveHole = holeData.det_sco_on_this_hole;
 					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
-					const OnThisHole = isActiveHole; // Since you're starting on this hole, this flag should be true
-					console.log(`We are scoring hole ${holeNumber} : ${OnThisHole}`);
+					const isUpcomingHole = holeData.det_sco_this_is_the_upcoming_hole;
+					const isFinalHole = holeData.det_sco_this_is_the_final_hole;
+					const isCompleted = holeData.det_sco_completed_this_hole; // Added completed status
 
 					return {
+						...holeData,
 						step_id: holeNumber,
 						hole: holeNumber, // you could use `Hole ${holeNumber}`
 						group: groupName, // Add the group name to the step
 						par: par,
+						distance: distance,
 						female_a: female_a,
 						male_a: male_a,
 						female_b: female_b,
@@ -126,7 +129,9 @@
 						team_a: team_a,
 						team_b: team_b,
 						active: isActiveHole,
-						on_hole: OnThisHole
+						upcoming: isUpcomingHole,
+						final: isFinalHole,
+						completed: isCompleted // Added completed status to the returned object
 					};
 				});
 			}
@@ -197,6 +202,13 @@
 
 		const intitOriginalDetailedScores = await getDetailedScores();
 
+		// Update for this hole as det_sco_on_this_hole
+		let thisHole = startHole;
+		let thisHoleDataToUpdate = intitOriginalDetailedScores[thisHole];
+		if (thisHoleDataToUpdate) {
+			thisHoleDataToUpdate.det_sco_on_this_hole = true;
+		}
+
 		// Update for the next hole
 		let nextHole = startHole + 1;
 		let nextHoleDataToUpdate = intitOriginalDetailedScores[nextHole];
@@ -257,6 +269,112 @@
 		}
 	}
 
+	async function loadNextHole(newStartHole: number, $scores: object) {
+		try {
+			// Validate the newStartHole
+			if (typeof newStartHole !== 'number') {
+				console.error('Expected newStartHole to be a number, but got:', newStartHole);
+				return;
+			}
+
+			console.log('initialize newStartHole is a number with value:', newStartHole);
+
+			// Fetch the original detailed scores
+			const originalDetailedScores = await getDetailedScores();
+
+			// Update for the next hole
+			let nextHole = newStartHole + 1;
+			let nextHoleDataToUpdate = originalDetailedScores[nextHole - 1]; // Adjust index for 0-based array
+			if (nextHoleDataToUpdate) {
+				nextHoleDataToUpdate.det_sco_this_is_the_upcoming_hole = true;
+
+				// Update the state or perform additional operations as needed
+				// For example, update $scores or any other relevant state
+
+				console.log('Updated next hole data:', nextHoleDataToUpdate);
+			} else {
+				console.log('No data found for the next hole:', nextHole);
+			}
+			if (nextHoleDataToUpdate) {
+				// Update the steps array with the new hole data
+				steps[nextHole - 1] = nextHoleDataToUpdate; // Update the steps array at the correct index
+				return nextHoleDataToUpdate;
+			} else {
+				console.error('No data found for the next hole:', nextHole);
+				return null;
+			}
+		} catch (error) {
+			console.error('Error in loadNextHole:', error);
+		}
+	}
+
+	async function submitStepUpdate(startHole: number) {
+		// Reset score values when moving to the next hole
+		$femaleA = 0;
+		$maleA = 0;
+		$femaleB = 0;
+		$maleB = 0;
+
+		try {
+			let currentHoleIndex = startHole - 1; // Convert to 0-based index
+			if (currentHoleIndex < 0 || currentHoleIndex >= steps.length) {
+				throw new Error('Invalid currentHoleIndex: ' + currentHoleIndex);
+			}
+
+			let detailedScores = await getDetailedScores();
+
+			// Update current and next hole states
+			if (currentHoleIndex < steps.length - 1) {
+				let nextHoleIndex = currentHoleIndex + 1;
+
+				// Update current hole
+				steps[currentHoleIndex].active = false;
+				steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
+				detailedScores[startHole].det_sco_on_this_hole = false;
+				detailedScores[startHole].det_sco_completed_this_hole = true;
+
+				// Update next hole
+				steps[nextHoleIndex].active = true;
+				steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
+				detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
+
+				// Update sessionStorage
+				startHole = nextHoleIndex + 1; // Convert back to 1-based index
+				sessionStorage.setItem('startHole', startHole.toString());
+
+				if (nextHoleIndex === steps.length - 1) {
+					detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
+				}
+
+				console.log('Moving to next hole.', startHole);
+			} else {
+				console.log('No next hole available. Current hole is the last one.');
+				detailedScores[startHole].det_sco_this_is_the_final_hole = true;
+			}
+
+			// Persist the updated detailed scores
+			await updateDetailedScores(detailedScores);
+			console.log('Scores updated successfully:', startHole);
+		} catch (error) {
+			console.error('Error updating scores:', error);
+		}
+	}
+
+	async function updateDetailedScores(detailedScores) {
+		try {
+			const { error } = await supabase
+				.from('scores')
+				.update({ detailed_scores: detailedScores })
+				.eq('score_id', scoresId);
+
+			if (error) {
+				throw error;
+			}
+		} catch (error) {
+			console.error('Error updating detailed scores:', error);
+		}
+	}
+
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
 		// Check that startHole is a number
@@ -265,7 +383,13 @@
 			return;
 		}
 
+		const currentStartHole = parseInt(sessionStorage.getItem('startHole'), 10);
+		console.log('currentStartHole is a number with value:', currentStartHole);
 		console.log('startHole is a number with value:', startHole);
+
+		if (currentStartHole - 1 === startHole) {
+			console.log('we equal');
+		}
 
 		console.log(scoresValue);
 		if (typeof scoresValue !== 'object') {
@@ -328,6 +452,11 @@
 			fantasyScoreFemaleB + fantasyScoreMaleB;
 
 		// ... rest of your existing code for updating the scores in the database ...
+		// Inside submitScores function
+		if (holeDataToUpdate.det_sco_completed_this_hole) {
+			console.error('Scoring for this hole is already completed.');
+			return; // Prevent further execution
+		}
 
 		// Check if this is the final hole and handle overall aggregation if necessary
 		if (holeDataToUpdate.det_sco_this_is_the_final_hole) {
@@ -349,6 +478,7 @@
 			console.error('Scores value is not set.');
 			return;
 		}
+		// Select the hole data for the current startHole
 		holeDataToUpdate = currentDetailedScores[startHole];
 		if (!holeDataToUpdate) {
 			console.error(`Hole data for number ${startHole} not found.`);
@@ -374,28 +504,6 @@
 			console.error('startHole is not a number:', startHole);
 			return; // Exit the function if startHole is not a valid number
 		}
-		let currentHoleIndex = startHole;
-		// We need to add the next Hole and Last Hole based om the amount of steps
-		// on the last hole we need to set det_sco_this_is_the_final_hole = true;
-		// on the next hole we need to set det_sco_this_is_the_upcoming_hole = true;
-
-		// First, update the properties of the current hole, if necessary
-		if (currentHoleIndex < steps.length) {
-			steps[currentHoleIndex] = {
-				...steps[currentHoleIndex],
-				det_sco_this_is_the_final_hole: currentHoleIndex === steps.length - 1 // Set to true if it's the last hole
-				// other properties for the current hole
-			};
-		}
-
-		// If there is a next hole
-		if (currentHoleIndex < steps.length - 1) {
-			const nextHoleIndex = currentHoleIndex + 1;
-			steps[nextHoleIndex] = {
-				...steps[nextHoleIndex]
-				// other properties for the next hole
-			};
-		}
 		// Update the holeDataToUpdate object
 		const updatedScores = {
 			...holeDataToUpdate, // Assuming holeDataToUpdate is a regular object, not a Svelte store
@@ -414,52 +522,11 @@
 			.from('scores')
 			.update(updatePayload)
 			.eq('score_id', scoresId);
-
-		console.log('Index:', currentHoleIndex);
-		// After submission, move to the next hole:
-		// we need to check && currentHoleIndex
-		if (currentHoleIndex >= 0 && currentHoleIndex < steps.length) {
-			// Create a copy of the upcoming hole with updated properties
-			console.log(currentHoleIndex);
-			let upComingHole = {
-				...steps[currentHoleIndex],
-				active: false,
-				det_sco_this_is_the_upcoming_hole: true
-			};
-			console.log(upComingHole);
-			// Create a new array with the updated hole
-			steps = [
-				...steps.slice(0, currentHoleIndex),
-				upComingHole,
-				...steps.slice(currentHoleIndex + 1)
-			];
-
-			// Check if there's a next hole
-			const nextIndex = currentHoleIndex + 1;
-			if (nextIndex < steps.length) {
-				// Activate next hole
-				console.log('nextIndex', nextIndex);
-				steps[nextIndex] = { ...steps[nextIndex] };
-			} else {
-				// Handle the end of the round
-				console.log('End of round');
-				// Possibly reset or update other component state as necessary
-			}
-		} else {
-			console.error('Invalid currentHoleIndex or steps length:', currentHoleIndex, steps.length);
-		}
-
-		if (error) {
-			console.error('Error updating scores:', error);
-		} else {
-			console.log('Scores updated successfully:', currentHoleIndex);
-		}
-	} // Ensure this is the actual end of the function
-
-	// Other code or logic...
+	}
 
 	onMount(async () => {
 		try {
+			// Fetch user and other data
 			const user = await getCurrentUser();
 			if (user) {
 				// Fetch scoring data for the current user, which should set the scoresId
@@ -518,34 +585,48 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { step_id, hole, group, par, female_a, male_a, team_a, team_b, active, on_hole }}
-			<li class="flex items-center">
-				<span class="flex items-center">
-					<svg
-						class="w-4 h-4 mr-2"
-						aria-hidden="true"
-						xmlns="http://www.w3.org/2000/svg"
-						fill="currentColor"
-						viewBox="0 0 20 20"
-						class:fill-blue-600={active}
-						class:fill-gray-500={!active}
-					>
-						<path
-							d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
-						/>
-					</svg>
-					<span class={active ? 'active-hole' : ''}>{hole}</span>
-				</span>
-			</li>
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, team_a, team_b, active, completed, on_hole }, index}
+			{#if typeof hole !== 'undefined'}
+				<li class="flex items-center">
+					<span class="flex items-center">
+						<svg
+							class="w-4 h-4 mr-2"
+							aria-hidden="true"
+							xmlns="http://www.w3.org/2000/svg"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+							class:fill-blue-600={active && !completed}
+							class:fill-green-600={completed}
+							class:fill-gray-500={!active && !completed}
+						>
+							<path
+								d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"
+							/>
+						</svg>
+						<span class={startHole ? 'active-hole' : ''}>{hole}</span>
+					</span>
+				</li>
+			{:else}
+				<!-- Rendering for undefined holes -->
+				<li class="flex items-center">
+					...
+					<span class="inactive-hole">Next: {index + 1}</span>
+					<!-- Displaying next index -->
+					...
+				</li>
+			{/if}
 		{/each}
 	</ol>
 	{#if steps.length > 0}
-		{#each steps as { step_id, hole, group, par, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
-			{#if active & on_hole}
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
+			{#if active}
 				<form on:submit|preventDefault={() => submitScores(startHole)}>
 					<fieldset>
 						<div class="mt-6 flex justify-center">{group}</div>
-						<div class="mt-2 flex justify-center">Scoring Hole {hole} - Par {par}</div>
+						<div class="mt-2 flex justify-center">
+							Scoring Hole {hole} - Par {par}
+							{distance} feet
+						</div>
 						<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
 							<!-- Display Female A's name and score -->
 							<div class="mb-4 border border-white p-4">
@@ -662,12 +743,6 @@
 								</div>
 							</div>
 						</div>
-						<button
-							type="submit"
-							class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-						>
-							Submit Scores
-						</button>
 					</fieldset>
 				</form>
 			{/if}
@@ -680,6 +755,15 @@
 			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 		>
 			Initialize Scores
+		</button>
+	{/if}
+	<!-- Button to initialize scores -->
+	{#if !isScoresInitializationButtonVisible}
+		<button
+			on:click|preventDefault={() => submitStepUpdate(startHole)}
+			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+		>
+			Submit Scores
 		</button>
 	{/if}
 </main>
