@@ -377,28 +377,40 @@
 
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
-		// Check that startHole is a number
+		// Validate input
 		if (typeof startHole !== 'number') {
 			console.error('Expected startHole to be a number, but got:', startHole);
 			return;
 		}
 
 		const currentStartHole = parseInt(sessionStorage.getItem('startHole'), 10);
-		console.log('currentStartHole is a number with value:', currentStartHole);
-		console.log('startHole is a number with value:', startHole);
-
-		if (currentStartHole - 1 === startHole) {
-			console.log('we equal');
-		}
 
 		const originalDetailedScores = await getDetailedScores();
 
-		// Select the object to update using startHole as index
-		let holeDataToUpdate = originalDetailedScores[startHole];
+		// Determine the hole index to update
+		let holeIndex;
+		if (
+			originalDetailedScores[startHole] &&
+			originalDetailedScores[startHole].det_sco_completed_this_hole
+		) {
+			// If the current hole is completed, use currentStartHole
+			holeIndex = currentStartHole;
+		} else {
+			// Otherwise, use startHole
+			holeIndex = startHole;
+		}
+
+		let holeDataToUpdate = originalDetailedScores[holeIndex];
 
 		if (!holeDataToUpdate) {
-			console.error('No hole data found to update at index:', startHole);
+			console.error('No hole data found to update at index:', holeIndex);
 			return;
+		}
+
+		// Check if the hole has already been scored
+		if (holeDataToUpdate.det_sco_completed_this_hole) {
+			console.log('Scoring for this hole already completed. Moving to hole:', currentStartHole);
+			return currentStartHole; // Return currentStartHole for the next steps
 		}
 
 		console.log(scoresValue);
@@ -452,11 +464,6 @@
 			fantasyScoreFemaleB + fantasyScoreMaleB;
 
 		// ... rest of your existing code for updating the scores in the database ...
-		// Inside submitScores function
-		if (holeDataToUpdate.det_sco_completed_this_hole) {
-			console.error('Scoring for this hole is already completed.');
-			return; // Prevent further execution
-		}
 
 		// Check if this is the final hole and handle overall aggregation if necessary
 		if (holeDataToUpdate.det_sco_this_is_the_final_hole) {
