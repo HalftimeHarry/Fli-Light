@@ -383,7 +383,13 @@
 			return;
 		}
 
+		const currentStartHole = parseInt(sessionStorage.getItem('startHole'), 10);
+		console.log('currentStartHole is a number with value:', currentStartHole);
 		console.log('startHole is a number with value:', startHole);
+
+		if (currentStartHole - 1 === startHole) {
+			console.log('we equal');
+		}
 
 		console.log(scoresValue);
 		if (typeof scoresValue !== 'object') {
