@@ -383,23 +383,32 @@
 			return;
 		}
 
+		// Get currentStartHole from sessionStorage
 		const currentStartHole = parseInt(sessionStorage.getItem('startHole'), 10);
 
+		// Fetch detailed scores
 		const originalDetailedScores = await getDetailedScores();
 
 		// Determine the hole index to update
-		let holeIndex;
+		let holeIndex = startHole;
 		if (
 			originalDetailedScores[startHole] &&
 			originalDetailedScores[startHole].det_sco_completed_this_hole
 		) {
-			// If the current hole is completed, use currentStartHole
-			holeIndex = currentStartHole;
-		} else {
-			// Otherwise, use startHole
-			holeIndex = startHole;
+			// If the current hole (startHole) is completed, check the next hole
+			let nextHoleIndex = startHole + 1;
+			if (
+				originalDetailedScores[nextHoleIndex] &&
+				!originalDetailedScores[nextHoleIndex].det_sco_completed_this_hole
+			) {
+				holeIndex = nextHoleIndex;
+			} else {
+				// If next hole is also completed or doesn't exist, use currentStartHole
+				holeIndex = currentStartHole;
+			}
 		}
 
+		// Access the hole data to update
 		let holeDataToUpdate = originalDetailedScores[holeIndex];
 
 		if (!holeDataToUpdate) {
@@ -441,7 +450,6 @@
 		let fantasyScoreMaleA = calculateFantasyScore(scoresValue.maleA, holeDataToUpdate.det_sco_par);
 		let fantasyScoreMaleB = calculateFantasyScore(scoresValue.maleB, holeDataToUpdate.det_sco_par);
 		// ... calculations for other players ...
-		
 
 		// Update holeDataToUpdate with actual and fantasy scores
 		holeDataToUpdate.det_sco_female_a_scored = scoresValue.femaleA;
