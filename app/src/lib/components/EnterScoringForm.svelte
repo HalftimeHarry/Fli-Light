@@ -391,6 +391,16 @@
 			console.log('we equal');
 		}
 
+		const originalDetailedScores = await getDetailedScores();
+
+		// Select the object to update using startHole as index
+		let holeDataToUpdate = originalDetailedScores[startHole];
+
+		if (!holeDataToUpdate) {
+			console.error('No hole data found to update at index:', startHole);
+			return;
+		}
+
 		console.log(scoresValue);
 		if (typeof scoresValue !== 'object') {
 			console.error('Expected scoresValue to be an object, but got:', scoresValue);
@@ -406,16 +416,6 @@
 		console.log('Male A Score:', proScoredMaleA);
 		console.log('Female B Score:', proScoredFemaleB);
 		console.log('Male B Score:', proScoredMaleB);
-
-		const originalDetailedScores = await getDetailedScores();
-
-		// Select the object to update using startHole as index
-		let holeDataToUpdate = originalDetailedScores[startHole];
-
-		if (!holeDataToUpdate) {
-			console.error('No hole data found to update at index:', startHole);
-			return;
-		}
 
 		// Calculate fantasy scores for each player
 		let fantasyScoreFemaleA = calculateFantasyScore(
