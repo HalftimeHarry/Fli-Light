@@ -110,10 +110,11 @@
 					const team_b = holeData.det_sco_team_b_id;
 					const holeNumber = holeData.det_sco_hole_number;
 					const isActiveHole = holeData.det_sco_on_this_hole;
-					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
 					const isUpcomingHole = holeData.det_sco_this_is_the_upcoming_hole;
 					const isFinalHole = holeData.det_sco_this_is_the_final_hole;
 					const isCompleted = holeData.det_sco_completed_this_hole; // Added completed status
+					console.log(`Hole ${holeNumber} Upcoming ${isUpcomingHole} active: ${isActiveHole}`);
+					console.log(`Hole ${holeNumber} Completed ${isCompleted} active: ${isActiveHole}`);
 
 					return {
 						...holeData,
@@ -337,10 +338,9 @@
 				steps[nextHoleIndex].active = true;
 				steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
 				detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
-
-				console.log('steps 0 based index:', steps);
-				console.log('detailedScores 1 based index:', detailedScores);
-
+				detailedScores[nextHoleIndex + 1].det_sco_this_is_the_upcoming_hole = false;
+				detailedScores[nextHoleIndex + 2].det_sco_this_is_the_upcoming_hole = true;
+				console.log('Scores updated successfully For Hole:', startHole);
 				// Update sessionStorage
 				startHole = nextHoleIndex + 1; // Convert back to 1-based index
 				sessionStorage.setItem('startHole', startHole.toString());
@@ -349,6 +349,8 @@
 					detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
 				}
 
+				console.log('steps 0 based index:', steps);
+				console.log('detailedScores 1 based index:', detailedScores);
 				console.log('Moving to next hole.', startHole);
 			} else {
 				console.log('No next hole available. Current hole is the last one.');
@@ -357,7 +359,6 @@
 
 			// Persist the updated detailed scores
 			await updateDetailedScores(detailedScores);
-			console.log('Scores updated successfully:', startHole);
 		} catch (error) {
 			console.error('Error updating scores:', error);
 		}
@@ -604,7 +605,7 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, team_a, team_b, active, completed, on_hole }, index}
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, team_a, team_b, active, completed, on_hole, upcoming }, index}
 			{#if typeof hole !== 'undefined'}
 				<li class="flex items-center">
 					<span class="flex items-center">
@@ -637,7 +638,7 @@
 		{/each}
 	</ol>
 	{#if steps.length > 0}
-		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole, upcoming }}
 			{#if active}
 				<form on:submit|preventDefault={() => submitScores(startHole)}>
 					<fieldset>
