@@ -367,6 +367,8 @@
 
 			// Persist the updated detailed scores
 			await updateDetailedScores(detailedScores);
+			// Refresh the page
+			window.location.reload();
 		} catch (error) {
 			console.error('Error updating scores:', error);
 		}
