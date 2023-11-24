@@ -309,7 +309,7 @@
 		}
 	}
 
-	async function submitStepUpdate(startHole: number) {
+	async function submitStepUpdate() {
 		// Reset score values when moving to the next hole
 		$femaleA = 0;
 		$maleA = 0;
@@ -317,45 +317,53 @@
 		$maleB = 0;
 
 		try {
-			let currentHoleIndex = startHole - 1; // Convert to 0-based index
-			if (currentHoleIndex < 0 || currentHoleIndex >= steps.length) {
-				throw new Error('Invalid currentHoleIndex: ' + currentHoleIndex);
-			}
-
 			let detailedScores = await getDetailedScores();
 
-			// Update current and next hole states
-			if (currentHoleIndex < steps.length - 1) {
-				let nextHoleIndex = currentHoleIndex + 1;
+			// Convert detailedScores object to an array
+			let detailedScoresArray = Object.entries(detailedScores).map(([key, value]) => ({
+				holeNumber: key,
+				...value
+			}));
 
-				// Update current hole
-				steps[currentHoleIndex].active = false;
-				steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
-				detailedScores[startHole].det_sco_on_this_hole = false;
-				detailedScores[startHole].det_sco_completed_this_hole = true;
+			// Find the current hole based on det_sco_on_this_hole
+			let currentHoleIndex = detailedScoresArray.findIndex((hole) => hole.det_sco_on_this_hole);
 
-				// Update next hole
+			// Check for invalid index
+			if (currentHoleIndex === -1 || currentHoleIndex >= steps.length) {
+				console.error('Current hole not found or index out of range');
+				return;
+			}
+
+			// Update current hole state
+			steps[currentHoleIndex].active = false;
+			steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
+			detailedScores[currentHoleIndex + 1].det_sco_on_this_hole = false; // +1 because detailedScores is 1-based
+			detailedScores[currentHoleIndex + 1].det_sco_completed_this_hole = true;
+
+			// Update next hole state
+			let nextHoleIndex = currentHoleIndex + 1;
+			if (nextHoleIndex < steps.length) {
 				steps[nextHoleIndex].active = true;
 				steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
-				detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
-				detailedScores[nextHoleIndex + 1].det_sco_this_is_the_upcoming_hole = false;
-				detailedScores[nextHoleIndex + 2].det_sco_this_is_the_upcoming_hole = true;
-				console.log('Scores updated successfully For Hole:', startHole);
-				// Update sessionStorage
-				startHole = nextHoleIndex + 1; // Convert back to 1-based index
-				sessionStorage.setItem('startHole', startHole.toString());
-
-				if (nextHoleIndex === steps.length - 1) {
-					detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
+				if (detailedScores[nextHoleIndex + 1]) {
+					detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
+					detailedScores[nextHoleIndex + 1].det_sco_this_is_the_upcoming_hole = false;
+					if (detailedScores[nextHoleIndex + 2]) {
+						detailedScores[nextHoleIndex + 2].det_sco_this_is_the_upcoming_hole = true;
+					}
 				}
-
-				console.log('steps 0 based index:', steps);
-				console.log('detailedScores 1 based index:', detailedScores);
-				console.log('Moving to next hole.', startHole);
-			} else {
-				console.log('No next hole available. Current hole is the last one.');
-				detailedScores[startHole].det_sco_this_is_the_final_hole = true;
+				console.log('Scores updated successfully For Hole:', currentHoleIndex + 1);
+				// Update sessionStorage
+				sessionStorage.setItem('startHole', (nextHoleIndex + 1).toString());
 			}
+
+			if (nextHoleIndex === steps.length - 1) {
+				detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
+			}
+
+			console.log('steps 0 based index:', steps);
+			console.log('detailedScores 1 based index:', detailedScores);
+			console.log('Moving to next hole:', nextHoleIndex + 1);
 
 			// Persist the updated detailed scores
 			await updateDetailedScores(detailedScores);
