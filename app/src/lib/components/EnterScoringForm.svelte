@@ -648,8 +648,8 @@
 		{/each}
 	</ol>
 	{#if steps.length > 0}
-		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole, upcoming }}
-			{#if active}
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole, upcoming, final }}
+			{#if active | final}
 				<form on:submit|preventDefault={() => submitScores(startHole)}>
 					<fieldset>
 						<div class="mt-6 flex justify-center">{group}</div>
