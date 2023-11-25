@@ -585,46 +585,26 @@
 			let fantasyScoreTeamAOverall = 0;
 			let fantasyScoreTeamBOverall = 0;
 
-			// Convert detailedScores object to an array
-			let detailedScoresArray = Object.entries(detailedScores).map(([key, value]) => ({
-				holeNumber: key,
-				...value
-			}));
-
 			// Calculate the overall fantasy scores for each team
-			detailedScoresArray.forEach((holeData) => {
+			Object.values(detailedScores).forEach((holeData) => {
 				fantasyScoreTeamAOverall += holeData.det_sco_team_a_fantasy_result_for_this_hole || 0;
 				fantasyScoreTeamBOverall += holeData.det_sco_team_b_fantasy_result_for_this_hole || 0;
 			});
 
-			// Find the final hole based on det_sco_this_is_the_final_hole
-			let finalHoleIndex = detailedScoresArray.findIndex(
-				(hole) => hole.det_sco_this_is_the_final_hole
-			);
+			// Find the final hole and update its overall fantasy scores
+			Object.keys(detailedScores).forEach((holeNumber) => {
+				if (detailedScores[holeNumber].det_sco_this_is_the_final_hole) {
+					detailedScores[holeNumber].det_sco_team_a_fantasy_result_overall =
+						fantasyScoreTeamAOverall;
+					detailedScores[holeNumber].det_sco_team_b_fantasy_result_overall =
+						fantasyScoreTeamBOverall;
+				}
+			});
 
-			if (finalHoleIndex === -1) {
-				console.error('Final hole not found');
-				return;
-			}
-
-			// Assign the overall fantasy scores to the final hole
-			detailedScoresArray[finalHoleIndex].det_sco_team_a_fantasy_result_overall =
-				fantasyScoreTeamAOverall;
-			detailedScoresArray[finalHoleIndex].det_sco_team_b_fantasy_result_overall =
-				fantasyScoreTeamBOverall;
-
-			// Update the state of the final hole
-			detailedScoresArray[finalHoleIndex].det_sco_completed_this_hole = true;
-			detailedScoresArray[finalHoleIndex].det_sco_on_this_hole = false;
-			detailedScoresArray[finalHoleIndex].det_sco_this_is_the_upcoming_hole = false;
-
-			console.log(
-				'Final scores and overall fantasy results aggregated for Hole:',
-				finalHoleIndex + 1
-			);
+			console.log('Final scores and overall fantasy results aggregated for final hole.');
 
 			// Persist the updated detailed scores
-			await updateDetailedScores(detailedScoresArray);
+			await updateDetailedScores(detailedScores);
 
 			// Optional: Navigate to a summary or results page
 			// window.location.href = '/summary-page';
