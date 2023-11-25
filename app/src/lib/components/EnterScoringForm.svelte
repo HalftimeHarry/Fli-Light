@@ -12,8 +12,11 @@
 	let scoresId = null;
 	let user = null;
 	let isScoresInitializationButtonVisible = true;
+	let isFinalHoleVisible = false;
 	let steps = [];
 	let startHole = 1;
+	let isTheFinalHole;
+	let currentHoleIndex;
 	let pros = [];
 	let teams = [];
 	let scoresValue = {
@@ -23,6 +26,9 @@
 		maleB: 0
 	};
 
+	$: isFinalHoleVisible =
+		isTheFinalHole && detailedScoresArray[currentHoleIndex]?.det_sco_on_this_hole;
+	console.log(isFinalHoleVisible);
 	$: scoresValue = {
 		femaleA: $femaleA,
 		femaleB: $femaleB,
@@ -306,6 +312,23 @@
 			}
 		} catch (error) {
 			console.error('Error in loadNextHole:', error);
+		}
+	}
+
+	async function checkIfFinalHole() {
+		try {
+			let detailedScores = await getDetailedScores();
+			let detailedScoresArray = Object.entries(detailedScores).map(([key, value]) => ({
+				holeNumber: key,
+				...value
+			}));
+			let currentHoleIndex = detailedScoresArray.findIndex((hole) => hole.det_sco_on_this_hole);
+
+			if (currentHoleIndex !== -1 && currentHoleIndex < detailedScoresArray.length) {
+				isFinalHoleVisible = detailedScoresArray[currentHoleIndex]?.det_sco_this_is_the_final_hole;
+			}
+		} catch (error) {
+			console.error('Error checking final hole:', error);
 		}
 	}
 
@@ -611,6 +634,7 @@
 	}
 
 	onMount(async () => {
+		checkIfFinalHole();
 		try {
 			// Fetch user and other data
 			const user = await getCurrentUser();
@@ -705,7 +729,7 @@
 	</ol>
 	{#if steps.length > 0}
 		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole, upcoming, final }}
-			{#if active | final}
+			{#if active}
 				<form on:submit|preventDefault={() => submitScores(startHole)}>
 					<fieldset>
 						<div class="mt-6 flex justify-center">{group}</div>
@@ -843,8 +867,8 @@
 			Initialize Scores
 		</button>
 	{/if}
-	<!-- Button to initialize scores -->
-	{#if !isScoresInitializationButtonVisible}
+	<!-- Button to submit scores -->
+	{#if !isScoresInitializationButtonVisible && !isFinalHoleVisible}
 		<button
 			on:click|preventDefault={() => submitStepUpdate(startHole)}
 			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -852,8 +876,9 @@
 			Submit Scores
 		</button>
 	{/if}
-		<!-- Button to finalize scores -->
-	{#if !isScoresInitializationButtonVisible}
+
+	<!-- Button to finalize and aggregate scores -->
+	{#if isFinalHoleVisible}
 		<button
 			class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
 			on:click={finalHoleAggregate}
