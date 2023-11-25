@@ -12,8 +12,11 @@
 	let scoresId = null;
 	let user = null;
 	let isScoresInitializationButtonVisible = true;
+	let isFinalHoleVisible = false;
 	let steps = [];
 	let startHole = 1;
+	let isTheFinalHole;
+	let currentHoleIndex;
 	let pros = [];
 	let teams = [];
 	let scoresValue = {
@@ -23,6 +26,9 @@
 		maleB: 0
 	};
 
+	$: isFinalHoleVisible =
+		isTheFinalHole && detailedScoresArray[currentHoleIndex]?.det_sco_on_this_hole;
+	console.log(isFinalHoleVisible);
 	$: scoresValue = {
 		femaleA: $femaleA,
 		femaleB: $femaleB,
@@ -110,10 +116,11 @@
 					const team_b = holeData.det_sco_team_b_id;
 					const holeNumber = holeData.det_sco_hole_number;
 					const isActiveHole = holeData.det_sco_on_this_hole;
-					console.log(`Hole ${holeNumber} active: ${isActiveHole}`);
 					const isUpcomingHole = holeData.det_sco_this_is_the_upcoming_hole;
 					const isFinalHole = holeData.det_sco_this_is_the_final_hole;
 					const isCompleted = holeData.det_sco_completed_this_hole; // Added completed status
+					console.log(`Hole ${holeNumber} Upcoming ${isUpcomingHole} active: ${isActiveHole}`);
+					console.log(`Hole ${holeNumber} Completed ${isCompleted} active: ${isActiveHole}`);
 
 					return {
 						...holeData,
@@ -308,7 +315,24 @@
 		}
 	}
 
-	async function submitStepUpdate(startHole: number) {
+	async function checkIfFinalHole() {
+		try {
+			let detailedScores = await getDetailedScores();
+			let detailedScoresArray = Object.entries(detailedScores).map(([key, value]) => ({
+				holeNumber: key,
+				...value
+			}));
+			let currentHoleIndex = detailedScoresArray.findIndex((hole) => hole.det_sco_on_this_hole);
+
+			if (currentHoleIndex !== -1 && currentHoleIndex < detailedScoresArray.length) {
+				isFinalHoleVisible = detailedScoresArray[currentHoleIndex]?.det_sco_this_is_the_final_hole;
+			}
+		} catch (error) {
+			console.error('Error checking final hole:', error);
+		}
+	}
+
+	async function submitStepUpdate() {
 		// Reset score values when moving to the next hole
 		$femaleA = 0;
 		$maleA = 0;
@@ -316,45 +340,58 @@
 		$maleB = 0;
 
 		try {
-			let currentHoleIndex = startHole - 1; // Convert to 0-based index
-			if (currentHoleIndex < 0 || currentHoleIndex >= steps.length) {
-				throw new Error('Invalid currentHoleIndex: ' + currentHoleIndex);
-			}
-
 			let detailedScores = await getDetailedScores();
 
-			// Update current and next hole states
-			if (currentHoleIndex < steps.length - 1) {
-				let nextHoleIndex = currentHoleIndex + 1;
+			// Convert detailedScores object to an array
+			let detailedScoresArray = Object.entries(detailedScores).map(([key, value]) => ({
+				holeNumber: key,
+				...value
+			}));
 
-				// Update current hole
-				steps[currentHoleIndex].active = false;
-				steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
-				detailedScores[startHole].det_sco_on_this_hole = false;
-				detailedScores[startHole].det_sco_completed_this_hole = true;
+			// Find the current hole based on det_sco_on_this_hole
+			let currentHoleIndex = detailedScoresArray.findIndex((hole) => hole.det_sco_on_this_hole);
 
-				// Update next hole
+			// Check for invalid index
+			if (currentHoleIndex === -1 || currentHoleIndex >= steps.length) {
+				console.error('Current hole not found or index out of range');
+				return;
+			}
+
+			// Update current hole state
+			steps[currentHoleIndex].active = false;
+			steps[currentHoleIndex].det_sco_this_is_the_upcoming_hole = false;
+			detailedScores[currentHoleIndex + 1].det_sco_on_this_hole = false; // +1 because detailedScores is 1-based
+			detailedScores[currentHoleIndex + 1].det_sco_completed_this_hole = true;
+
+			// Update next hole state
+			let nextHoleIndex = currentHoleIndex + 1;
+			if (nextHoleIndex < steps.length) {
 				steps[nextHoleIndex].active = true;
 				steps[nextHoleIndex].det_sco_this_is_the_upcoming_hole = true;
-				detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
-
-				// Update sessionStorage
-				startHole = nextHoleIndex + 1; // Convert back to 1-based index
-				sessionStorage.setItem('startHole', startHole.toString());
-
-				if (nextHoleIndex === steps.length - 1) {
-					detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
+				if (detailedScores[nextHoleIndex + 1]) {
+					detailedScores[nextHoleIndex + 1].det_sco_on_this_hole = true;
+					detailedScores[nextHoleIndex + 1].det_sco_this_is_the_upcoming_hole = false;
+					if (detailedScores[nextHoleIndex + 2]) {
+						detailedScores[nextHoleIndex + 2].det_sco_this_is_the_upcoming_hole = true;
+					}
 				}
-
-				console.log('Moving to next hole.', startHole);
-			} else {
-				console.log('No next hole available. Current hole is the last one.');
-				detailedScores[startHole].det_sco_this_is_the_final_hole = true;
+				console.log('Scores updated successfully For Hole:', currentHoleIndex + 1);
+				// Update sessionStorage
+				sessionStorage.setItem('startHole', (nextHoleIndex + 1).toString());
 			}
+
+			if (nextHoleIndex === steps.length - 1) {
+				detailedScores[nextHoleIndex + 1].det_sco_this_is_the_final_hole = true;
+			}
+
+			console.log('steps 0 based index:', steps);
+			console.log('detailedScores 1 based index:', detailedScores);
+			console.log('Moving to next hole:', nextHoleIndex + 1);
 
 			// Persist the updated detailed scores
 			await updateDetailedScores(detailedScores);
-			console.log('Scores updated successfully:', startHole);
+			// Refresh the page
+			window.location.reload();
 		} catch (error) {
 			console.error('Error updating scores:', error);
 		}
@@ -377,18 +414,49 @@
 
 	// Placeholder for submitting scores
 	async function submitScores(startHole: number, $scores: object) {
-		// Check that startHole is a number
+		// Validate input
 		if (typeof startHole !== 'number') {
 			console.error('Expected startHole to be a number, but got:', startHole);
 			return;
 		}
 
+		// Get currentStartHole from sessionStorage
 		const currentStartHole = parseInt(sessionStorage.getItem('startHole'), 10);
-		console.log('currentStartHole is a number with value:', currentStartHole);
-		console.log('startHole is a number with value:', startHole);
 
-		if (currentStartHole - 1 === startHole) {
-			console.log('we equal');
+		// Fetch detailed scores
+		const originalDetailedScores = await getDetailedScores();
+
+		// Determine the hole index to update
+		let holeIndex = startHole;
+		if (
+			originalDetailedScores[startHole] &&
+			originalDetailedScores[startHole].det_sco_completed_this_hole
+		) {
+			// If the current hole (startHole) is completed, check the next hole
+			let nextHoleIndex = startHole + 1;
+			if (
+				originalDetailedScores[nextHoleIndex] &&
+				!originalDetailedScores[nextHoleIndex].det_sco_completed_this_hole
+			) {
+				holeIndex = nextHoleIndex;
+			} else {
+				// If next hole is also completed or doesn't exist, use currentStartHole
+				holeIndex = currentStartHole;
+			}
+		}
+
+		// Access the hole data to update
+		let holeDataToUpdate = originalDetailedScores[holeIndex];
+
+		if (!holeDataToUpdate) {
+			console.error('No hole data found to update at index:', holeIndex);
+			return;
+		}
+
+		// Check if the hole has already been scored
+		if (holeDataToUpdate.det_sco_completed_this_hole) {
+			console.log('Scoring for this hole already completed. Moving to hole:', currentStartHole);
+			return currentStartHole; // Return currentStartHole for the next steps
 		}
 
 		console.log(scoresValue);
@@ -406,16 +474,6 @@
 		console.log('Male A Score:', proScoredMaleA);
 		console.log('Female B Score:', proScoredFemaleB);
 		console.log('Male B Score:', proScoredMaleB);
-
-		const originalDetailedScores = await getDetailedScores();
-
-		// Select the object to update using startHole as index
-		let holeDataToUpdate = originalDetailedScores[startHole];
-
-		if (!holeDataToUpdate) {
-			console.error('No hole data found to update at index:', startHole);
-			return;
-		}
 
 		// Calculate fantasy scores for each player
 		let fantasyScoreFemaleA = calculateFantasyScore(
@@ -452,11 +510,6 @@
 			fantasyScoreFemaleB + fantasyScoreMaleB;
 
 		// ... rest of your existing code for updating the scores in the database ...
-		// Inside submitScores function
-		if (holeDataToUpdate.det_sco_completed_this_hole) {
-			console.error('Scoring for this hole is already completed.');
-			return; // Prevent further execution
-		}
 
 		// Check if this is the final hole and handle overall aggregation if necessary
 		if (holeDataToUpdate.det_sco_this_is_the_final_hole) {
@@ -524,7 +577,44 @@
 			.eq('score_id', scoresId);
 	}
 
+	async function finalHoleAggregate() {
+		try {
+			let detailedScores = await getDetailedScores();
+
+			// Initialize fantasy score accumulators
+			let fantasyScoreTeamAOverall = 0;
+			let fantasyScoreTeamBOverall = 0;
+
+			// Calculate the overall fantasy scores for each team
+			Object.values(detailedScores).forEach((holeData) => {
+				fantasyScoreTeamAOverall += holeData.det_sco_team_a_fantasy_result_for_this_hole || 0;
+				fantasyScoreTeamBOverall += holeData.det_sco_team_b_fantasy_result_for_this_hole || 0;
+			});
+
+			// Find the final hole and update its overall fantasy scores
+			Object.keys(detailedScores).forEach((holeNumber) => {
+				if (detailedScores[holeNumber].det_sco_this_is_the_final_hole) {
+					detailedScores[holeNumber].det_sco_team_a_fantasy_result_overall =
+						fantasyScoreTeamAOverall;
+					detailedScores[holeNumber].det_sco_team_b_fantasy_result_overall =
+						fantasyScoreTeamBOverall;
+				}
+			});
+
+			console.log('Final scores and overall fantasy results aggregated for final hole.');
+
+			// Persist the updated detailed scores
+			await updateDetailedScores(detailedScores);
+
+			// Optional: Navigate to a summary or results page
+			// window.location.href = '/summary-page';
+		} catch (error) {
+			console.error('Error in final hole aggregation:', error);
+		}
+	}
+
 	onMount(async () => {
+		checkIfFinalHole();
 		try {
 			// Fetch user and other data
 			const user = await getCurrentUser();
@@ -585,7 +675,7 @@
 	<ol
 		class="flex flex-wrap gap-4 justify-center text-sm font-medium text-gray-500 dark:text-gray-400"
 	>
-		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, team_a, team_b, active, completed, on_hole }, index}
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, team_a, team_b, active, completed, on_hole, upcoming }, index}
 			{#if typeof hole !== 'undefined'}
 				<li class="flex items-center">
 					<span class="flex items-center">
@@ -618,7 +708,7 @@
 		{/each}
 	</ol>
 	{#if steps.length > 0}
-		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole }}
+		{#each steps as { step_id, hole, group, par, distance, female_a, male_a, female_b, male_b, team_a, team_b, active, on_hole, upcoming, final }}
 			{#if active}
 				<form on:submit|preventDefault={() => submitScores(startHole)}>
 					<fieldset>
@@ -757,13 +847,23 @@
 			Initialize Scores
 		</button>
 	{/if}
-	<!-- Button to initialize scores -->
-	{#if !isScoresInitializationButtonVisible}
+	<!-- Button to submit scores -->
+	{#if !isScoresInitializationButtonVisible && !isFinalHoleVisible}
 		<button
 			on:click|preventDefault={() => submitStepUpdate(startHole)}
 			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 		>
 			Submit Scores
+		</button>
+	{/if}
+
+	<!-- Button to finalize and aggregate scores -->
+	{#if isFinalHoleVisible}
+		<button
+			class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+			on:click={finalHoleAggregate}
+		>
+			Final Score Submit
 		</button>
 	{/if}
 </main>

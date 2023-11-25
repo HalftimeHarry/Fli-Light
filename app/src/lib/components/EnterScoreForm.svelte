@@ -3,9 +3,9 @@
 	import { onMount } from 'svelte';
 
 	let loading = true;
-	let holes; // Define holes in a broader scope
+	let holes;
 	let score = { score_id: 0 /* ... other default values ... */ };
-	let group; // Define group in a broader scope
+	let group;
 	let female_pro_a_id;
 	let male_pro_a_id;
 	let female_pro_b_id;
@@ -15,7 +15,7 @@
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
-		const scorerUuid = 'aa6e4346-c20c-42cb-97b7-6770c563c4ff'; // Update this with the desired UUID
+		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
 		const { data: scores, error: scoresError } = await supabase
 			.from('scores')
 			.select('*')
@@ -243,19 +243,11 @@
 		team_b_id,
 		team_a_id
 	) {
-		console.log('buildDetailedScores started with holes:', holes);
-		console.log('buildDetailedScores started with score:', score);
-		console.log('buildDetailedScores started with group:', group);
-		console.log('buildDetailedScores started with group:', female_pro_a_id);
-		console.log('buildDetailedScores started with group:', male_pro_a_id);
-		console.log('buildDetailedScores started with group:', female_pro_b_id);
-		console.log('buildDetailedScores started with group:', male_pro_b_id);
-		console.log('buildDetailedScores started with group:', team_b_id);
-		console.log('buildDetailedScores started with group:', team_a_id);
+		console.log('Processing holes:', holes);
 
 		const detailedScores = {};
 		holes.forEach((hole) => {
-			detailedScores[hole.hole_id] = {
+			detailedScores[hole.hole_number] = {
 				det_sco_par: hole.par,
 				det_sco_distance: hole.distance,
 				det_sco_hole_number: hole.hole_number,
