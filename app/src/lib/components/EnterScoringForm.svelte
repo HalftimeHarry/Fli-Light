@@ -581,23 +581,41 @@
 		try {
 			let detailedScores = await getDetailedScores();
 
-			// Initialize fantasy score accumulators
+			// Initialize fantasy score accumulators for teams and individuals
 			let fantasyScoreTeamAOverall = 0;
 			let fantasyScoreTeamBOverall = 0;
+			let fantasyScoreMaleAOverall = 0;
+			let fantasyScoreMaleBOverall = 0;
+			let fantasyScoreFemaleAOverall = 0;
+			let fantasyScoreFemaleBOverall = 0;
 
-			// Calculate the overall fantasy scores for each team
+			// Calculate the overall fantasy scores for each team and individual
 			Object.values(detailedScores).forEach((holeData) => {
 				fantasyScoreTeamAOverall += holeData.det_sco_team_a_fantasy_result_for_this_hole || 0;
 				fantasyScoreTeamBOverall += holeData.det_sco_team_b_fantasy_result_for_this_hole || 0;
+				fantasyScoreMaleAOverall += holeData.det_sco_male_a_fantasy_result_for_this_hole || 0;
+				fantasyScoreMaleBOverall += holeData.det_sco_male_b_fantasy_result_for_this_hole || 0;
+				fantasyScoreFemaleAOverall += holeData.det_sco_female_a_fantasy_result_for_this_hole || 0;
+				fantasyScoreFemaleBOverall += holeData.det_sco_female_b_fantasy_result_for_this_hole || 0;
 			});
 
-			// Find the final hole and update its overall fantasy scores
+			// Find the final hole and update its overall fantasy scores for teams and individuals
 			Object.keys(detailedScores).forEach((holeNumber) => {
 				if (detailedScores[holeNumber].det_sco_this_is_the_final_hole) {
 					detailedScores[holeNumber].det_sco_team_a_fantasy_result_overall =
 						fantasyScoreTeamAOverall;
 					detailedScores[holeNumber].det_sco_team_b_fantasy_result_overall =
 						fantasyScoreTeamBOverall;
+					detailedScores[holeNumber].det_sco_male_a_fantasy_result_overall =
+						fantasyScoreMaleAOverall;
+					detailedScores[holeNumber].det_sco_male_b_fantasy_result_overall =
+						fantasyScoreMaleBOverall;
+					detailedScores[holeNumber].det_sco_female_a_fantasy_result_overall =
+						fantasyScoreFemaleAOverall;
+					detailedScores[holeNumber].det_sco_female_b_fantasy_result_overall =
+						fantasyScoreFemaleBOverall;
+					detailedScores[holeNumber].det_sco_on_this_hole = false;
+					detailedScores[holeNumber].det_sco_completed_this_hole = true;
 				}
 			});
 

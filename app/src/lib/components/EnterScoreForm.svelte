@@ -15,7 +15,7 @@
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
-		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
+		const scorerUuid = '88f29175-19c4-4120-8945-5ef0cb0267fb'; // Update this with the desired UUID
 		const { data: scores, error: scoresError } = await supabase
 			.from('scores')
 			.select('*')
@@ -265,18 +265,18 @@
 				det_sco_female_b_scored: 0,
 				det_sco_male_b_scored: 0,
 				det_sco_hole_start: score.score_hole_start,
-				det_sco_male_a_fantacy_result_for_this_hole: 0,
-				det_sco_female_a_fantacy_result_for_this_hole: 0,
-				det_sco_male_b_fantacy_result_for_this_hole: 0,
-				det_sco_female_b_fantacy_result_for_this_hole: 0,
-				det_sco_team_a_fantacy_result_for_this_hole: 0,
-				det_sco_team_b_fantacy_result_for_this_hole: 0,
-				det_sco_male_a_fantacy_result_overall: 0,
-				det_sco_female_a_fantacy_result_overall: 0,
-				det_sco_male_b_fantacy_result_overall: 0,
-				det_sco_female_b_fantacy_result_overall: 0,
-				det_sco_team_a_fantacy_result_overall: 0,
-				det_sco_team_b_fantacy_result_overall: 0,
+				det_sco_male_a_fantasy_result_for_this_hole: 0,
+				det_sco_female_a_fantasy_result_for_this_hole: 0,
+				det_sco_male_b_fantasy_result_for_this_hole: 0,
+				det_sco_female_b_fantasy_result_for_this_hole: 0,
+				det_sco_team_a_fantasy_result_for_this_hole: 0,
+				det_sco_team_b_fantasy_result_for_this_hole: 0,
+				det_sco_male_a_fantasy_result_overall: 0,
+				det_sco_female_a_fantasy_result_overall: 0,
+				det_sco_male_b_fantasy_result_overall: 0,
+				det_sco_female_b_fantasy_result_overall: 0,
+				det_sco_team_a_fantasy_result_overall: 0,
+				det_sco_team_b_fantasy_result_overall: 0,
 				det_sco_completed_this_hole: false,
 				det_sco_on_this_hole: false,
 				det_sco_was_last_hole_updated: false,
