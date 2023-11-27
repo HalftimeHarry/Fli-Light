@@ -614,6 +614,8 @@
 						fantasyScoreFemaleAOverall;
 					detailedScores[holeNumber].det_sco_female_b_fantasy_result_overall =
 						fantasyScoreFemaleBOverall;
+					detailedScores[holeNumber].det_sco_on_this_hole = false;
+					detailedScores[holeNumber].det_sco_completed_this_hole = true;
 				}
 			});
 

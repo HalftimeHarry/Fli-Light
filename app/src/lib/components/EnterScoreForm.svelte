@@ -15,7 +15,7 @@
 
 	async function fetchData() {
 		// Step 1: Fetch the scores
-		const scorerUuid = 'ad74df33-97c6-4ce3-800c-8050eaf79d8f'; // Update this with the desired UUID
+		const scorerUuid = '88f29175-19c4-4120-8945-5ef0cb0267fb'; // Update this with the desired UUID
 		const { data: scores, error: scoresError } = await supabase
 			.from('scores')
 			.select('*')
