@@ -8,11 +8,13 @@
 	import { getCurrentUser } from '$lib/utilities/getUser.js';
 	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams';
 	import { calculateFantasyScore } from '$lib/utilities/calculateFantasyScore.js';
+	import ScoreSummary from '$lib/components/ScoreSummary.svelte';
 
 	let scoresId = null;
 	let user = null;
 	let isScoresInitializationButtonVisible = true;
 	let isFinalHoleVisible = false;
+	let isSummaryVisible = false;
 	let steps = [];
 	let startHole = 1;
 	let isTheFinalHole;
@@ -188,13 +190,33 @@
 		}
 	}
 
-	// Example usage of getDetailedScores
+	function checkIfAllHolesComplete(detailedScores) {
+		// Assume all holes are complete and not active initially
+		let allHolesComplete = true;
+
+		for (const holeId in detailedScores) {
+			const hole = detailedScores[holeId];
+			if (!hole.det_sco_completed_this_hole || hole.det_sco_on_this_hole) {
+				// If any hole is not completed or is currently active, set flag to false
+				allHolesComplete = false;
+				break;
+			}
+		}
+
+		if (allHolesComplete) {
+			console.log('do the summary');
+			// Additional actions for when all holes are complete and not active
+		} else {
+			console.log('Tournament still in progress');
+			// Actions if the tournament is still ongoing
+		}
+	}
+
+	// Example usage
 	(async () => {
 		const detailedScores = await getDetailedScores();
 		if (detailedScores) {
-			// Here you can handle the detailed scores as needed
-			console.log('Retrieved detailed scores:', detailedScores);
-			// If you need to update the scores with new data, call your update function here
+			checkIfAllHolesComplete(detailedScores);
 		}
 	})();
 
@@ -884,6 +906,7 @@
 			Final Score Submit
 		</button>
 	{/if}
+	 <ScoreSummary {detailedScores} {isSummaryVisible}/>
 </main>
 
 <style>
