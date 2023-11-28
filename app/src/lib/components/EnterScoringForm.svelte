@@ -8,7 +8,10 @@
 	import { getCurrentUser } from '$lib/utilities/getUser.js';
 	import { loadProsAndTeams } from '$lib/utilities/loadProsAndTeams';
 	import { calculateFantasyScore } from '$lib/utilities/calculateFantasyScore.js';
+	import ScoreSummary from '$lib/components/ScoreSummary.svelte';
 
+	let lastHoleData;
+	let isSummaryVisible = false;
 	let scoresId = null;
 	let user = null;
 	let isScoresInitializationButtonVisible = true;
@@ -192,9 +195,11 @@
 	(async () => {
 		const detailedScores = await getDetailedScores();
 		if (detailedScores) {
-			// Here you can handle the detailed scores as needed
-			console.log('Retrieved detailed scores:', detailedScores);
-			// If you need to update the scores with new data, call your update function here
+			const lastHoleNumber = Math.max(...Object.keys(detailedScores).map(Number));
+			lastHoleData = detailedScores[lastHoleNumber];
+
+			// Show summary if the last hole is completed
+			isSummaryVisible = lastHoleData.det_sco_completed_this_hole;
 		}
 	})();
 
@@ -856,33 +861,39 @@
 			{/if}
 		{/each}
 	{/if}
-	<!-- Button to initialize scores -->
-	{#if isScoresInitializationButtonVisible}
-		<button
-			on:click={handleInitializeScores}
-			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-		>
-			Initialize Scores
-		</button>
-	{/if}
-	<!-- Button to submit scores -->
-	{#if !isScoresInitializationButtonVisible && !isFinalHoleVisible}
-		<button
-			on:click|preventDefault={() => submitStepUpdate(startHole)}
-			class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-		>
-			Submit Scores
-		</button>
-	{/if}
 
-	<!-- Button to finalize and aggregate scores -->
-	{#if isFinalHoleVisible}
-		<button
-			class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-			on:click={finalHoleAggregate}
-		>
-			Final Score Submit
-		</button>
+	{#if isSummaryVisible}
+		<ScoreSummary {lastHoleData} />
+	{:else}
+		<!-- Your regular scoring and game interface -->
+		<!-- Button to initialize scores -->
+		{#if isScoresInitializationButtonVisible}
+			<button
+				on:click={handleInitializeScores}
+				class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+			>
+				Initialize Scores
+			</button>
+		{/if}
+		<!-- Button to submit scores -->
+		{#if !isScoresInitializationButtonVisible && !isFinalHoleVisible}
+			<button
+				on:click|preventDefault={() => submitStepUpdate(startHole)}
+				class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+			>
+				Submit Scores
+			</button>
+		{/if}
+
+		<!-- Button to finalize and aggregate scores -->
+		{#if isFinalHoleVisible}
+			<button
+				class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+				on:click={finalHoleAggregate}
+			>
+				Final Score Submit
+			</button>
+		{/if}
 	{/if}
 </main>
 
