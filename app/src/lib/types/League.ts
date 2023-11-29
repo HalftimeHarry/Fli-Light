@@ -5,7 +5,7 @@ export interface League {
     league_id: number;
     league_name: string;
     created_by: string | null; // UUID
-    status: StatusEnum | null;
+    league_status: StatusEnum | null;
     entry_fee: number | null;
     draft_status: DraftStatusEnum | null;
     fantasy_teams_json: JSON | null;

@@ -5,21 +5,9 @@
 	import { supabase } from '../../supabaseClient';
 
 	let league: League = {
-		league_id: 0,
 		league_name: '',
-		created_by: null, // You'll need to assign the user's UUID here
-		status: null,
-		entry_fee: 300,
-		draft_status: null,
-		fantasy_teams_json: null,
-		current_round: 1,
-		total_rounds: 12,
-		fantasy_scores_json: null,
-		results_json: null,
-		prizes_json: null,
-		created_at: null,
-		updated_at: null,
-		rules_json: null
+		created_by: null // Assign the user's UUID here
+		// Other fields will use default values set in the database
 	};
 
 	// Example initialization within your Svelte component script
@@ -29,40 +17,50 @@
 		fantasy_tournament_name: '', // Default empty string, to be updated by user input or API response
 		start_date: null, // No default date, to be set later
 		end_date: null, // No default date, to be set later
-		status: null, // Status to be set based on the tournament state
+		fantasy_status: null, // Status to be set based on the tournament state
 		fantasy_tournament_details_json: null, // Placeholder for detailed JSON data
 		created_at: null, // Timestamps typically set by the backend
 		updated_at: null // Timestamps typically set by the backend
 	};
 
 	const handleSubmit = async () => {
-		let { data: leagueResult, error } = await supabase.rpc('create_and_seed_league', {
-			created_by_arg: league.created_by,
-			default_fantasy_teams_json: league.fantasy_teams_json,
-			entry_fee_arg: league.entry_fee,
-			league_name_arg: league.league_name,
-			status_arg: league.status,
-			total_rounds_arg: league.total_rounds
-		});
+		// Example: use league.league_name in your API call or logic
+    	console.log('League name:', league.league_name);
+		// Retrieve the logged-in user's details
+		const { data: userData } = await supabase.auth.getUser();
+		const user = userData.user;
+		if (!user) {
+			console.error('User not logged in');
+			return;
+		}
+
+		// Use the user's UUID
+		const userUUID = user.id;
+		console.log(userUUID);
+
+		const { data, error } = await supabase
+			.from('league')
+			.insert([{ league_name: 'league.league_name', created_by: userUUID }])
+			.select();
 
 		if (error) {
 			console.error('Error creating league:', error);
 			return;
 		}
 
-		console.log('League created:', leagueResult);
-
-		// Additional logic for creating fantasy tournaments
-		// ...
-		// Assuming you have a function to fetch or initialize data
-		async function initFantasyTournament() {
-			let { data, error } = await supabase.rpc('create_fantasy_tournaments', {
-				league_id_arg,
-				league_name_arg,
-				tournaments_count
+		// Now call create_fantasy_tournaments function with the necessary arguments
+		if (data) {
+			let { error: tournamentError } = await supabase.rpc('create_fantasy_tournaments', {
+				league_id_arg: data, // Assuming leagueResult is the new league ID
+				league_name_arg: league.league_name,
+				tournaments_count: 12 // Or however many tournaments you want to create
 			});
-			if (error) console.error(error);
-			else console.log(data);
+
+			if (tournamentError) {
+				console.error('Error creating fantasy tournaments:', tournamentError);
+			} else {
+				console.log('Fantasy tournaments created for league:', leagueResult);
+			}
 		}
 	};
 </script>
@@ -71,12 +69,12 @@
 	<div>
 		<label for="leagueName" class="block text-sm font-medium text-white">League Name:</label>
 		<input
-			type="text"
-			id="leagueName"
-			bind:value={league.league_name}
-			placeholder="Example Name"
-			class="mt-1 block w-full px-3 py-2 bg-white border text-black border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-		/>
+    type="text"
+    id="leagueName"
+    bind:value={league.league_name}
+    placeholder="Example Name"
+    class="..."
+/>
 	</div>
 
 	<button

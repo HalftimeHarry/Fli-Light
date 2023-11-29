@@ -61,14 +61,6 @@
 			</button>
 			<button
 				class="flex items-center bg-green-500 hover:bg-green-700 text-black font-extrabold py-1 px-2 rounded focus:outline-none focus:shadow-outline mb-2 w-full sm:w-auto"
-				on:click={() => navigateTo('fantasy')}
-			>
-				<Icon icon="carbon:information" class="mr-2" />
-				<span>Add Leauge</span>
-			</button>
-
-			<button
-				class="flex items-center bg-green-500 hover:bg-green-700 text-black font-extrabold py-1 px-2 rounded focus:outline-none focus:shadow-outline mb-2 w-full sm:w-auto"
 				on:click={toggleVegasPopUp}
 			>
 				<Icon icon="fa-brands:fantasy-flight-games" class="mr-2" />
