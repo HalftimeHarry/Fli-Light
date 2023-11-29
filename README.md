@@ -128,3 +128,262 @@ Once all the scores are verified, you can mark the scores as final.
 
 Very important to HARDCODE only the uuid in the EnterScoreForm.svelte simply do this 6 times run a differant uuid but it needs to be
 assigned or referenced to the row in the scores table. This system if done correctly we shlould end up with a result and historical data with only 1 row per group on average 6 groups per round.
+
+## Fantasay Notes
+
+fantasy_scores_json
+
+{
+"tournament_1": {
+"round_1": {
+"fantasy_team_1": {
+"score": 45,
+"details": {
+"player_1": 15,
+"player_2": 12,
+"player_3": 10,
+"player_4": 8
+}
+},
+"fantasy_team_2": {
+"score": 50,
+"details": {
+"player_1": 18,
+"player_2": 15,
+"player_3": 10,
+"player_4": 7
+}
+},
+"fantasy_team_3": {
+"score": 55,
+"details": {
+"player_1": 20,
+"player_2": 15,
+"player_3": 12,
+"player_4": 8
+}
+}
+}
+}
+}
+
+results_json
+
+{
+"round_results": {
+"round_1": {
+"fantasy_team_1": {
+"rank": 1,
+"score": 45
+},
+"fantasy_team_2": {
+"rank": 2,
+"score": 50
+},
+"fantasy_team_3": {
+"rank": 3,
+"score": 55
+},
+"fantasy_team_4": {
+"rank": 4,
+"score": 60
+},
+"fantasy_team_5": {
+"rank": 5,
+"score": 65
+},
+"fantasy_team_6": {
+"rank": 6,
+"score": 70
+}
+}
+},
+"final_standings": {
+"fantasy_team_1": {
+"total_score": 130,
+"overall_rank": 1
+},
+"fantasy_team_2": {
+"total_score": 135,
+"overall_rank": 2
+},
+"fantasy_team_3": {
+"total_score": 140,
+"overall_rank": 3
+},
+"fantasy_team_4": {
+"total_score": 145,
+"overall_rank": 4
+},
+"fantasy_team_5": {
+"total_score": 150,
+"overall_rank": 5
+},
+"fantasy_team_6": {
+"total_score": 155,
+"overall_rank": 6
+}
+}
+}
+
+results_json
+
+{
+"round_results": {
+"round_1": {
+"fantasy_team_1": {
+"rank": 1,
+"score": 45
+},
+"fantasy_team_2": {
+"rank": 2,
+"score": 50
+},
+"fantasy_team_3": {
+"rank": 3,
+"score": 55
+},
+"fantasy_team_4": {
+"rank": 4,
+"score": 60
+},
+"fantasy_team_5": {
+"rank": 5,
+"score": 65
+},
+"fantasy_team_6": {
+"rank": 6,
+"score": 70
+}
+}
+},
+"final_standings": {
+"fantasy_team_1": {
+"total_score": 130,
+"overall_rank": 1
+},
+"fantasy_team_2": {
+"total_score": 135,
+"overall_rank": 2
+},
+"fantasy_team_3": {
+"total_score": 140,
+"overall_rank": 3
+},
+"fantasy_team_4": {
+"total_score": 145,
+"overall_rank": 4
+},
+"fantasy_team_5": {
+"total_score": 150,
+"overall_rank": 5
+},
+"fantasy_team_6": {
+"total_score": 155,
+"overall_rank": 6
+}
+}
+}
+
+prizes_json
+
+{
+"gear_prizes": {
+"first_place": {
+"item": "Exclusive FLI GOLF Bag",
+"value": 200
+}
+},
+"special_prizes": {
+"best_player": {
+"item": "Personalized Trophy",
+"value": 150
+},
+"hole_in_one": {
+"item": "Player signed apparel",
+"value": 100
+}
+},
+"digital_gift_card": {
+"first_place_casino_prize": 200
+}
+}
+
+rules_json
+
+{
+"draft_rules": {
+"rounds": 4,
+"draft_type": "snake",
+"team_selection": {
+"last_two_rounds": "reserve players",
+"first_two_rounds": "top teams"
+}
+},
+"season_rules": {
+"season_duration": "1 year",
+"league_entry_fee": 300,
+"number_of_tournaments": 6
+},
+"scoring_rules": {
+"bogey_penalty": 2,
+"under_par_bonus": -0.5,
+"points_per_throw": 1,
+"double_bogey_penalty": 4
+},
+"tournament_rules": {
+"winner_criteria": "lowest_total_score",
+"matchups_per_tournament": 3,
+"replacement_player_policy": "regular_scoring_rules_apply"
+},
+"prize_distribution": {
+"first_place_percentage": 100
+}
+}
+
+teams_json
+
+{
+"fantasy_team_1": {
+"roster": {
+"top_teams": [
+"Team A",
+"Team B"
+],
+"reserve_teams": [
+"Team C",
+"Team D"
+]
+},
+"owner_id": "owner_uuid_1",
+"team_name": "Disc Dominators"
+},
+"fantasy_team_2": {
+"roster": {
+"top_teams": [
+"Team E",
+"Team F"
+],
+"reserve_teams": [
+"Team G",
+"Team H"
+]
+},
+"owner_id": "owner_uuid_2",
+"team_name": "Chain Chasers"
+},
+"fantasy_team_3": {
+"roster": {
+"top_teams": [
+"Team I",
+"Team J"
+],
+"reserve_teams": [
+"Team K",
+"Team L"
+]
+},
+"owner_id": "owner_uuid_3",
+"team_name": "Hyzer Heroes"
+}
+}
