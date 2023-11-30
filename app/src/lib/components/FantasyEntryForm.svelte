@@ -11,6 +11,14 @@
 	};
 	let leagueName = '';
 	let numTournaments = '6'; // Default to 1 tournament
+	let paymentModel = 'full-all-6'; // Default to 'full', other option could be 'pay-per-tournament'
+	// Reactive variables for status and loading
+	let statusMessage = '';
+	let isLoading = false;
+
+	$: entryFee = parseInt(numTournaments) * 50; // Replace 50 with your per-tournament fee
+
+	$: crowdfunding = paymentModel !== 'full-all-6';
 
 	// Example initialization within your Svelte component script
 	let fantasyTournament: FantasyTournament = {
@@ -26,28 +34,55 @@
 	};
 
 	const handleSubmit = async () => {
+		isLoading = true;
+		statusMessage = 'Creating League...';
+		// Example calculation for entry_fee
+		let calculatedEntryFee;
+		switch (paymentModel) {
+			case 'pay-1-of-6':
+				calculatedEntryFee = 50; // Assuming each entry costs $50
+				break;
+			// ... other cases ...
+			default:
+				calculatedEntryFee = 300; // Full payment for all 6 entries
+		}
 		// Retrieve the logged-in user's details
-		console.log(numTournaments);
 		const { data: userData } = await supabase.auth.getUser();
 		const user = userData.user;
 		if (!user) {
 			console.error('User not logged in');
+			isLoading = false;
+			statusMessage = 'Error: User not logged in.';
 			return;
 		}
 
-		// Use the user's UUID
 		const userUUID = user.id;
 
-		// Create league and retrieve the generated ID
+		// Prepare league data for insertion
+		const leagueDataToInsert = {
+			league_name: leagueName,
+			created_by: userUUID,
+			entry_fee: entryFee,
+			payment_model: paymentModel,
+			is_crowdfunded: crowdfunding
+		};
+
+		console.log('Inserting league data:', leagueDataToInsert);
+
+		// Insert league data
 		const { data: leagueData, error: leagueError } = await supabase
 			.from('league')
-			.insert([{ league_name: leagueName, created_by: userUUID }])
+			.insert([leagueDataToInsert])
 			.single();
 
 		if (leagueError) {
 			console.error('Error creating league:', leagueError);
+			isLoading = false;
+			statusMessage = `Error creating league: ${leagueError.message}`;
 			return;
 		}
+
+		console.log('League created:', leagueData);
 
 		// After the league is created, query to get its ID
 		const { data: createdLeague, error: fetchError } = await supabase
@@ -58,11 +93,16 @@
 			.limit(1)
 			.single();
 
+		console.log('League Data:', leagueData);
+		console.error('League Error:', leagueError);
+
 		if (fetchError) {
 			console.error('Error fetching created league:', fetchError);
 		} else if (createdLeague) {
 			await createFantasyTournaments(createdLeague.league_id, leagueName, numTournaments);
 		}
+		isLoading = false;
+		statusMessage = 'League created successfully!';
 	};
 
 	async function createFantasyTournaments(leagueId, leagueName, numTournaments) {
@@ -86,6 +126,42 @@
 </script>
 
 <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+	<!-- Entry Fee Input -->
+	<!-- Display Calculated Entry Fee -->
+	<div>
+		<label for="calculatedEntryFee" class="block text-sm font-medium text-white"
+			>Calculated Entry Fee:</label
+		>
+		<div
+			id="calculatedEntryFee"
+			class="mt-1 block w-full px-3 py-2 text-black bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+		>
+			${entryFee}
+		</div>
+	</div>
+
+	<!-- Payment Model Selection -->
+	<div>
+		<label for="paymentModel" class="block text-sm font-medium text-white">Payment Model:</label>
+		<select
+			id="paymentModel"
+			bind:value={paymentModel}
+			class="mt-1 block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+		>
+			<option value="full-all-6">Full Payment for all 6 entries</option>
+			<option value="pay-1-of-6">Pay for 1 entry of 6</option>
+			<option value="pay-2-of-6">Pay for 2 entry of 6</option>
+			<option value="pay-3-of-6">Pay for 3 entry of 6</option>
+			<option value="pay-4-of-6">Pay for 4 entry of 6</option>
+			<option value="pay-5-of-6">Pay for 5 entry of 6</option>
+		</select>
+	</div>
+
+	<!-- Crowdfunding Toggle -->
+	<div>
+		<label for="crowdfunding" class="block text-sm font-medium text-white">Crowdfunding:</label>
+		<input type="checkbox" id="crowdfunding" bind:checked={crowdfunding} class="mt-1" />
+	</div>
 	<div>
 		<label for="leagueName" class="block text-sm font-medium text-white">League Name:</label>
 		<input
