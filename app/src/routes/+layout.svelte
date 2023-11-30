@@ -4,7 +4,7 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
 	import SubscribePopUp from '$lib/components/SubscribePopUp.svelte';
-	import { overlayStore } from '$lib/overlayStore.ts';
+	import { overlayStore } from '$lib/overlayStore';
 	import authStore from '$lib/AuthStore';
 	import { onMount } from 'svelte';
 	import type { AuthSession } from '@supabase/supabase-js';
@@ -19,7 +19,7 @@
 	import UpdatePasswordForm from '$lib/components/updatePasswordForm.svelte';
 	import { fly } from 'svelte/transition';
 
-	let url;
+	let url: { pathname: string };
 	let showNavBar = false;
 	let isHomePage = false;
 
@@ -39,10 +39,10 @@
 	let userRole = null;
 	let hasSigned = null;
 
-	async function fetchUserRoleAndSignStatus(userId) {
+	async function fetchUserRoleAndSignStatus(userId: any) {
 		const { data, error } = await supabase
 			.from('profiles')
-			.select('role, has_signed')
+			.select('role, has_signed, subscriber')
 			.eq('id', userId)
 			.single();
 
@@ -53,18 +53,22 @@
 
 		userRole = data.role;
 		hasSigned = data.has_signed;
+		console.log('User role is:', userRole);
+		console.log(123);
 
-		// Redirect based on user role
+		// Redirect based on user role I do not think it runs this code it does that below
 		switch (userRole) {
 			case 'Scorer':
 				goto('/scoring'); // Redirect Scorer to the scoring page
+				break;
+			case 'Subscriber':
+				goto('/fantasy'); // Redirect Subscriber to the fantasy page
 				break;
 			case 'Pro':
 				if (!hasSigned) {
 					goto('/intent'); // Redirect to the 'intent' route for Pros who haven't signed
 				}
 				break;
-			// Add other cases for different roles as needed
 			default:
 				goto('/'); // Redirect to the home page for other roles or conditions
 				break;
@@ -120,6 +124,8 @@
 				goto('/scoring'); // Redirects to the 'scoring' route
 			} else if (role === 'Pro' && !hasSigned) {
 				goto('/intent'); // Redirects to the 'intent' route
+			} else if (role === 'Subscriber' && !hasSigned) {
+				goto('/fantasy'); // Redirects to the 'intent' route
 			} else {
 				goto('/'); // Redirects to the root route
 			}
@@ -189,8 +195,7 @@
 	async function handlePasswordResetRequest() {
 		if (session && session.user?.email) {
 			const { data, error } = await supabase.auth.resetPasswordForEmail(session.user?.email, {
-				redirectTo:
-					'https://neon-shortbread-5fe77d.netlify.app//api/auth/callback?next=/account/update-password'
+				redirectTo: 'https://fligolf.netlify.app/api/auth/callback?next=/account/update-password'
 			});
 
 			if (error) {
@@ -201,7 +206,9 @@
 		}
 	}
 
-	async function handleUpdatePasswordEvent(event) {
+	async function handleUpdatePasswordEvent(event: {
+		detail: { currentPassword: any; newPassword: any };
+	}) {
 		const { currentPassword, newPassword } = event.detail;
 
 		// Check if you want to use the current password in some way for validation
