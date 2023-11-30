@@ -10,6 +10,7 @@
 		// Other fields will use default values set in the database
 	};
 	let leagueName = '';
+	let numTournaments = '6'; // Default to 1 tournament
 
 	// Example initialization within your Svelte component script
 	let fantasyTournament: FantasyTournament = {
@@ -26,6 +27,7 @@
 
 	const handleSubmit = async () => {
 		// Retrieve the logged-in user's details
+		console.log(numTournaments);
 		const { data: userData } = await supabase.auth.getUser();
 		const user = userData.user;
 		if (!user) {
@@ -59,12 +61,12 @@
 		if (fetchError) {
 			console.error('Error fetching created league:', fetchError);
 		} else if (createdLeague) {
-			await createFantasyTournaments(createdLeague.league_id, leagueName);
+			await createFantasyTournaments(createdLeague.league_id, leagueName, numTournaments);
 		}
 	};
 
-	async function createFantasyTournaments(leagueId, leagueName) {
-		for (let i = 1; i <= 12; i++) {
+	async function createFantasyTournaments(leagueId, leagueName, numTournaments) {
+		for (let i = 1; i <= numTournaments; i++) {
 			const tournamentName = `${leagueName} Tournament ${i}`;
 			const { error } = await supabase.from('fantasy_tournaments').insert([
 				{
@@ -93,6 +95,24 @@
 			placeholder="Example Name"
 			class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
 		/>
+	</div>
+
+	<div>
+		<label for="numTournaments" class="block text-sm font-medium text-white"
+			>Number of Tournaments:</label
+		>
+		<select
+			id="numTournaments"
+			bind:value={numTournaments}
+			class="mt-1 block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+		>
+			<option value="1">1 Tournament</option>
+			<option value="2">2 Tournaments</option>
+			<option value="3">3 Tournaments</option>
+			<option value="4">4 Tournaments</option>
+			<option value="5">5 Tournaments</option>
+			<option value="6">6 Tournaments</option>
+		</select>
 	</div>
 
 	<button
