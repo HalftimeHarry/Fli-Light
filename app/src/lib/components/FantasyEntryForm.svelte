@@ -75,7 +75,8 @@
 			created_by: userUUID,
 			entry_fee: entryFee,
 			payment_model: paymentModel,
-			is_crowdfunded: crowdfunding
+			is_crowdfunded: crowdfunding,
+			league_participant_1: userUUID
 		};
 
 		console.log('Inserting league data:', leagueDataToInsert);
