@@ -3,18 +3,29 @@
 	import type { League } from '$lib/types/League';
 	import type { FantasyTournament } from '$lib/types/FantasyTournament';
 	import { supabase } from '../../supabaseClient';
+	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 
 	let league: League = {
 		league_name: '',
 		created_by: null // Assign the user's UUID here
-		// Other fields will use default values set in the database
-	};
+	}; // Other fields will use default values set in the database
+	let leagues = []; // Initialize leagues as an empty array
 	let leagueName = '';
 	let numTournaments = '6'; // Default to 1 tournament
 	let paymentModel = 'full-all-6'; // Default to 'full', other option could be 'pay-per-tournament'
 	// Reactive variables for status and loading
 	let statusMessage = '';
 	let isLoading = false;
+	let leagueId;
+	$: leagueId = $page.params.league_id;
+
+	if (!leagueId) {
+		console.error('League ID is not available.');
+		// Optional: Redirect to another page or show an error message
+	} else {
+		// Continue with your logic when leagueId is available
+	}
 
 	$: entryFee = parseInt(numTournaments) * 50; // Replace 50 with your per-tournament fee
 
@@ -123,8 +134,20 @@
 			}
 		}
 	}
+
+	onMount(async () => {
+		const { data, error } = await supabase.from('league').select('*').single(); // Assuming you're fetching a single record
+
+		if (error) {
+			console.error('Error fetching league:', error);
+		} else {
+			league = data;
+			console.log(league);
+		}
+	});
 </script>
 
+<h1>League ID: {league.league_id}</h1>
 <form on:submit|preventDefault={handleSubmit} class="space-y-4">
 	<!-- Entry Fee Input -->
 	<!-- Display Calculated Entry Fee -->
@@ -157,11 +180,13 @@
 		</select>
 	</div>
 
-	<!-- Crowdfunding Toggle -->
+	<!-- Crowdfunding Toggle 
 	<div>
 		<label for="crowdfunding" class="block text-sm font-medium text-white">Crowdfunding:</label>
 		<input type="checkbox" id="crowdfunding" bind:checked={crowdfunding} class="mt-1" />
 	</div>
+	-->
+
 	<div>
 		<label for="leagueName" class="block text-sm font-medium text-white">League Name:</label>
 		<input
@@ -198,3 +223,4 @@
 		Create League
 	</button>
 </form>
+<a href={`/league/${league.league_id}`}>View {league.league_id}</a>
