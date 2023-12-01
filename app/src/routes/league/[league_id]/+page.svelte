@@ -26,6 +26,9 @@
 
 	// Calculate the number of non-null participants
 	let nonNullParticipantCount = countNonNullParticipants(leagueData);
+	let needed = nonNullParticipantCount - 6;
+	let positiveValue = Math.abs(needed);
+	console.log(needed);
 </script>
 
 {#if error}
@@ -35,7 +38,7 @@
 	<p>Created by: {leagueData.created_by}</p>
 	<p>Draft Status: {leagueData.draft_status}</p>
 	<p>
-		Current Participants: {leagueData.current_participant_count} / Participants in this league is {nonNullParticipantCount}
+		Current Participants: {nonNullParticipantCount} of / {leagueData.current_participant_count}
 	</p>
 
 	{#if nonNullParticipantCount === leagueData.max_participants}
@@ -67,7 +70,7 @@
 	{/if}
 
 	{#if !leagueData.league_started}
-		<p>The league has not started yet.</p>
+		<p>The league has not started yet. We need {positiveValue} Additional Participants</p>
 		<!-- UI elements for pre-league start like joining, team formation, etc. -->
 	{/if}
 
