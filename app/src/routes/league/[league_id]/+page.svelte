@@ -4,6 +4,28 @@
 	let { data: league, error } = await supabase.from('league').select('*');
 	console.log(league);
 	let leagueData = league[0];
+	// Function to count non-null league_participant fields
+	function countNonNullParticipants(leagueData) {
+		let participantFields = [
+			'league_participant_1',
+			'league_participant_2',
+			'league_participant_3',
+			'league_participant_4',
+			'league_participant_5',
+			'league_participant_6'
+		];
+
+		let count = 0;
+		for (let field of participantFields) {
+			if (leagueData[field] != null) {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	// Calculate the number of non-null participants
+	let nonNullParticipantCount = countNonNullParticipants(leagueData);
 </script>
 
 {#if error}
@@ -13,8 +35,16 @@
 	<p>Created by: {leagueData.created_by}</p>
 	<p>Draft Status: {leagueData.draft_status}</p>
 	<p>
-		Current Participants: {leagueData.current_participant_count} / {leagueData.max_participants}
+		Current Participants: {leagueData.current_participant_count} / Participants in this league is {nonNullParticipantCount}
 	</p>
+
+	{#if nonNullParticipantCount === leagueData.max_participants}
+		<script>
+			leagueData.fantasy_tournament_active = true;
+			// Update league status in the database as needed
+		</script>
+		<!-- UI for active fantasy tournament -->
+	{/if}
 
 	{#if leagueData.fantasy_tournament_active}
 		<p>A fantasy tournament is currently active.</p>
