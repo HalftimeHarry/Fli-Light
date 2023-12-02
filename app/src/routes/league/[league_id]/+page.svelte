@@ -5,18 +5,18 @@
 	console.log(league);
 	let leagueData = league[0];
 	let userUUID; // UUID of the logged-in user
-	// Function to count non-null league_participant fields
-	// Function to count non-null league_participant fields
-	function countNonNullParticipants(leagueData) {
-		let participantFields = [
-			'league_participant_1',
-			'league_participant_2',
-			'league_participant_3',
-			'league_participant_4',
-			'league_participant_5',
-			'league_participant_6'
-		];
 
+	// Define participantFields at the module level
+	const participantFields = [
+		'league_participant_1',
+		'league_participant_2',
+		'league_participant_3',
+		'league_participant_4',
+		'league_participant_5',
+		'league_participant_6'
+	];
+
+	function countNonNullParticipants(leagueData) {
 		return participantFields.reduce(
 			(count, field) => (leagueData[field] != null ? count + 1 : count),
 			0
