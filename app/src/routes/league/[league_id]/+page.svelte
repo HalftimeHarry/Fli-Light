@@ -24,6 +24,53 @@
 		return count;
 	}
 
+	// Function to handle participant joining
+	async function joinLeague(participantUUID) {
+		// Assuming you have the leagueId available in this context
+		let leagueId = league[0].league_id; // Retrieve the leagueId here
+
+		try {
+			// Fetch current league data to find the first null participant slot
+			const { data: currentLeagueData, error: fetchError } = await supabase
+				.from('league')
+				.select(
+					'league_participant_1, league_participant_2, league_participant_3, league_participant_4, league_participant_5, league_participant_6'
+				)
+				.eq('league_id', leagueId)
+				.single();
+
+			if (fetchError) throw fetchError;
+
+			// Determine the field to update
+			let updateField = null;
+			for (let i = 1; i <= 6; i++) {
+				if (!currentLeagueData[`league_participant_${i}`]) {
+					updateField = `league_participant_${i}`;
+					break;
+				}
+			}
+
+			// If there is an available slot, update it with the participant's UUID
+			if (updateField) {
+				const updateData = {};
+				updateData[updateField] = participantUUID;
+
+				const { error: updateError } = await supabase
+					.from('league')
+					.update(updateData)
+					.eq('league_id', leagueId);
+
+				if (updateError) throw updateError;
+
+				console.log(`Participant added to league in slot: ${updateField}`);
+			} else {
+				console.log('No available slots in the league');
+			}
+		} catch (error) {
+			console.error('Error joining league:', error);
+		}
+	}
+
 	// Calculate the number of non-null participants
 	let nonNullParticipantCount = countNonNullParticipants(leagueData);
 	let needed = nonNullParticipantCount - 6;
@@ -72,10 +119,14 @@
 	{#if !leagueData.league_started}
 		<p>The league has not started yet. We need {positiveValue} Additional Participants</p>
 		<!-- UI elements for pre-league start like joining, team formation, etc. -->
+		{#if nonNullParticipantCount < leagueData.max_participants}
+			<button on:click={() => joinLeague(userUUID)}>Join This League</button>
+		{/if}
 	{/if}
 
 	{#if leagueData.league_started && !leagueData.fantasy_tournament_active}
 		<p>The league is ongoing, but no fantasy tournament is active currently.</p>
 		<!-- UI elements for ongoing league with no active tournament -->
 	{/if}
+	<!-- League dashboard UI -->
 {/if}

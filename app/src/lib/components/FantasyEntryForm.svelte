@@ -6,6 +6,12 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 
+	// Add new reactive variables for additional participants
+	let participant2 = '';
+	let participant3 = '';
+	let participant4 = '';
+	let participant5 = '';
+	let participant6 = '';
 	let league: League = {
 		league_name: '',
 		created_by: null // Assign the user's UUID here
@@ -69,14 +75,19 @@
 
 		const userUUID = user.id;
 
-		// Prepare league data for insertion
+		// Prepare league data for insertion with additional participants
 		const leagueDataToInsert = {
 			league_name: leagueName,
 			created_by: userUUID,
 			entry_fee: entryFee,
 			payment_model: paymentModel,
 			is_crowdfunded: crowdfunding,
-			league_participant_1: userUUID
+			league_participant_1: userUUID, // Creator is the first participant
+			league_participant_2: participant2 || null,
+			league_participant_3: participant3 || null,
+			league_participant_4: participant4 || null,
+			league_participant_5: participant5 || null,
+			league_participant_6: participant6 || null
 		};
 
 		console.log('Inserting league data:', leagueDataToInsert);
@@ -215,6 +226,12 @@
 			<option value="5">5 Tournaments</option>
 			<option value="6">6 Tournaments</option>
 		</select>
+	</div>
+
+	<!-- Additional participant input fields -->
+	<div>
+		<label for="participant2" class="block text-sm font-medium text-white">Participant 2:</label>
+		<input type="text" id="participant2" bind:value={participant2} class="input-field" />
 	</div>
 
 	<button
