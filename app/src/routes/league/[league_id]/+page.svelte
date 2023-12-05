@@ -1,5 +1,5 @@
 <script context="module">
-	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient.ts';
+	import { supabase } from '../../../supabaseClient.ts';
 	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
 

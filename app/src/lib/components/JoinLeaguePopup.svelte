@@ -1,7 +1,7 @@
 <!-- JoinLeaguePopup.svelte -->
 <script lang="ts">
-	import { isFantasyParticipantJoinLeaguePopupVisible } from '/workspace/Fli-Light/app/src/lib/utilities/fantasyParticipantJoinLeague.ts';
-	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient.ts';
+	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
+	import { supabase } from '../../supabaseClient.ts';
 	import Icon from '@iconify/svelte';
 
 	export let userUUID;
