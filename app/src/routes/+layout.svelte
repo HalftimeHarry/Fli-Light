@@ -115,22 +115,27 @@
 		console.log('Session updated:', session);
 
 		if (session) {
+			// Update the user's role and signed status
 			const userProfile = await fetchUserProfile(session.user.id);
 			role = userProfile?.role || null;
 			hasSigned = userProfile?.has_signed || false;
 
-			// Redirect based on user role
-			if (role === 'Scorer') {
-				goto('/scoring'); // Redirects to the 'scoring' route
-			} else if (role === 'Pro' && !hasSigned) {
-				goto('/intent'); // Redirects to the 'intent' route
-			} else if (role === 'Subscriber' && !hasSigned) {
-				goto('/fantasy'); // Redirects to the 'intent' route
-			} else {
-				goto('/'); // Redirects to the root route
-			}
+			// Use a function to determine redirection based on role
+			// This function should consider the current route to avoid unnecessary redirects
+			handleRoleBasedRedirect(role, hasSigned);
 		}
 	});
+
+	function handleRoleBasedRedirect(role, hasSigned) {
+		const currentRoute = window.location.pathname;
+
+		// Add logic here to determine if a redirect is needed based on role and current route
+		if (role === 'Scorer' && currentRoute !== '/scoring') {
+			goto('/scoring');
+		} else if (role === 'Pro' && !hasSigned && currentRoute !== '/intent') {
+			goto('/intent');
+		} // Add other conditions as needed
+	}
 
 	let isBrowser = typeof window !== 'undefined'; // Check if in a browser environment
 
