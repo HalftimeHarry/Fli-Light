@@ -2,6 +2,7 @@
 	import { supabase } from '../../../supabaseClient.ts';
 	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
+	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
 
 	function openPopup() {
 		isFantasyParticipantJoinLeaguePopupVisible.set(true);
@@ -56,19 +57,22 @@
 <script>
 	import { onMount } from 'svelte';
 
-	onMount(async () => {
-		let { data: league, fetchError } = await supabase.from('league').select('*');
-		error = fetchError;
-		let draftStartTime;
-		let leagueIdForCountdown;
-		if (!fetchError && league && league.length > 0) {
-			leagueData = league[0];
-			leagueIdForCountdown = leagueData.league_id;
-			userUUID = (await supabase.auth.getUser()).data.user?.id;
-			draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
-			console.log(draftStartTime);
-		}
-	});
+    let leagueData, userUUID, error;
+    let draftStartTime = null; // Defined at the top level
+    let leagueIdForCountdown;
+    let isDraftTimeLoaded = false; // Local variable to control the display
+
+    onMount(async () => {
+        let { data: league, fetchError } = await supabase.from('league').select('*');
+        error = fetchError;
+        if (!fetchError && league && league.length > 0) {
+            leagueData = league[0];
+            leagueIdForCountdown = leagueData.league_id;
+            userUUID = (await supabase.auth.getUser()).data.user?.id;
+            draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
+            isDraftTimeLoaded = true; // Set to true after loading
+        }
+    });
 
 	function countNonNullParticipants(leagueData) {
 		return participantFields.reduce(
@@ -101,9 +105,11 @@
 		}
 	}
 
+	// Reactive statement for debugging
+	$: if (draftStartTime) console.log('Draft starts at:', draftStartTime);
 	// Calculate the number of non-null participants
 	$: nonNullParticipantCount = leagueData ? countNonNullParticipants(leagueData) : 0;
-	$: additionalParticipantsNeeded = leagueData.max_participants - nonNullParticipantCount;
+	$: additionalParticipantsNeeded = 6 - nonNullParticipantCount;
 </script>
 
 {#if error}
@@ -114,6 +120,14 @@
 	<p>Created by: {leagueData.created_by}</p>
 	<p>Draft Status: {leagueData.draft_status}</p>
 	<p>Current Participants: {nonNullParticipantCount} / {leagueData.max_participants}</p>
+
+	{#if isDraftTimeLoaded}
+		{#if draftStartTime}
+			<DraftCountdown {draftStartTime} />
+		{:else}
+			<p>Loading draft countdown...</p>
+		{/if}
+	{/if}
 
 	{#if nonNullParticipantCount === leagueData.max_participants}
 		<script>
