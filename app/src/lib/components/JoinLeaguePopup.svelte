@@ -55,6 +55,34 @@
 		} catch (error) {
 			console.error('Error joining league:', error);
 		}
+		// Check if the league is full and the payment model is 'full-all-6'
+		const isLeagueFull = countNonNullParticipants(leagueData) === 6;
+		const isFullPaymentModel = leagueData.payment_model === 'full-all-6';
+
+		if (isLeagueFull && isFullPaymentModel) {
+			// Update league_status to 'Active'
+			const { error: statusUpdateError } = await supabase
+				.from('league')
+				.update({ league_status: 'Active' })
+				.eq('league_id', leagueId);
+
+			if (statusUpdateError) {
+				console.error('Error updating league status:', statusUpdateError);
+				return;
+			}
+
+			console.log('League status updated to Active');
+			leagueData.league_status = 'Active'; // Update local league data
+		}
+
+		closePopup();
+	}
+
+	function countNonNullParticipants(leagueData) {
+		return participantFields.reduce(
+			(count, field) => (leagueData[field] != null ? count + 1 : count),
+			0
+		);
 	}
 
 	function submitForm() {
