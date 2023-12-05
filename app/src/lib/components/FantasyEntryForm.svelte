@@ -24,6 +24,7 @@
 	let statusMessage = '';
 	let isLoading = false;
 	let leagueId;
+	let teamName = ''; // Initialize teamName as an empty string
 	$: leagueId = $page.params.league_id;
 
 	if (!leagueId) {
@@ -75,6 +76,15 @@
 
 		const userUUID = user.id;
 
+		// Prepare initial fantasy_teams_json with the creator as the first participant
+		let initialFantasyTeamsJson = {
+			league_participant_1: {
+				owner_id: userUUID,
+				team_name: teamName // Assuming you have a team name input for the league creator
+				// Add other necessary properties for the team
+			}
+		};
+
 		// Prepare league data for insertion with additional participants
 		const leagueDataToInsert = {
 			league_name: leagueName,
@@ -87,7 +97,8 @@
 			league_participant_3: participant3 || null,
 			league_participant_4: participant4 || null,
 			league_participant_5: participant5 || null,
-			league_participant_6: participant6 || null
+			league_participant_6: participant6 || null,
+			fantasy_teams_json: initialFantasyTeamsJson // Add the initial fantasy teams json
 		};
 
 		console.log('Inserting league data:', leagueDataToInsert);
@@ -169,7 +180,7 @@
 		>
 		<div
 			id="calculatedEntryFee"
-			class="mt-1 block w-full px-3 py-2 text-black bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+			class="mt-1 block w-full px-3 py-2 text-white rounded-md shadow-sm sm:text-sm"
 		>
 			${entryFee}
 		</div>
@@ -177,19 +188,69 @@
 
 	<!-- Payment Model Selection -->
 	<div>
-		<label for="paymentModel" class="block text-sm font-medium text-white">Payment Model:</label>
-		<select
-			id="paymentModel"
-			bind:value={paymentModel}
-			class="mt-1 block w-full px-3 py-2 text-black bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-		>
-			<option value="full-all-6">Full Payment for all 6 entries</option>
-			<option value="pay-1-of-6">Pay for 1 entry of 6</option>
-			<option value="pay-2-of-6">Pay for 2 entry of 6</option>
-			<option value="pay-3-of-6">Pay for 3 entry of 6</option>
-			<option value="pay-4-of-6">Pay for 4 entry of 6</option>
-			<option value="pay-5-of-6">Pay for 5 entry of 6</option>
-		</select>
+		<label class="block text-sm font-medium text-white">Payment Model:</label>
+		<div class="mt-1">
+			<label>
+				<input
+					type="radio"
+					name="paymentModel"
+					value="full-all-6"
+					bind:group={paymentModel}
+					class="text-black bg-white"
+				/>
+				Full Payment for all 6 entries
+			</label>
+			<label>
+				<input
+					type="radio"
+					name="paymentModel"
+					value="pay-1-of-6"
+					bind:group={paymentModel}
+					class="text-black bg-white"
+				/>
+				Pay for 1 entry of 6
+			</label>
+			<label>
+				<input
+					type="radio"
+					name="paymentModel"
+					value="pay-2-of-6"
+					bind:group={paymentModel}
+					class="text-black bg-white"
+				/>
+				Pay for 2 entries of 6
+			</label>
+			<label>
+				<input
+					type="radio"
+					name="paymentModel"
+					value="pay-3-of-6"
+					bind:group={paymentModel}
+					class="text-black bg-white"
+				/>
+				Pay for 3 entries of 6
+			</label>
+			<label>
+				<input
+					type="radio"
+					name="paymentModel"
+					value="pay-4-of-6"
+					bind:group={paymentModel}
+					class="text-black bg-white"
+				/>
+				Pay for 4 entries of 6
+			</label>
+			<label>
+				<input
+					type="radio"
+					name="paymentModel"
+					value="pay-5-of-6"
+					bind:group={paymentModel}
+					class="text-black bg-white"
+				/>
+				Pay for 5 entries of 6
+			</label>
+		</div>
 	</div>
 
 	<!-- Crowdfunding Toggle 
@@ -228,9 +289,23 @@
 		</select>
 	</div>
 
+	    <!-- Team Name Input -->
+    <div>
+        <label for="teamName" class="block text-sm font-medium text-white">Team Name:</label>
+        <input
+            type="text"
+            id="teamName"
+            bind:value={teamName}
+            placeholder="Enter Team Name"
+            class="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
+    </div>
+
 	<!-- Additional participant input fields -->
 	<div>
-		<label for="participant2" class="block text-sm font-medium text-white">Participant 2:</label>
+		<label for="participant2" class="block text-sm font-medium text-white"
+			>Participant 2: Link</label
+		>
 		<input type="text" id="participant2" bind:value={participant2} class="input-field" />
 	</div>
 
