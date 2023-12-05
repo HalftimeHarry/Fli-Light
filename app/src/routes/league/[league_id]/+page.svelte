@@ -138,7 +138,7 @@
 	{/if}
 
 	{#if leagueData.fantasy_tournament_active}
-		<p>A fantasy tournament is currently active.</p>
+		<p>This Fantasy Tournament is currently active.</p>
 		<!-- Add more details or actions related to the active tournament -->
 	{/if}
 
@@ -157,7 +157,7 @@
 		<!-- Additional UI for crowdfunding details and contributions -->
 	{/if}
 
-	{#if !leagueData.league_started}
+	{#if !leagueData.league_started && !leagueData.fantasy_tournament_active}
 		<p>The league has not started yet. We need {positiveValue} Additional Participants</p>
 		<!-- UI elements for pre-league start like joining, team formation, etc. -->
 	{/if}
