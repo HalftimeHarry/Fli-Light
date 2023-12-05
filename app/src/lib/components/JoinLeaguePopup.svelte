@@ -60,19 +60,25 @@
 		const isFullPaymentModel = leagueData.payment_model === 'full-all-6';
 
 		if (isLeagueFull && isFullPaymentModel) {
-			// Update league_status to 'Active'
-			const { error: statusUpdateError } = await supabase
+			// Update league_status to 'Active' and fantasy_tournament_active to true
+			const updatePayload = {
+				league_status: 'Active',
+				fantasy_tournament_active: true
+			};
+
+			const { error: updateError } = await supabase
 				.from('league')
-				.update({ league_status: 'Active' })
+				.update(updatePayload)
 				.eq('league_id', leagueId);
 
-			if (statusUpdateError) {
-				console.error('Error updating league status:', statusUpdateError);
+			if (updateError) {
+				console.error('Error updating league status and fantasy tournament:', updateError);
 				return;
 			}
 
-			console.log('League status updated to Active');
+			console.log('League status updated to Active, Fantasy Tournament set to active');
 			leagueData.league_status = 'Active'; // Update local league data
+			leagueData.fantasy_tournament_active = true; // Update local fantasy tournament data
 		}
 
 		closePopup();
