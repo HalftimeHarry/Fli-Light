@@ -104,7 +104,7 @@
 		console.log('Inserting league data:', leagueDataToInsert);
 
 		// Insert league data
-		const { data: leagueData, error: leagueError } = await supabase
+		const { data: insertedLeagueData, error: leagueError } = await supabase
 			.from('league')
 			.insert([leagueDataToInsert])
 			.single();
@@ -116,7 +116,9 @@
 			return;
 		}
 
-		console.log('League created:', leagueData);
+		console.log('League created:', insertedLeagueData);
+
+		// Use the insertedLeagueData here for further processing if needed
 
 		// After the league is created, query to get its ID
 		const { data: createdLeague, error: fetchError } = await supabase
@@ -127,7 +129,7 @@
 			.limit(1)
 			.single();
 
-		console.log('League Data:', leagueData);
+		console.log('League Data:', insertedLeagueData);
 		console.error('League Error:', leagueError);
 
 		if (fetchError) {
@@ -289,17 +291,17 @@
 		</select>
 	</div>
 
-	    <!-- Team Name Input -->
-    <div>
-        <label for="teamName" class="block text-sm font-medium text-white">Team Name:</label>
-        <input
-            type="text"
-            id="teamName"
-            bind:value={teamName}
-            placeholder="Enter Team Name"
-            class="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        />
-    </div>
+	<!-- Team Name Input -->
+	<div>
+		<label for="teamName" class="block text-sm font-medium text-white">Team Name:</label>
+		<input
+			type="text"
+			id="teamName"
+			bind:value={teamName}
+			placeholder="Enter Team Name"
+			class="mt-1 block w-full px-3 py-2 bg-white text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+		/>
+	</div>
 
 	<!-- Additional participant input fields -->
 	<div>
