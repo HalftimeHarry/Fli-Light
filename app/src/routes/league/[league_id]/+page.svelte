@@ -1,5 +1,11 @@
 <script context="module">
 	import { supabase } from '/workspace/Fli-Light/app/src/supabaseClient.ts';
+	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
+	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
+
+	function openPopup() {
+		isFantasyParticipantJoinLeaguePopupVisible.set(true);
+	}
 
 	let { data: league, error } = await supabase.from('league').select('*');
 	console.log(league);
@@ -71,13 +77,6 @@
 	<p>Draft Status: {leagueData.draft_status}</p>
 	<p>Current Participants: {nonNullParticipantCount} / {leagueData.max_participants}</p>
 
-	{#if additionalParticipantsNeeded > 0}
-		<p>We need {additionalParticipantsNeeded} additional participants.</p>
-		{#if userUUID && !Object.values(leagueData).includes(userUUID)}
-			<button on:click={() => joinLeague(userUUID)}>Join This League</button>
-		{/if}
-	{/if}
-
 	{#if nonNullParticipantCount === leagueData.max_participants}
 		<script>
 			leagueData.fantasy_tournament_active = true;
@@ -109,14 +108,21 @@
 	{#if !leagueData.league_started}
 		<p>The league has not started yet. We need {positiveValue} Additional Participants</p>
 		<!-- UI elements for pre-league start like joining, team formation, etc. -->
-		{#if nonNullParticipantCount < leagueData.max_participants}
-			<button on:click={() => joinLeague(userUUID)}>Join This League</button>
-		{/if}
 	{/if}
 
 	{#if leagueData.league_started && !leagueData.fantasy_tournament_active}
 		<p>The league is ongoing, but no fantasy tournament is active currently.</p>
 		<!-- UI elements for ongoing league with no active tournament -->
 	{/if}
-	<!-- League dashboard UI -->
+
+	{#if $isFantasyParticipantJoinLeaguePopupVisible}
+		<JoinLeaguePopup {userUUID} {leagueData} {participantFields} />
+	{/if}
+
+	{#if additionalParticipantsNeeded > 0}
+		<p>We need {additionalParticipantsNeeded} more participants.</p>
+		{#if userUUID && !Object.values(leagueData).includes(userUUID)}
+			<button on:click={openPopup}>Join This League</button>
+		{/if}
+	{/if}
 {/if}
