@@ -48,6 +48,7 @@
 	// Calculate the number of non-null participants
 	let nonNullParticipantCount = countNonNullParticipants(leagueData);
 	let needed = nonNullParticipantCount - 6;
+	let max = leagueData[0].max_participants;
 	let positiveValue = Math.abs(needed);
 	// Get the logged-in user's UUID
 	const { data: userData } = await supabase.auth.getUser();
@@ -57,22 +58,22 @@
 <script>
 	import { onMount } from 'svelte';
 
-    let leagueData, userUUID, error;
-    let draftStartTime = null; // Defined at the top level
-    let leagueIdForCountdown;
-    let isDraftTimeLoaded = false; // Local variable to control the display
+	let leagueData, userUUID, error;
+	let draftStartTime = null; // Defined at the top level
+	let leagueIdForCountdown;
+	let isDraftTimeLoaded = false; // Local variable to control the display
 
-    onMount(async () => {
-        let { data: league, fetchError } = await supabase.from('league').select('*');
-        error = fetchError;
-        if (!fetchError && league && league.length > 0) {
-            leagueData = league[0];
-            leagueIdForCountdown = leagueData.league_id;
-            userUUID = (await supabase.auth.getUser()).data.user?.id;
-            draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
-            isDraftTimeLoaded = true; // Set to true after loading
-        }
-    });
+	onMount(async () => {
+		let { data: league, fetchError } = await supabase.from('league').select('*');
+		error = fetchError;
+		if (!fetchError && league && league.length > 0) {
+			leagueData = league[0];
+			leagueIdForCountdown = leagueData.league_id;
+			userUUID = (await supabase.auth.getUser()).data.user?.id;
+			draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
+			isDraftTimeLoaded = true; // Set to true after loading
+		}
+	});
 
 	function countNonNullParticipants(leagueData) {
 		return participantFields.reduce(
@@ -109,7 +110,7 @@
 	$: if (draftStartTime) console.log('Draft starts at:', draftStartTime);
 	// Calculate the number of non-null participants
 	$: nonNullParticipantCount = leagueData ? countNonNullParticipants(leagueData) : 0;
-	$: additionalParticipantsNeeded = 6 - nonNullParticipantCount;
+	$: additionalParticipantsNeeded = max - nonNullParticipantCount;
 </script>
 
 {#if error}
