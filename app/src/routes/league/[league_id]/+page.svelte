@@ -48,7 +48,6 @@
 	// Calculate the number of non-null participants
 	let nonNullParticipantCount = countNonNullParticipants(leagueData);
 	let needed = nonNullParticipantCount - 6;
-	let max = leagueData[0].max_participants;
 	let positiveValue = Math.abs(needed);
 	// Get the logged-in user's UUID
 	const { data: userData } = await supabase.auth.getUser();
@@ -110,7 +109,7 @@
 	$: if (draftStartTime) console.log('Draft starts at:', draftStartTime);
 	// Calculate the number of non-null participants
 	$: nonNullParticipantCount = leagueData ? countNonNullParticipants(leagueData) : 0;
-	$: additionalParticipantsNeeded = max - nonNullParticipantCount;
+	$: additionalParticipantsNeeded = 6 - nonNullParticipantCount;
 </script>
 
 {#if error}
