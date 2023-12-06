@@ -154,16 +154,33 @@ fantasy_scores_json
 "player_4": 7
 }
 },
-"fantasy_team_3": {
-"score": 55,
-"details": {
-"player_1": 20,
-"player_2": 15,
-"player_3": 12,
-"player_4": 8
-}
-}
-}
+
+## Fantasy Teams
+
+{
+"league_participant_1": {
+"owner_id": "774cb858-9e5e-4c67-acd2-6b9c5ed1838a",
+"team_name": "Sample Name"
+},
+"league_participant_2": {
+"owner_id": "6b216fc6-180b-43f3-8308-5f44f011ae8e",
+"team_name": "New team"
+},
+"league_participant_3": {
+"owner_id": "213ce4c8-388c-4e90-8c23-9b7fabc72226",
+"team_name": "Jills team"
+},
+"league_participant_4": {
+"owner_id": "264349f8-f2a1-4ad4-9e08-2c3b0052cc04",
+"team_name": "Larrys team"
+},
+"league_participant_5": {
+"owner_id": "3585404a-99da-4a55-93e4-0ab58192a8d3",
+"team_name": "Harrys team"
+},
+"league_participant_6": {
+"owner_id": "cc283dff-b167-457f-a26b-8c3ecba985fe",
+"team_name": "greg team"
 }
 }
 
