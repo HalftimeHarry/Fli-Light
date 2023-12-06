@@ -3,8 +3,7 @@
 	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
-	import { leagueData } from '$lib/components/leagueDataForFantasyStore.ts';
-
+	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
 
 	function openPopup() {
 		isFantasyParticipantJoinLeaguePopupVisible.set(true);
