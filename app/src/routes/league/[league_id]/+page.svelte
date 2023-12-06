@@ -40,10 +40,6 @@
 		}
 	}
 
-	let { data: league, error } = await supabase.from('league').select('*');
-	console.log(league);
-	let leagueData = league[0];
-	let userUUID; // UUID of the logged-in user
 
 	// Calculate the number of non-null participants
 	let nonNullParticipantCount = countNonNullParticipants(leagueData);
