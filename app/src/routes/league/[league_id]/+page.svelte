@@ -62,7 +62,21 @@
 	let leagueIdForCountdown;
 	let isDraftTimeLoaded = false; // Local variable to control the display
 
+	// Function to initialize data
+	async function initializeData() {
+		let { data: league, fetchError } = await supabase.from('league').select('*');
+		error = fetchError;
+		if (!fetchError && league && league.length > 0) {
+			leagueData = league[0];
+			leagueIdForCountdown = leagueData.league_id;
+			userUUID = (await supabase.auth.getUser()).data.user?.id;
+			draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
+			isDraftTimeLoaded = true; // Set to true after loading
+		}
+	}
+
 	onMount(async () => {
+		initializeData(); // Call the function inside onMount
 		let { data: league, fetchError } = await supabase.from('league').select('*');
 		error = fetchError;
 		if (!fetchError && league && league.length > 0) {
