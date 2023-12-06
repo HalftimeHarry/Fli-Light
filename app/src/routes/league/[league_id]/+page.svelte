@@ -61,8 +61,8 @@
 		let { data: league, fetchError } = await supabase.from('league').select('*');
 		error = fetchError;
 		if (!fetchError && league && league.length > 0) {
-			leagueData = league[0];
-			leagueIdForCountdown = leagueData.league_id;
+			leagueData.set(league[0]);
+			leagueIdForCountdown = $leagueData.league_id;
 			userUUID = (await supabase.auth.getUser()).data.user?.id;
 			draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
 			isDraftTimeLoaded = true; // Set to true after loading
@@ -77,8 +77,8 @@
 		let { data: league, fetchError } = await supabase.from('league').select('*');
 		error = fetchError;
 		if (!fetchError && league && league.length > 0) {
-			leagueData = league[0];
-			leagueIdForCountdown = leagueData.league_id;
+			leagueData.set(league[0]);
+			leagueIdForCountdown = $leagueData.league_id;
 			userUUID = (await supabase.auth.getUser()).data.user?.id;
 			draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
 			isDraftTimeLoaded = true; // Set to true after loading
@@ -126,13 +126,13 @@
 </script>
 
 {#if error}
-	<p>Error loading league: {error}</p>
-{:else if leagueData}
-	<!-- League Dashboard UI -->
-	<h1>League: {leagueData.league_name}</h1>
-	<p>Created by: {leagueData.created_by}</p>
-	<p>Draft Status: {leagueData.draft_status}</p>
-	<p>Current Participants: {nonNullParticipantCount} / {leagueData.max_participants}</p>
+    <p>Error loading league: {error}</p>
+{:else if subscribedLeagueData && Object.keys(subscribedLeagueData).length > 0}
+    <!-- League Dashboard UI -->
+    <h1>League: {subscribedLeagueData.league_name}</h1>
+    <p>Created by: {subscribedLeagueData.created_by}</p>
+    <p>Draft Status: {subscribedLeagueData.draft_status}</p>
+    <p>Current Participants: {nonNullParticipantCount} / {subscribedLeagueData.max_participants}</p>
 
 	{#if isDraftTimeLoaded}
 		{#if draftStartTime}
