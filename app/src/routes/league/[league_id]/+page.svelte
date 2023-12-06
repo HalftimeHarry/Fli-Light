@@ -3,21 +3,10 @@
 	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
-	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
 
 	function openPopup() {
 		isFantasyParticipantJoinLeaguePopupVisible.set(true);
 	}
-
-	// Define participantFields at the module level
-	const participantFields = [
-		'league_participant_1',
-		'league_participant_2',
-		'league_participant_3',
-		'league_participant_4',
-		'league_participant_5',
-		'league_participant_6'
-	];
 
 	async function fetchNextFantasyTournament(leagueId) {
 		let { data: fantasyTournaments, error } = await supabase
@@ -42,19 +31,29 @@
 	}
 
 	// Calculate the number of non-null participants
-	let nonNullParticipantCount = countNonNullParticipants(leagueData);
-	let needed = nonNullParticipantCount - 6;
-	let positiveValue = Math.abs(needed);
-	// Get the logged-in user's UUID
 </script>
 
 <script>
 	import { onMount } from 'svelte';
+	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
+
+	// Define participantFields at the module level
+	const participantFields = [
+		'league_participant_1',
+		'league_participant_2',
+		'league_participant_3',
+		'league_participant_4',
+		'league_participant_5',
+		'league_participant_6'
+	];
 
 	let userUUID, error;
 	let draftStartTime = null; // Defined at the top level
 	let leagueIdForCountdown;
 	let isDraftTimeLoaded = false; // Local variable to control the display
+	let nonNullParticipantCount = countNonNullParticipants(leagueData);
+	let needed = nonNullParticipantCount - 6;
+	let positiveValue = Math.abs(needed);
 
 	async function initializeData() {
 		// Fetch league data
@@ -85,19 +84,12 @@
 		}
 	});
 
-	function countNonNullParticipants(leagueData) {
-		return participantFields.reduce(
-			(count, field) => (leagueData[field] != null ? count + 1 : count),
-			0
-		);
-	}
-
 	// Function to handle participant joining
 	async function joinLeague(participantUUID) {
-		let leagueId = leagueData.league_id;
-		let updateField = participantFields.find((field) => leagueData[field] == null);
+		let leagueId = $leagueData.league_id; // Ensure this is a valid integer
+		let updateField = participantFields.find((field) => !$leagueData[field]);
 
-		if (updateField) {
+		if (updateField && leagueId) {
 			try {
 				const updateData = { [updateField]: participantUUID };
 				const { error: updateError } = await supabase
@@ -116,23 +108,35 @@
 		}
 	}
 
-	// Reactive subscription
+	// Define countNonNullParticipants function here
+	function countNonNullParticipants() {
+		return participantFields.reduce(
+			(count, field) => ($leagueData[field] != null ? count + 1 : count),
+			0
+		);
+	}
+
+	// Reactive statements and other component logic
+	$: nonNullParticipantCount = $leagueData ? countNonNullParticipants() : 0;
+
+	// Log for debugging
+	$: console.log('Non-null participant count:', nonNullParticipantCount);
+
+	// Calculate the number of non-null participants
 	$: subscribedLeagueData = $leagueData;
 	// Reactive statement for debugging
 	$: if (draftStartTime) console.log('Draft starts at:', draftStartTime);
-	// Calculate the number of non-null participants
-	$: nonNullParticipantCount = leagueData ? countNonNullParticipants(leagueData) : 0;
 	$: additionalParticipantsNeeded = 6 - nonNullParticipantCount;
 </script>
 
 {#if error}
-    <p>Error loading league: {error}</p>
+	<p>Error loading league: {error}</p>
 {:else if subscribedLeagueData && Object.keys(subscribedLeagueData).length > 0}
-    <!-- League Dashboard UI -->
-    <h1>League: {subscribedLeagueData.league_name}</h1>
-    <p>Created by: {subscribedLeagueData.created_by}</p>
-    <p>Draft Status: {subscribedLeagueData.draft_status}</p>
-    <p>Current Participants: {nonNullParticipantCount} / {subscribedLeagueData.max_participants}</p>
+	<!-- League Dashboard UI -->
+	<h1>League: {subscribedLeagueData.league_name}</h1>
+	<p>Created by: {subscribedLeagueData.created_by}</p>
+	<p>Draft Status: {subscribedLeagueData.draft_status}</p>
+	<p>Current Participants: {nonNullParticipantCount} / {subscribedLeagueData.max_participants}</p>
 
 	{#if isDraftTimeLoaded}
 		{#if draftStartTime}
