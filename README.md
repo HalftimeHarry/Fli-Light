@@ -132,7 +132,6 @@ assigned or referenced to the row in the scores table. This system if done corre
 ## Fantasay Notes
 
 fantasy_scores_json
-
 {
 "tournament_1": {
 "round_1": {
