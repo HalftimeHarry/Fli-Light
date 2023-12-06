@@ -40,7 +40,6 @@
 		}
 	}
 
-
 	// Calculate the number of non-null participants
 	let nonNullParticipantCount = countNonNullParticipants(leagueData);
 	let needed = nonNullParticipantCount - 6;
@@ -52,6 +51,9 @@
 
 <script>
 	import { onMount } from 'svelte';
+	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
+	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
+	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
 
 	let leagueData, userUUID, error;
 	let draftStartTime = null; // Defined at the top level
