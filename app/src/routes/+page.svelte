@@ -6,6 +6,7 @@
 	import Auth from '$lib/Auth.svelte';
 
 	let session: AuthSession;
+	
 
 	onMount(() => {
 		supabase.auth.getSession().then(({ data }) => {
