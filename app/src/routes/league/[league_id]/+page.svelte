@@ -4,6 +4,8 @@
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
 
+	let leagueData = {}; // Initialize leagueData appropriately
+
 	function openPopup() {
 		isFantasyParticipantJoinLeaguePopupVisible.set(true);
 	}
@@ -45,29 +47,28 @@
 	let needed = nonNullParticipantCount - 6;
 	let positiveValue = Math.abs(needed);
 	// Get the logged-in user's UUID
-
 </script>
 
 <script>
-    import { onMount } from 'svelte';
+	import { onMount } from 'svelte';
 
-    let leagueData, userUUID, error;
-    let draftStartTime = null; // Defined at the top level
-    let leagueIdForCountdown;
-    let isDraftTimeLoaded = false; // Local variable to control the display
+	let userUUID, error;
+	let draftStartTime = null; // Defined at the top level
+	let leagueIdForCountdown;
+	let isDraftTimeLoaded = false; // Local variable to control the display
 
-    async function initializeData() {
-        // Fetch league data
-        let { data: league, fetchError } = await supabase.from('league').select('*');
-        error = fetchError;
-        if (!fetchError && league && league.length > 0) {
-            leagueData = league[0];
-            leagueIdForCountdown = leagueData.league_id;
-            userUUID = (await supabase.auth.getUser()).data.user?.id;
-            draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
-            isDraftTimeLoaded = true; // Set to true after loading
-        }
-    }
+	async function initializeData() {
+		// Fetch league data
+		let { data: league, fetchError } = await supabase.from('league').select('*');
+		error = fetchError;
+		if (!fetchError && league && league.length > 0) {
+			leagueData = league[0];
+			leagueIdForCountdown = leagueData.league_id;
+			userUUID = (await supabase.auth.getUser()).data.user?.id;
+			draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
+			isDraftTimeLoaded = true; // Set to true after loading
+		}
+	}
 
 	onMount(async () => {
 		initializeData(); // Call the function inside onMount
