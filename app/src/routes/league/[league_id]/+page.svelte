@@ -3,8 +3,8 @@
 	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
+	import { leagueData } from '$lib/components/leagueDataForFantasyStore.ts';
 
-	let leagueData = {}; // Initialize leagueData appropriately
 
 	function openPopup() {
 		isFantasyParticipantJoinLeaguePopupVisible.set(true);
@@ -67,6 +67,9 @@
 			userUUID = (await supabase.auth.getUser()).data.user?.id;
 			draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
 			isDraftTimeLoaded = true; // Set to true after loading
+		} else if (league && league.length > 0) {
+			leagueData.set(league[0]); // Update the store
+			// Additional logic...
 		}
 	}
 
@@ -114,6 +117,8 @@
 		}
 	}
 
+	// Reactive subscription
+	$: subscribedLeagueData = $leagueData;
 	// Reactive statement for debugging
 	$: if (draftStartTime) console.log('Draft starts at:', draftStartTime);
 	// Calculate the number of non-null participants
