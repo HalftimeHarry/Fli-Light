@@ -184,10 +184,6 @@
 		<p>The league has not started yet. We need {positiveValue} Additional Participants</p>
 	{/if}
 
-	{#if !$leagueData.league_started || !$leagueData.fantasy_tournament_active}
-		<p>The league has not started yet. We need {positiveValue} Additional Participants</p>
-	{/if}
-
 	{#if $isFantasyParticipantJoinLeaguePopupVisible}
 		<JoinLeaguePopup {userUUID} {participantFields} />
 	{/if}
