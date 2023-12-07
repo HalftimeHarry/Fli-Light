@@ -54,6 +54,7 @@
 	let nonNullParticipantCount = countNonNullParticipants(leagueData);
 	let needed = nonNullParticipantCount - 6;
 	let positiveValue = Math.abs(needed);
+	$: subscribedLeagueData = $leagueData;
 
 	async function initializeData() {
 		// Fetch league data
@@ -84,29 +85,6 @@
 		}
 	});
 
-	// Function to handle participant joining
-	async function joinLeague(participantUUID) {
-		let leagueId = $leagueData.league_id; // Ensure this is a valid integer
-		let updateField = participantFields.find((field) => !$leagueData[field]);
-
-		if (updateField && leagueId) {
-			try {
-				const updateData = { [updateField]: participantUUID };
-				const { error: updateError } = await supabase
-					.from('league')
-					.update(updateData)
-					.eq('league_id', leagueId);
-
-				if (updateError) throw updateError;
-				console.log(`Participant added to league in slot: ${updateField}`);
-				leagueData[updateField] = participantUUID; // Update local data
-			} catch (error) {
-				console.error('Error joining league:', error);
-			}
-		} else {
-			console.log('No available slots in the league');
-		}
-	}
 
 	// Define countNonNullParticipants function here
 	function countNonNullParticipants() {
@@ -185,7 +163,7 @@
 	{/if}
 
 	{#if $isFantasyParticipantJoinLeaguePopupVisible}
-		<JoinLeaguePopup {userUUID} {leagueData} {participantFields} />
+		<JoinLeaguePopup {userUUID} {participantFields} />
 	{/if}
 
 	{#if additionalParticipantsNeeded > 0}
