@@ -94,6 +94,30 @@
 
 	// Reactive statements and other component logic
 	$: nonNullParticipantCount = $leagueData ? countNonNullParticipants() : 0;
+	$: if (nonNullParticipantCount === 6 && $leagueData.payment_model === 'full-all-6') {
+		updateLeagueStatus();
+	}
+
+	async function updateLeagueStatus() {
+		const updatePayload = {
+			league_status: 'Active',
+			fantasy_tournament_active: true
+		};
+
+		const { error } = await supabase
+			.from('league')
+			.update(updatePayload)
+			.eq('league_id', $leagueData.league_id);
+
+		if (error) {
+			console.error('Error updating league status:', error);
+		} else {
+			leagueData.update((data) => {
+				return { ...data, ...updatePayload };
+			});
+			console.log('League status updated to Active, Fantasy Tournament set to active');
+		}
+	}
 
 	// Log for debugging
 	$: console.log('Non-null participant count:', nonNullParticipantCount);
