@@ -94,7 +94,12 @@
 
 	// Reactive statements and other component logic
 	$: nonNullParticipantCount = $leagueData ? countNonNullParticipants() : 0;
-	$: if (nonNullParticipantCount === 6 && $leagueData.payment_model === 'full-all-6') {
+	$: if (
+		nonNullParticipantCount === 6 &&
+		$leagueData.payment_model === 'full-all-6' &&
+		$leagueData.league_status !== 'Active' &&
+		!$leagueData.fantasy_tournament_active
+	) {
 		updateLeagueStatus();
 	}
 
