@@ -85,6 +85,7 @@
 		}
 
 		closePopup();
+		window.location.reload();
 	}
 
 	function countNonNullParticipants(leagueData) {
@@ -107,8 +108,8 @@
 			bind:value={teamName}
 			placeholder="Enter Fantasy Team Name"
 		/>
-		<button type="submit">Join</button>
-		<button class="ml-2" type="button" on:click={closePopup}
+		<button class="ml-2 text-green-600" type="submit"><Icon icon="zondicons:add-solid" /></button>
+		<button class="ml-2 text-red-600" type="button" on:click={closePopup}
 			><Icon icon="zondicons:close-solid" /></button
 		>
 	</form>
