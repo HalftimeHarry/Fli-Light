@@ -3,38 +3,9 @@
 	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
+	import DraftButton from '$lib/components/DraftButton.svelte';
 
-	function openPopup() {
-		isFantasyParticipantJoinLeaguePopupVisible.set(true);
-	}
-
-	async function fetchNextFantasyTournament(leagueId) {
-		let { data: fantasyTournaments, error } = await supabase
-			.from('fantasy_tournaments')
-			.select('start_date')
-			.eq('league_id', leagueId)
-			.order('start_date', { ascending: true })
-			.limit(1);
-
-		if (error) {
-			console.error('Error fetching fantasy tournament start date:', error);
-			return null;
-		} else if (fantasyTournaments && fantasyTournaments.length > 0) {
-			// Directly return the original tournament start date
-			let firstTournamentStartDate = new Date(fantasyTournaments[0].start_date);
-			return firstTournamentStartDate;
-		} else {
-			console.log('No upcoming fantasy tournaments found');
-			return null;
-		}
-	}
-
-	// Calculate the number of non-null participants
-</script>
-
-<script>
-	import { onMount } from 'svelte';
-	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
+	let draftStartTime; // Declare draftStartTime at the module level
 
 	// Define participantFields at the module level
 	const participantFields = [
@@ -46,14 +17,36 @@
 		'league_participant_6'
 	];
 
+	function openPopup() {
+		isFantasyParticipantJoinLeaguePopupVisible.set(true);
+	}
+</script>
+
+<script>
+	import { onMount } from 'svelte';
+	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
+
+	let isButtonEnabled = false;
 	let userUUID, error;
-	let draftStartTime = null; // Defined at the top level
+	let onCountdownComplet;
 	let leagueIdForCountdown;
 	let isDraftTimeLoaded = false; // Local variable to control the display
+	let hasLeagueBeenUpdated = false; // Flag to track if the update has been done
 	let nonNullParticipantCount = countNonNullParticipants(leagueData);
 	let needed = nonNullParticipantCount - 6;
 	let positiveValue = Math.abs(needed);
 	$: subscribedLeagueData = $leagueData;
+
+	function onCountdownComplete() {
+		isButtonEnabled = true; // Enable the button when countdown completes
+		console.log('Countdown complete');
+	}
+
+	function startDraft() {
+		// Logic to start the draft
+		console.log('Draft started');
+		// Update league status to "Drafting" or other relevant actions
+	}
 
 	async function initializeData() {
 		// Fetch league data
@@ -63,7 +56,6 @@
 			leagueData.set(league[0]);
 			leagueIdForCountdown = $leagueData.league_id;
 			userUUID = (await supabase.auth.getUser()).data.user?.id;
-			draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
 			isDraftTimeLoaded = true; // Set to true after loading
 		} else if (league && league.length > 0) {
 			leagueData.set(league[0]); // Update the store
@@ -72,6 +64,7 @@
 	}
 
 	onMount(async () => {
+		console.log('Received draft start time:', draftStartTime);
 		initializeData(); // Call the function inside onMount
 		let { data: league, fetchError } = await supabase.from('league').select('*');
 		error = fetchError;
@@ -79,7 +72,6 @@
 			leagueData.set(league[0]);
 			leagueIdForCountdown = $leagueData.league_id;
 			userUUID = (await supabase.auth.getUser()).data.user?.id;
-			draftStartTime = await fetchNextFantasyTournament(leagueIdForCountdown);
 			isDraftTimeLoaded = true; // Set to true after loading
 		}
 	});
@@ -129,7 +121,6 @@
 	// Calculate the number of non-null participants
 	$: subscribedLeagueData = $leagueData;
 	// Reactive statement for debugging
-	$: if (draftStartTime) console.log('Draft starts at:', draftStartTime);
 	$: additionalParticipantsNeeded = 6 - nonNullParticipantCount;
 </script>
 
@@ -142,13 +133,12 @@
 	<p>Draft Status: {subscribedLeagueData.draft_status}</p>
 	<p>Current Participants: {nonNullParticipantCount} / {subscribedLeagueData.max_participants}</p>
 
-	{#if isDraftTimeLoaded}
-		{#if draftStartTime}
-			<DraftCountdown {draftStartTime} />
-		{:else}
-			<p>Loading draft countdown...</p>
-		{/if}
-	{/if}
+	<DraftCountdown
+		leagueId={$leagueData.league_id}
+		{draftStartTime}
+		on:countdownComplete={onCountdownComplete}
+	/>
+	<DraftButton {isButtonEnabled} on:click={startDraft} />
 
 	{#if nonNullParticipantCount === leagueData.max_participants}
 		<script>
