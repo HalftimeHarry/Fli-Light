@@ -97,7 +97,6 @@
 	$: if (
 		nonNullParticipantCount === 6 &&
 		$leagueData.payment_model === 'full-all-6' &&
-		$leagueData.league_status !== 'Active' &&
 		!$leagueData.fantasy_tournament_active
 	) {
 		updateLeagueStatus();
@@ -105,7 +104,6 @@
 
 	async function updateLeagueStatus() {
 		const updatePayload = {
-			league_status: 'Active',
 			fantasy_tournament_active: true,
 			league_started: true
 		};
