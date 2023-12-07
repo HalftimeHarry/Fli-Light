@@ -3,33 +3,36 @@
 	import { isFantasyParticipantJoinLeaguePopupVisible } from '$lib/utilities/fantasyParticipantJoinLeague.ts';
 	import { supabase } from '../../supabaseClient.ts';
 	import Icon from '@iconify/svelte';
+	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts'; // Import the store
 
 	export let userUUID;
-	export let leagueData;
-	export let participantFields; // Only as an exported prop, remove local definition
+	export let participantFields; // Only as an exported prop
 
 	let teamName = '';
+
+	// Subscribe to the leagueData store
+	$: subscribedLeagueData = $leagueData;
 
 	function closePopup() {
 		isFantasyParticipantJoinLeaguePopupVisible.set(false);
 	}
 
 	async function joinLeague() {
-		let leagueId = leagueData.league_id;
+		let leagueId = $leagueData.league_id;
 
-		// Find the next available league participant slot
-		let updateField = participantFields.find((field) => leagueData[field] == null);
+		// Find the first null field in participantFields
+		let updateField = participantFields.find((field) => $leagueData[field] == null);
 		if (!updateField) {
 			console.log('No available slots in the league');
 			return;
 		}
 
 		try {
-			// Update the league participant slot with the user UUID
+			// Prepare the participant update data
 			const participantUpdateData = { [updateField]: userUUID };
 
 			// Prepare the fantasy_teams_json update
-			let fantasyTeamsJson = leagueData.fantasy_teams_json || {};
+			let fantasyTeamsJson = { ...$leagueData.fantasy_teams_json };
 			fantasyTeamsJson[updateField] = {
 				owner_id: userUUID,
 				team_name: teamName
