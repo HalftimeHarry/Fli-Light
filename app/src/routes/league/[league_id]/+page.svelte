@@ -106,7 +106,8 @@
 	async function updateLeagueStatus() {
 		const updatePayload = {
 			league_status: 'Active',
-			fantasy_tournament_active: true
+			fantasy_tournament_active: true,
+			league_started: true
 		};
 
 		const { error } = await supabase
@@ -179,14 +180,12 @@
 		<!-- Additional UI for crowdfunding details and contributions -->
 	{/if}
 
-	{#if !leagueData.league_started && !leagueData.fantasy_tournament_active}
+	{#if !$leagueData.league_started || !$leagueData.fantasy_tournament_active}
 		<p>The league has not started yet. We need {positiveValue} Additional Participants</p>
-		<!-- UI elements for pre-league start like joining, team formation, etc. -->
 	{/if}
 
-	{#if leagueData.league_started && !leagueData.fantasy_tournament_active}
-		<p>The league is ongoing, but no fantasy tournament is active currently.</p>
-		<!-- UI elements for ongoing league with no active tournament -->
+	{#if !$leagueData.league_started || !$leagueData.fantasy_tournament_active}
+		<p>The league has not started yet. We need {positiveValue} Additional Participants</p>
 	{/if}
 
 	{#if $isFantasyParticipantJoinLeaguePopupVisible}
