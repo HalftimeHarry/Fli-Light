@@ -19,24 +19,20 @@
 
 	async function joinLeague() {
 		let leagueId = $leagueData.league_id;
-		console.log(leagueId);
 
-		// Reverse the array to start checking from the end
-		let reversedParticipantFields = [...participantFields].reverse();
-
-		// Find the next available league participant slot in the reversed array
-		let updateField = reversedParticipantFields.find((field) => $leagueData[field] == null);
+		// Find the first null field in participantFields
+		let updateField = participantFields.find((field) => $leagueData[field] == null);
 		if (!updateField) {
 			console.log('No available slots in the league');
 			return;
 		}
 
 		try {
-			// Update the league participant slot with the user UUID
+			// Prepare the participant update data
 			const participantUpdateData = { [updateField]: userUUID };
 
 			// Prepare the fantasy_teams_json update
-			let fantasyTeamsJson = leagueData.fantasy_teams_json || {};
+			let fantasyTeamsJson = { ...$leagueData.fantasy_teams_json };
 			fantasyTeamsJson[updateField] = {
 				owner_id: userUUID,
 				team_name: teamName
