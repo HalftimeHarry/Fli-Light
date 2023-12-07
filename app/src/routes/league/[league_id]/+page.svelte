@@ -22,7 +22,6 @@
 		} else if (fantasyTournaments && fantasyTournaments.length > 0) {
 			// Directly return the original tournament start date
 			let firstTournamentStartDate = new Date(fantasyTournaments[0].start_date);
-			console.log('Original tournament start date:', firstTournamentStartDate);
 			return firstTournamentStartDate;
 		} else {
 			console.log('No upcoming fantasy tournaments found');
