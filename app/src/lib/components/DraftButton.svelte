@@ -1,14 +1,13 @@
-<script>
-	export let isButtonEnabled; // Accepts the isButtonEnabled prop
+<script lang="ts">
+    export let isButtonEnabled;
+    export let onDraftStart;
 
-	function startDraft() {
-		if (isButtonEnabled) {
-			console.log('Draft started');
-			// Logic to start the draft
-		} else {
-			console.log('Draft not ready to start yet');
-		}
-	}
+    function startDraft() {
+        console.log('Draft started');
+        if (typeof onDraftStart === 'function') {
+            onDraftStart(); // Call the passed function
+        }
+    }
 </script>
 
 <button

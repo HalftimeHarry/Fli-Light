@@ -4,6 +4,7 @@
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
 	import DraftButton from '$lib/components/DraftButton.svelte';
+	import DraftOverlayForm from '$lib/components/DraftOverlayForm.svelte'; // Assuming this is the correct path
 
 	let draftStartTime; // Declare draftStartTime at the module level
 
@@ -25,7 +26,10 @@
 <script>
 	import { onMount } from 'svelte';
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
+	import { rollDice } from '$lib/utilities/rollDiceTransition.ts';
 
+	let showForm = false;
+	let showDraftOverlay = false;
 	let isButtonEnabled = false;
 	let userUUID, error;
 	let onCountdownComplet;
@@ -37,15 +41,35 @@
 	let positiveValue = Math.abs(needed);
 	$: subscribedLeagueData = $leagueData;
 
+	function handleDraftStart() {
+		console.log('Draft process started');
+		showDraftOverlay = true;
+		console.log(showDraftOverlay);
+		// Include logic for starting the draft
+		setTimeout(() => {
+			showDraftOverlay = false; // Hide the overlay after the animation
+		}, 3000); // Adjust time as per your animation duration
+	}
+
 	function onCountdownComplete() {
 		isButtonEnabled = true; // Enable the button when countdown completes
 		console.log('Countdown complete');
 	}
 
 	function startDraft() {
-		// Logic to start the draft
-		console.log('Draft started');
-		// Update league status to "Drafting" or other relevant actions
+		if ($leagueData.created_by === userUUID) {
+			// Check if the current user created the league
+			showForm = true; // Trigger the dice roll animation
+			onDraftStart();
+
+			setTimeout(() => {
+				showForm = false; // Hide the form after the animation
+				// Proceed with the draft logic
+				// E.g., updating league status, starting the draft process, etc.
+			}, 3000); // Duration should match your dice roll animation time
+		} else {
+			console.log('Only the creator can start the draft.');
+		}
 	}
 
 	async function initializeData() {
@@ -138,7 +162,7 @@
 		{draftStartTime}
 		on:countdownComplete={onCountdownComplete}
 	/>
-	<DraftButton {isButtonEnabled} on:click={startDraft} />
+	<DraftButton {isButtonEnabled} onDraftStart={handleDraftStart} on:click={startDraft} />
 
 	{#if nonNullParticipantCount === leagueData.max_participants}
 		<script>
@@ -174,6 +198,16 @@
 
 	{#if $isFantasyParticipantJoinLeaguePopupVisible}
 		<JoinLeaguePopup {userUUID} {participantFields} />
+	{/if}
+
+	<!-- HTML and Components -->
+	{#if showForm}
+		<div
+			in:rollDice={{ duration: 3000 }}
+			class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+		>
+			<DraftOverlayForm />
+		</div>
 	{/if}
 
 	{#if additionalParticipantsNeeded > 0}
