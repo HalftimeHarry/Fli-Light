@@ -1,18 +1,26 @@
-<script>
-	// ...other imports...
-	import DraftOverlayForm from '$lib/components/DraftOverlayForm.svelte';
+<script lang="ts">
+	import GenerateMatchUps from '$lib/components/generateMatchUps.svelte'; // Adjust path as necessary
+	export let onGenerateMatchUps;
 
-	let isDraftStarted = false;
-	let showDraftOverlay = false;
-
+	// Additional script content if necessary
 </script>
 
-<!-- Other HTML and components -->
+<div class="overlay">
+	<!-- Include other UI elements related to the draft process -->
+	<GenerateMatchUps {onGenerateMatchUps} />
+</div>
 
-{#if showDraftOverlay}
-	<DraftOverlayForm />
-{/if}
-
-<button on:click={startDraft} disabled={isDraftStarted}> Start Draft </button>
-
-<!-- Include other UI elements related to the draft process -->
+<style>
+	.overlay {
+		/* Define your overlay styles here */
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5); /* Example semi-transparent background */
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+</style>

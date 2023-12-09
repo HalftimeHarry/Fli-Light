@@ -5,6 +5,7 @@
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
 	import DraftButton from '$lib/components/DraftButton.svelte';
 	import DraftOverlayForm from '$lib/components/DraftOverlayForm.svelte'; // Assuming this is the correct path
+	import GenerateMatchUps from '$lib/components/generateMatchUps.svelte';
 
 	let draftStartTime; // Declare draftStartTime at the module level
 
@@ -28,8 +29,8 @@
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
 	import { rollDice } from '$lib/utilities/rollDiceTransition.ts';
 
-	let showForm = false;
 	let showDraftOverlay = false;
+	let isDiceRolling = false; // State to control the dice roll animation
 	let isButtonEnabled = false;
 	let userUUID, error;
 	let onCountdownComplet;
@@ -41,35 +42,44 @@
 	let positiveValue = Math.abs(needed);
 	$: subscribedLeagueData = $leagueData;
 
+	function startDraft() {
+		console.log('Draft started');
+		isDiceRolling = true;
+
+		setTimeout(() => {
+			isDiceRolling = false;
+			// Trigger function in generateMatchUps component here
+		}, 3000);
+	}
+
 	function handleDraftStart() {
 		console.log('Draft process started');
 		showDraftOverlay = true;
-		console.log(showDraftOverlay);
-		// Include logic for starting the draft
+		// Include additional logic for starting the draft
 		setTimeout(() => {
-			showDraftOverlay = false; // Hide the overlay after the animation
-		}, 3000); // Adjust time as per your animation duration
+			showDraftOverlay = false; // Hide the overlay after some time or an event
+		}, 3000); // Adjust time as per your needs
+	}
+
+	function onDraftStart() {
+		console.log('Draft is starting');
+		isDiceRolling = true; // Start the dice roll animation
+
+		setTimeout(() => {
+			isDiceRolling = false; // End the dice roll animation
+			showDraftOverlay = true; // Show the DraftOverlayForm
+		}, 7000); // Duration of your dice roll animation
+	}
+
+	function onGenerateMatchUps() {
+		// Logic for generating matchups
+		console.log('Generating matchups');
+		// ... more logic ...
 	}
 
 	function onCountdownComplete() {
 		isButtonEnabled = true; // Enable the button when countdown completes
 		console.log('Countdown complete');
-	}
-
-	function startDraft() {
-		if ($leagueData.created_by === userUUID) {
-			// Check if the current user created the league
-			showForm = true; // Trigger the dice roll animation
-			onDraftStart();
-
-			setTimeout(() => {
-				showForm = false; // Hide the form after the animation
-				// Proceed with the draft logic
-				// E.g., updating league status, starting the draft process, etc.
-			}, 3000); // Duration should match your dice roll animation time
-		} else {
-			console.log('Only the creator can start the draft.');
-		}
 	}
 
 	async function initializeData() {
@@ -162,7 +172,8 @@
 		{draftStartTime}
 		on:countdownComplete={onCountdownComplete}
 	/>
-	<DraftButton {isButtonEnabled} onDraftStart={handleDraftStart} on:click={startDraft} />
+	<!-- Ensure onDraftStart is passed to DraftButton -->
+	<DraftButton {isButtonEnabled} {onDraftStart} />
 
 	{#if nonNullParticipantCount === leagueData.max_participants}
 		<script>
@@ -200,14 +211,12 @@
 		<JoinLeaguePopup {userUUID} {participantFields} />
 	{/if}
 
-	<!-- HTML and Components -->
-	{#if showForm}
-		<div
-			in:rollDice={{ duration: 3000 }}
-			class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
-		>
-			<DraftOverlayForm />
-		</div>
+	{#if isDiceRolling}
+		<div in:rollDice class="dice-animation">Rolling Dice...</div>
+	{/if}
+
+	{#if showDraftOverlay}
+		<DraftOverlayForm {onGenerateMatchUps} />
 	{/if}
 
 	{#if additionalParticipantsNeeded > 0}
