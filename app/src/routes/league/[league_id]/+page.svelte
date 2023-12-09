@@ -29,7 +29,6 @@
 	import { onMount } from 'svelte';
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
 
-
 	let showDraftOverlay = false;
 	let isDiceRolling = false; // State to control the dice roll animation
 	let showFirstDice = true;
@@ -231,9 +230,9 @@
 	{#if isDiceRolling}
 		<div class="dice-icon">
 			{#if showFirstDice}
-				<Icon icon={diceLine} />
+				<Icon icon="ri:dice-fill" />
 			{:else}
-				<Icon icon={diceOutline} />
+				<Icon icon="ri:dice-line" />
 			{/if}
 		</div>
 	{/if}
