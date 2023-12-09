@@ -6,6 +6,7 @@
 	import DraftButton from '$lib/components/DraftButton.svelte';
 	import DraftOverlayForm from '$lib/components/DraftOverlayForm.svelte'; // Assuming this is the correct path
 	import GenerateMatchUps from '$lib/components/generateMatchUps.svelte';
+	import Icon from '@iconify/svelte';
 
 	let draftStartTime; // Declare draftStartTime at the module level
 
@@ -27,10 +28,11 @@
 <script>
 	import { onMount } from 'svelte';
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
-	import { rollDice } from '$lib/utilities/rollDiceTransition.ts';
+
 
 	let showDraftOverlay = false;
 	let isDiceRolling = false; // State to control the dice roll animation
+	let showFirstDice = true;
 	let isButtonEnabled = false;
 	let userUUID, error;
 	let onCountdownComplet;
@@ -59,6 +61,21 @@
 		setTimeout(() => {
 			showDraftOverlay = false; // Hide the overlay after some time or an event
 		}, 3000); // Adjust time as per your needs
+	}
+
+	function startDiceRolling() {
+		isDiceRolling = true;
+		showFirstDice = true;
+
+		const interval = setInterval(() => {
+			showFirstDice = !showFirstDice; // Toggle between the two dice
+		}, 500); // Adjust timing as needed
+
+		setTimeout(() => {
+			clearInterval(interval);
+			isDiceRolling = false;
+			// Any additional logic after dice roll
+		}, 3000); // Total duration of dice roll
 	}
 
 	function onDraftStart() {
@@ -212,7 +229,13 @@
 	{/if}
 
 	{#if isDiceRolling}
-		<div in:rollDice class="dice-animation">Rolling Dice...</div>
+		<div class="dice-icon">
+			{#if showFirstDice}
+				<Icon icon={diceLine} />
+			{:else}
+				<Icon icon={diceOutline} />
+			{/if}
+		</div>
 	{/if}
 
 	{#if showDraftOverlay}
@@ -226,3 +249,25 @@
 		{/if}
 	{/if}
 {/if}
+
+<style>
+	@keyframes shake {
+		0%,
+		100% {
+			transform: translateX(0);
+		}
+		25% {
+			transform: translateX(-5px);
+		}
+		50% {
+			transform: translateX(5px);
+		}
+		75% {
+			transform: translateX(-5px);
+		}
+	}
+
+	.dice-icon {
+		animation: shake 0.5s ease-in-out;
+	}
+</style>

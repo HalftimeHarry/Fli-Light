@@ -1,7 +1,7 @@
 // rollDiceTransition.ts
 import { cubicOut } from 'svelte/easing';
 
-export function rollDice(node, { duration = 500 }) {
+export function rollDice(node, { duration = 3000 }) {
     return {
         duration,
         css: t => {
