@@ -84,7 +84,7 @@
 		setTimeout(() => {
 			isDiceRolling = false; // End the dice roll animation
 			showDraftOverlay = true; // Show the DraftOverlayForm
-		}, 7000); // Duration of your dice roll animation
+		}, 1000); // Duration of your dice roll animation
 	}
 
 	function onGenerateMatchUps() {
@@ -266,7 +266,8 @@
 		}
 	}
 
-	.dice-icon {
-		animation: shake 0.5s ease-in-out;
-	}
+    .dice-icon {
+        animation: shake 0.5s ease-in-out;
+        font-size: 48px; /* Example size, adjust as needed */
+    }
 </style>
