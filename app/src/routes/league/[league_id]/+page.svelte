@@ -5,7 +5,7 @@
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
 	import DraftButton from '$lib/components/DraftButton.svelte';
 	import DraftOverlayForm from '$lib/components/DraftOverlayForm.svelte'; // Assuming this is the correct path
-	import GenerateMatchUps from '$lib/components/generateMatchUps.svelte';
+	import GenerateMatchUps from '$lib/components/GenerateMatchUps.svelte';
 	import Icon from '@iconify/svelte';
 
 	let draftStartTime; // Declare draftStartTime at the module level
@@ -26,8 +26,21 @@
 </script>
 
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, getContext } from 'svelte';
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
+	import { getDrawerStore } from '@skeletonlabs/skeleton';
+
+	let drawerStore;
+
+	onMount(() => {
+		// ... other onMount code ...
+	});
+
+	// Reactive statement to initialize drawerStore
+	$: if (!drawerStore) {
+		drawerStore = getDrawerStore();
+		console.log('Drawer store initialized:', drawerStore);
+	}
 
 	let showDraftOverlay = false;
 	let isDiceRolling = false; // State to control the dice roll animation
@@ -53,15 +66,6 @@
 		}, 3000);
 	}
 
-	function handleDraftStart() {
-		console.log('Draft process started');
-		showDraftOverlay = true;
-		// Include additional logic for starting the draft
-		setTimeout(() => {
-			showDraftOverlay = false; // Hide the overlay after some time or an event
-		}, 3000); // Adjust time as per your needs
-	}
-
 	function startDiceRolling() {
 		isDiceRolling = true;
 		showFirstDice = true;
@@ -79,12 +83,23 @@
 
 	function onDraftStart() {
 		console.log('Draft is starting');
-		isDiceRolling = true; // Start the dice roll animation
-
+		isDiceRolling = true;
 		setTimeout(() => {
-			isDiceRolling = false; // End the dice roll animation
-			showDraftOverlay = true; // Show the DraftOverlayForm
-		}, 1000); // Duration of your dice roll animation
+			isDiceRolling = false;
+			console.log('Attempting to open drawer');
+			console.log('showDraftOverlay before opening drawer:', showDraftOverlay);
+			if (drawerStore) {
+				drawerStore.open({
+					content: GenerateMatchUps,
+					props: { onGenerateMatchUps }
+				});
+				console.log('Drawer opened with GenerateMatchUps');
+				// Set showDraftOverlay to true here if necessary
+				showDraftOverlay = true;
+			} else {
+				console.error('Drawer store is not initialized');
+			}
+		}, 1000);
 	}
 
 	function onGenerateMatchUps() {
@@ -172,6 +187,7 @@
 	$: subscribedLeagueData = $leagueData;
 	// Reactive statement for debugging
 	$: additionalParticipantsNeeded = 6 - nonNullParticipantCount;
+	console.log(showDraftOverlay);
 </script>
 
 {#if error}
@@ -266,8 +282,8 @@
 		}
 	}
 
-    .dice-icon {
-        animation: shake 0.5s ease-in-out;
-        font-size: 48px; /* Example size, adjust as needed */
-    }
+	.dice-icon {
+		animation: shake 0.5s ease-in-out;
+		font-size: 48px; /* Example size, adjust as needed */
+	}
 </style>

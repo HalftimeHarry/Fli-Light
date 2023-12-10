@@ -1,26 +1,31 @@
 <script lang="ts">
-	import GenerateMatchUps from '$lib/components/generateMatchUps.svelte'; // Adjust path as necessary
-	export let onGenerateMatchUps;
+    console.log('DraftOverlayForm component loaded');
+    import GenerateMatchUps from '$lib/components/GenerateMatchUps.svelte';
+    import { getDrawerStore } from '@skeletonlabs/skeleton';
 
-	// Additional script content if necessary
+    export let onGenerateMatchUps;
+    const drawerStore = getDrawerStore();
+
+    // Function to close the drawer
+    function closeDrawer() {
+        drawerStore.close();
+    }
 </script>
 
-<div class="overlay">
-	<!-- Include other UI elements related to the draft process -->
-	<GenerateMatchUps {onGenerateMatchUps} />
-</div>
+<div class="fixed top-0 left-0 right-0 bottom-0 bg-red-500 flex justify-center items-center z-50">
+    <!-- Close button -->
+    <button
+        on:click={closeDrawer}
+        class="absolute top-2 right-2 bg-white text-black px-4 py-2 rounded shadow-lg"
+    >
+        Close
+    </button>
 
-<style>
-	.overlay {
-		/* Define your overlay styles here */
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background-color: rgba(0, 0, 0, 0.5); /* Example semi-transparent background */
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-</style>
+    <!-- Display drawer metadata -->
+    <div class="absolute top-2 left-2 text-white">
+        {$drawerStore.meta}
+    </div>
+
+    <!-- Generate MatchUps Component -->
+    <GenerateMatchUps {onGenerateMatchUps} />
+</div>
