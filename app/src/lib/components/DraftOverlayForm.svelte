@@ -16,14 +16,22 @@
 
 	onMount(async () => {
 		try {
-			let { data: prosData, error: prosError } = await supabase.from('pros').select('*');
+			// Fetching pros data and ordering by rank
+			let { data: prosData, error: prosError } = await supabase
+				.from('pros')
+				.select('*')
+				.order('rank', { ascending: true });
+
+			if (prosError) throw prosError;
+
+			// Fetching teams data
 			let { data: teamsData, error: teamsError } = await supabase
 				.from('teams')
 				.select('team_id, name');
 
-			if (prosError) throw prosError;
 			if (teamsError) throw teamsError;
 
+			// Storing the fetched data in variables
 			pros = prosData;
 			teams = teamsData;
 		} catch (err) {
@@ -65,19 +73,29 @@
 			<table class="min-w-full text-black">
 				<thead>
 					<tr class="text-left">
-						<th>Name</th>
 						<th>Rank</th>
-						<th>Team</th>
+						<!-- Moved Rank to the first position -->
 						<th>Image</th>
+						<!-- Moved Image next -->
+						<th>Name</th>
+						<!-- Moved Name to the third position -->
+						<th>Team</th>
+						<!-- Team remains the last -->
 					</tr>
 				</thead>
 				<tbody>
 					{#each pros as pro}
 						<tr>
-							<td>{pro.name}</td>
 							<td>{pro.rank}</td>
+							<!-- Rank first -->
+							<td>
+								<img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" />
+							</td>
+							<!-- Image next -->
+							<td>{pro.name}</td>
+							<!-- Name third -->
 							<td>{getTeamName(pro.team_id)}</td>
-							<td><img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" /></td>
+							<!-- Team last -->
 						</tr>
 					{/each}
 				</tbody>
