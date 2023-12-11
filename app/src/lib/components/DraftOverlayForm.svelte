@@ -2,38 +2,51 @@
 	import GenerateMatchUps from '$lib/components/GenerateMatchUps.svelte';
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { supabase } from '../../supabaseClient'; // Ensure this path is correct
+	import { supabase } from '../../supabaseClient'; // Adjust the path as necessary
 
 	export let onGenerateMatchUps;
 	const drawerStore = getDrawerStore();
 
 	let pros = [];
+	let teams = [];
 	let loading = true;
+	let loadingTeams = true;
 	let error = null;
+	let errorTeams = null;
 
 	onMount(async () => {
 		try {
-			let { data, error: fetchError } = await supabase.from('pros').select('*');
+			let { data: prosData, error: prosError } = await supabase.from('pros').select('*');
+			let { data: teamsData, error: teamsError } = await supabase
+				.from('teams')
+				.select('team_id, name');
 
-			if (fetchError) throw fetchError;
+			if (prosError) throw prosError;
+			if (teamsError) throw teamsError;
 
-			pros = data;
-			console.log(pros); // Log the fetched data
+			pros = prosData;
+			teams = teamsData;
 		} catch (err) {
 			error = err;
-			console.error('Error fetching pros:', error);
 		} finally {
 			loading = false;
+			loadingTeams = false;
 		}
 	});
 
-	// Function to close the drawer
 	function closeDrawer() {
 		drawerStore.close();
 	}
+
+	function getTeamName(teamId) {
+		const team = teams.find((t) => t.team_id === teamId);
+		return team ? team.name : 'Unknown';
+	}
 </script>
 
-<div class="fixed top-0 left-0 right-0 bottom-0 bg-red-500 flex justify-center items-center z-50">
+<div
+	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
+>
 	<!-- Close button -->
 	<button
 		on:click={closeDrawer}
@@ -42,11 +55,33 @@
 		Close
 	</button>
 
-	<!-- Display drawer metadata -->
-	<div class="absolute top-2 left-2 text-white">
-		{$drawerStore.meta}
+	<!-- Display pro details in a table -->
+	<div class="overflow-auto max-h-[80vh] w-[90vw] bg-white rounded-lg p-4">
+		{#if loading || loadingTeams}
+			<p class="text-black">Loading...</p>
+		{:else if error || errorTeams}
+			<p class="text-black">Error: {error?.message || errorTeams?.message}</p>
+		{:else}
+			<table class="min-w-full text-black">
+				<thead>
+					<tr class="text-left">
+						<th>Name</th>
+						<th>Rank</th>
+						<th>Team</th>
+						<th>Image</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each pros as pro}
+						<tr>
+							<td>{pro.name}</td>
+							<td>{pro.rank}</td>
+							<td>{getTeamName(pro.team_id)}</td>
+							<td><img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" /></td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		{/if}
 	</div>
-
-	<!-- Generate MatchUps Component -->
-	<GenerateMatchUps {onGenerateMatchUps} />
 </div>
