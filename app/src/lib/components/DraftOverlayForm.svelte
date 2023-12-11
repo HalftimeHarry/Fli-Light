@@ -13,6 +13,11 @@
 	let loadingTeams = true;
 	let error = null;
 	let errorTeams = null;
+	// Additional state for round management and selection
+    let currentRound = 1;
+    let currentParticipantId;  // ID of the participant currently selecting
+    let selectedPros = new Set();  // Set to track selected pros
+
 
 	onMount(async () => {
 		try {
