@@ -51,9 +51,7 @@
 	});
 </script>
 
-<div
-	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
->
+<div class="fixed top-0 left-0 right-0 bottom-0 flex justify-center items-center z-50">
 	<!-- Close button -->
 	<button
 		on:click={closeDrawer}
@@ -63,9 +61,9 @@
 	</button>
 
 	<!-- List of Team Names -->
-	<div class="absolute top-2 left-2 text-white">
+	<div class="absolute flex flex-row top-2 left-2 text-white">
 		{#each fantasyTeams as team}
-			<div>{team.team_name}</div>
+			<div class="mx-2">{team.team_name}</div>
 		{/each}
 	</div>
 </div>

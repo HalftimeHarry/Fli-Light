@@ -14,10 +14,9 @@
 	let error = null;
 	let errorTeams = null;
 	// Additional state for round management and selection
-    let currentRound = 1;
-    let currentParticipantId;  // ID of the participant currently selecting
-    let selectedPros = new Set();  // Set to track selected pros
-
+	let currentRound = 1;
+	let currentParticipantId; // ID of the participant currently selecting
+	let selectedPros = new Set(); // Set to track selected pros
 
 	onMount(async () => {
 		try {
@@ -78,6 +77,8 @@
 <div
 	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
 >
+	    <!-- Generate MatchUps Component -->
+    <GenerateMatchUps {onGenerateMatchUps} />
 	<!-- Close button -->
 	<button
 		on:click={closeDrawer}
