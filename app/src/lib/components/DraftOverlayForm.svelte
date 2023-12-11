@@ -56,6 +56,24 @@
 	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
 >
 	<!-- Close button -->
+	<button on:click={closeDrawer}>Close</button>
+
+	<!-- Table to display pros -->
+	{#if loading || loadingTeams}
+		<p>Loading...</p>
+	{:else if error || errorTeams}
+		<p>Error: {error?.message || errorTeams?.message}</p>
+	{:else}
+		<table>
+			<!-- Table headers and rows as before -->
+		</table>
+	{/if}
+</div>
+
+<div
+	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
+>
+	<!-- Close button -->
 	<button
 		on:click={closeDrawer}
 		class="absolute top-2 right-2 bg-white text-black px-4 py-2 rounded shadow-lg"
