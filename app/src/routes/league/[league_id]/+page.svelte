@@ -246,9 +246,9 @@
 	{#if isDiceRolling}
 		<div class="dice-icon">
 			{#if showFirstDice}
-				<Icon icon="ri:dice-fill" />
+				<Icon icon="game-icons:frisbee" />
 			{:else}
-				<Icon icon="ri:dice-line" />
+				<Icon icon="game-icons:frisbee" />
 			{/if}
 		</div>
 	{/if}
