@@ -1,35 +1,76 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
+	import { fetchNextFantasyTournament } from '$lib/utilities/fantasyTournamentUtils.js';
 
-	export let draftStartTime; // Expects a Date object
+	export let leagueId;
+	export let draftStartTime;
+
+	const dispatch = createEventDispatcher();
 	let countdownTime = '';
+	let interval;
 
-	onMount(() => {
-		startCountdown();
-	});
+	// Define formatTimeLeft here
+	function formatTimeLeft(timeLeft) {
+		const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+		const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+		const seconds = Math.floor((timeLeft / 1000) % 60);
 
+		return `${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds
+			.toString()
+			.padStart(2, '0')}s`;
+	}
+
+	// startCountdown function using formatTimeLeft
 	function startCountdown() {
-		const interval = setInterval(() => {
+		interval = setInterval(() => {
 			const now = new Date();
-			const timeLeft = draftStartTime - now;
+			const timeLeft = new Date(draftStartTime).getTime() - now.getTime();
 
-			if (timeLeft < 0) {
+			if (timeLeft <= 0) {
 				clearInterval(interval);
-				countdownTime = 'Draft has started';
+				countdownTime = 'Draft is ready to start';
+				handleCountdownComplete();
 				return;
 			}
 
 			countdownTime = formatTimeLeft(timeLeft);
-		}, 1000);
+            console.log('Countdown time', countdownTime); // Log the formatted countdown time
+		}, 7000); // Interval set to 7 seconds
 	}
 
-	function formatTimeLeft(timeLeft) {
-		let hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
-		let minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
-		let seconds = Math.floor((timeLeft / 1000) % 60);
+	onMount(async () => {
+		if (!leagueId) {
+			console.error('League ID is undefined or invalid.');
+			countdownTime = 'Invalid league ID';
+			return;
+		}
 
-		return `${hours}h ${minutes}m ${seconds}s`;
+		if (!draftStartTime || isNaN(new Date(draftStartTime).getTime())) {
+			try {
+				let fetchedStartTime = await fetchNextFantasyTournament(leagueId);
+				if (fetchedStartTime) {
+					draftStartTime = new Date(fetchedStartTime);
+					startCountdown();
+				} else {
+					countdownTime = 'No upcoming tournaments';
+				}
+			} catch (error) {
+				console.error('Error fetching tournament:', error);
+				countdownTime = 'Error loading tournament data';
+			}
+		} else {
+			startCountdown();
+		}
+	});
+
+	function handleCountdownComplete() {
+		dispatch('countdownComplete');
 	}
+
+	onDestroy(() => {
+		clearInterval(interval);
+	});
 </script>
 
 <main>

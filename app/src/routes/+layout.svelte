@@ -18,6 +18,11 @@
 	import { tick } from 'svelte';
 	import UpdatePasswordForm from '$lib/components/updatePasswordForm.svelte';
 	import { fly } from 'svelte/transition';
+	import { initializeStores } from '@skeletonlabs/skeleton';
+
+	// Initialize any stores or global settings
+	initializeStores();
+
 
 	let url: { pathname: string };
 	let showNavBar = false;
@@ -162,6 +167,7 @@
 		return () => {
 			window.removeEventListener('resize', checkScreenSize);
 		};
+		initializeStores();
 	});
 
 	let isLoggedIn = false;
