@@ -13,6 +13,24 @@
 		drawerStore.close();
 	}
 
+	function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+
+        // While there remain elements to shuffle...
+        while (currentIndex != 0) {
+
+            // Pick a remaining element...
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+
+            // And swap it with the current element.
+            [array[currentIndex], array[randomIndex]] = [
+                array[randomIndex], array[currentIndex]];
+        }
+
+        return array;
+    }
+
 	async function fetchFantasyTeams() {
 		console.log('Fetching fantasy teams...');
 		let { data: league, error } = await supabase.from('league').select('fantasy_teams_json');
@@ -23,20 +41,25 @@
 		}
 
 		if (league && league.length > 0) {
+			let teamsArray;
 			// Check if fantasy_teams_json is an array
 			if (Array.isArray(league[0].fantasy_teams_json)) {
-				fantasyTeams = league[0].fantasy_teams_json;
+				teamsArray = league[0].fantasy_teams_json;
 			} else {
 				// Handle the case where fantasy_teams_json is not an array
-				// Example: Convert it to an array or take other actions based on your data structure
 				console.log('Transforming fantasy_teams_json into an array');
-				fantasyTeams = transformToArrayOfTeams(league[0].fantasy_teams_json);
+				teamsArray = transformToArrayOfTeams(league[0].fantasy_teams_json);
 			}
+
+			// Shuffle the teams array
+			fantasyTeams = shuffle(teamsArray);
+			console.log('Shuffled Fantasy Teams:', fantasyTeams);
+
+			// Call onGenerateMatchUps with league data
+			onGenerateMatchUps(league);
 		} else {
 			console.error('No league data found or fantasy_teams_json is missing');
 		}
-		console.log('Fantasy teams data:', fantasyTeams);
-		onGenerateMatchUps(league);
 	}
 
 	function transformToArrayOfTeams(data) {
