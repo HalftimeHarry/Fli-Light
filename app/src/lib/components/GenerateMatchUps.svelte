@@ -4,7 +4,7 @@
 	import { supabase } from '../../supabaseClient';
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 
-	export let onGenerateMatchUps;
+	export let getDraftOrder;
 	const drawerStore = getDrawerStore();
 	let draftOrder = []; // Initialize as an empty array
 
@@ -54,8 +54,8 @@
 			draftOrder = shuffle(teamsArray);
 			console.log('Shuffled Fantasy Teams:', draftOrder);
 
-			// Call onGenerateMatchUps with league data
-			onGenerateMatchUps(draftOrder);
+			// Call getDraftOrder with league data
+			getDraftOrder(draftOrder);
 		} else {
 			console.error('No league data found or fantasy_teams_json is missing');
 		}

@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient'; // Adjust the path as necessary
 
-	export let onGenerateMatchUps;
+	export let getDraftOrder;
 	const drawerStore = getDrawerStore();
 
 	let pros = [];
@@ -77,8 +77,8 @@
 <div
 	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
 >
-	    <!-- Generate MatchUps Component -->
-    <GenerateMatchUps {onGenerateMatchUps} />
+	<!-- Generate MatchUps Component -->
+	<GenerateMatchUps {getDraftOrder} />
 	<!-- Close button -->
 	<button
 		on:click={closeDrawer}

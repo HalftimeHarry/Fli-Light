@@ -91,7 +91,7 @@
 			if (drawerStore) {
 				drawerStore.open({
 					content: GenerateMatchUps,
-					props: { onGenerateMatchUps }
+					props: { getDraftOrder }
 				});
 				console.log('Drawer opened with GenerateMatchUps');
 				// Set showDraftOverlay to true here if necessary
@@ -102,7 +102,7 @@
 		}, 1000);
 	}
 
-	function onGenerateMatchUps() {
+	function getDraftOrder() {
 		// Logic for generating matchups
 		console.log('Generating matchups');
 		// ... more logic ...
@@ -254,7 +254,7 @@
 	{/if}
 
 	{#if showDraftOverlay}
-		<DraftOverlayForm {onGenerateMatchUps} />
+		<DraftOverlayForm {getDraftOrder} />
 	{/if}
 
 	{#if additionalParticipantsNeeded > 0}
