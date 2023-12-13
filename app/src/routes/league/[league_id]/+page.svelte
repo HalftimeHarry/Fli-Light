@@ -102,10 +102,8 @@
 		}, 1000);
 	}
 
-	function getDraftOrder() {
-		// Logic for generating matchups
-		console.log('Generating matchups');
-		// ... more logic ...
+	function getDraftOrder(getDraftOrder) {
+		console.log(getDraftOrder);
 	}
 
 	function onCountdownComplete() {

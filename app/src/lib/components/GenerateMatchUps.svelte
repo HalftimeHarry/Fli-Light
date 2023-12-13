@@ -54,7 +54,7 @@
 			draftOrder = shuffle(teamsArray);
 			console.log('Shuffled Fantasy Teams:', draftOrder);
 
-			// Call getDraftOrder with league data
+			// Call getDraftOrder with draftOrder
 			getDraftOrder(draftOrder);
 		} else {
 			console.error('No league data found or fantasy_teams_json is missing');
