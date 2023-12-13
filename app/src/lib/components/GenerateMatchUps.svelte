@@ -6,7 +6,7 @@
 
 	export let onGenerateMatchUps;
 	const drawerStore = getDrawerStore();
-	let fantasyTeams = []; // Initialize as an empty array
+	let draftOrder = []; // Initialize as an empty array
 
 	function closeDrawer() {
 		console.log('Closing drawer...');
@@ -14,22 +14,21 @@
 	}
 
 	function shuffle(array) {
-        let currentIndex = array.length, randomIndex;
+		let currentIndex = array.length,
+			randomIndex;
 
-        // While there remain elements to shuffle...
-        while (currentIndex != 0) {
+		// While there remain elements to shuffle...
+		while (currentIndex != 0) {
+			// Pick a remaining element...
+			randomIndex = Math.floor(Math.random() * currentIndex);
+			currentIndex--;
 
-            // Pick a remaining element...
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
+			// And swap it with the current element.
+			[array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+		}
 
-            // And swap it with the current element.
-            [array[currentIndex], array[randomIndex]] = [
-                array[randomIndex], array[currentIndex]];
-        }
-
-        return array;
-    }
+		return array;
+	}
 
 	async function fetchFantasyTeams() {
 		console.log('Fetching fantasy teams...');
@@ -52,11 +51,11 @@
 			}
 
 			// Shuffle the teams array
-			fantasyTeams = shuffle(teamsArray);
-			console.log('Shuffled Fantasy Teams:', fantasyTeams);
+			draftOrder = shuffle(teamsArray);
+			console.log('Shuffled Fantasy Teams:', draftOrder);
 
 			// Call onGenerateMatchUps with league data
-			onGenerateMatchUps(league);
+			onGenerateMatchUps(draftOrder);
 		} else {
 			console.error('No league data found or fantasy_teams_json is missing');
 		}
@@ -68,7 +67,6 @@
 		// Example transformation (adjust according to your data structure):
 		return Object.values(data);
 	}
-
 	onMount(() => {
 		fetchFantasyTeams();
 	});
@@ -85,7 +83,7 @@
 
 	<!-- List of Team Names -->
 	<div class="absolute flex flex-row top-2 left-2 text-white">
-		{#each fantasyTeams as team}
+		{#each draftOrder as team}
 			<div class="mx-2">{team.team_name}</div>
 		{/each}
 	</div>
