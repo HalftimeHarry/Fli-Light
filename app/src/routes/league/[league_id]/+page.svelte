@@ -103,7 +103,22 @@
 	}
 
 	function getDraftOrder(getDraftOrder) {
-		console.log(getDraftOrder);
+		console.log('Entering getDraftOrder function');
+
+		// Define your draft order data here
+		const owners = [
+			{ owner_id: getDraftOrder[0].owner_id, team_name: getDraftOrder[0].team_name },
+			{ owner_id: getDraftOrder[1].owner_id, team_name: getDraftOrder[1].team_name },
+			{ owner_id: getDraftOrder[2].owner_id, team_name: getDraftOrder[2].team_name },
+			{ owner_id: getDraftOrder[3].owner_id, team_name: getDraftOrder[3].team_name },
+			{ owner_id: getDraftOrder[4].owner_id, team_name: getDraftOrder[4].team_name },
+			{ owner_id: getDraftOrder[5].owner_id, team_name: getDraftOrder[5].team_name }
+		];
+
+		// Log the generated owners array
+		console.log('Owners of teams and draft order:', owners);
+
+		// Continue with the rest of the function logic
 	}
 
 	function onCountdownComplete() {
