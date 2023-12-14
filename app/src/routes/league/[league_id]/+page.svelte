@@ -4,7 +4,7 @@
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
 	import DraftButton from '$lib/components/DraftButton.svelte';
-	import DraftOverlayForm from '$lib/components/DraftOverlayForm.svelte'; // Assuming this is the correct path
+	import DraftOverlay from '$lib/components/DraftOverlay.svelte'; // Assuming this is the correct path
 	import GenerateMatchUps from '$lib/components/GenerateMatchUps.svelte';
 	import Icon from '@iconify/svelte';
 
@@ -22,6 +22,21 @@
 
 	function openPopup() {
 		isFantasyParticipantJoinLeaguePopupVisible.set(true);
+	}
+
+	function getDraftOrder(draftOrderData) {
+		console.log('Entering getDraftOrder function');
+
+		// Define your draft order data here
+		const owners = draftOrderData.map((item, index) => ({
+			owner_id: item.owner_id,
+			team_name: item.team_name
+		}));
+
+		// Log the generated owners array
+		console.log('Owners of teams and draft order:', owners);
+
+		// Continue with the rest of the function logic
 	}
 </script>
 
@@ -91,7 +106,7 @@
 			if (drawerStore) {
 				drawerStore.open({
 					content: GenerateMatchUps,
-					props: { onGenerateMatchUps }
+					props: { getDraftOrder }
 				});
 				console.log('Drawer opened with GenerateMatchUps');
 				// Set showDraftOverlay to true here if necessary
@@ -100,12 +115,6 @@
 				console.error('Drawer store is not initialized');
 			}
 		}, 1000);
-	}
-
-	function onGenerateMatchUps() {
-		// Logic for generating matchups
-		console.log('Generating matchups');
-		// ... more logic ...
 	}
 
 	function onCountdownComplete() {
@@ -254,7 +263,7 @@
 	{/if}
 
 	{#if showDraftOverlay}
-		<DraftOverlayForm {onGenerateMatchUps} />
+		<DraftOverlay {getDraftOrder} />
 	{/if}
 
 	{#if additionalParticipantsNeeded > 0}
