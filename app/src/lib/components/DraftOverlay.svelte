@@ -13,10 +13,6 @@
 	let loadingTeams = true;
 	let error = null;
 	let errorTeams = null;
-	// Additional state for round management and selection
-	let currentRound = 1;
-	let currentParticipantId; // ID of the participant currently selecting
-	let selectedPros = new Set(); // Set to track selected pros
 
 	onMount(async () => {
 		try {
@@ -54,25 +50,8 @@
 		const team = teams.find((t) => t.team_id === teamId);
 		return team ? team.name : 'Unknown';
 	}
+
 </script>
-
-<div
-	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
->
-	<!-- Close button -->
-	<button on:click={closeDrawer}>Close</button>
-
-	<!-- Table to display pros -->
-	{#if loading || loadingTeams}
-		<p>Loading...</p>
-	{:else if error || errorTeams}
-		<p>Error: {error?.message || errorTeams?.message}</p>
-	{:else}
-		<table>
-			<!-- Table headers and rows as before -->
-		</table>
-	{/if}
-</div>
 
 <div
 	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
