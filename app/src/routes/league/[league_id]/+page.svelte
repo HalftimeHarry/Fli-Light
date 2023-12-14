@@ -4,7 +4,7 @@
 	import JoinLeaguePopup from '$lib/components/JoinLeaguePopup.svelte';
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
 	import DraftButton from '$lib/components/DraftButton.svelte';
-	import DraftOverlayForm from '$lib/components/DraftOverlayForm.svelte'; // Assuming this is the correct path
+	import DraftOverlay from '$lib/components/DraftOverlay.svelte'; // Assuming this is the correct path
 	import GenerateMatchUps from '$lib/components/GenerateMatchUps.svelte';
 	import Icon from '@iconify/svelte';
 
@@ -252,7 +252,7 @@
 	{/if}
 
 	{#if showDraftOverlay}
-		<DraftOverlayForm {getDraftOrder} />
+		<DraftOverlay {getDraftOrder} />
 	{/if}
 
 	{#if additionalParticipantsNeeded > 0}
