@@ -138,11 +138,10 @@
 		</div>
 
 		<!-- Form for selecting a pro -->
-		<div class="bg-white w-full max-w-md p-4 rounded-lg shadow-lg mt-4">
-			<h2 class="text-xl font-semibold mb-4">Select a Pro</h2>
-			<form on:submit={selectPro}>
+		<div class="w-full max-w-md p-4 rounded-lg shadow-lg mt-4 flex items-center">
+			<form on:submit={selectPro} class="flex-grow">
 				<div class="mb-4">
-					<label for="proName" class="block text-sm font-medium text-gray-700">Pro Name:</label>
+					<label for="proName" class="block text-sm font-medium text-white-700">Pro Name:</label>
 					<input
 						type="text"
 						id="proName"
@@ -151,16 +150,16 @@
 						required
 					/>
 				</div>
-				<button
-					type="submit"
-					class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
-					disabled={!isDrafting || countdownTime <= 0}
-				>
-					Draft
-				</button>
 			</form>
-			<p class="mt-2 text-gray-500">Time remaining: {countdownTime} seconds</p>
+			<button
+				type="submit"
+				class="bg-blue-500 text-white mt-2 px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+				disabled={!isDrafting || countdownTime <= 0}
+			>
+				Draft
+			</button>
 		</div>
+		<p class="mt-2 text-white">Time remaining: {countdownTime} seconds</p>
 	</div>
 
 	<!-- Display pro details in a table -->
