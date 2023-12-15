@@ -1,11 +1,16 @@
-<script lang="ts">
-	import GenerateMatchUps from '$lib/components/GenerateMatchUps.svelte';
+<!-- DraftOverlay.svelte -->
+<script>
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { supabase } from '../../supabaseClient'; // Adjust the path as necessary
+	import { supabase } from '../../supabaseClient';
 
-	export let getDraftOrder;
 	const drawerStore = getDrawerStore();
+
+	let draftOrder = [];
+	let currentParticipantIndex = 0;
+	let selectedPro = '';
+	let countdownTime = '';
+	let isDrafting = false;
 
 	let pros = [];
 	let teams = [];
@@ -14,7 +19,74 @@
 	let error = null;
 	let errorTeams = null;
 
+	function closeDrawer() {
+		drawerStore.close();
+	}
+
+	function shuffle(array) {
+		let currentIndex = array.length,
+			randomIndex;
+
+		while (currentIndex != 0) {
+			randomIndex = Math.floor(Math.random() * currentIndex);
+			currentIndex--;
+
+			[array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+		}
+
+		return array;
+	}
+
+	async function fetchFantasyTeams() {
+		console.log('Fetching fantasy teams...');
+		let { data: league, error } = await supabase.from('league').select('fantasy_teams_json');
+
+		if (error) {
+			console.error('Error fetching fantasy teams:', error);
+			return;
+		}
+
+		if (league && league.length > 0) {
+			let teamsArray;
+			if (Array.isArray(league[0].fantasy_teams_json)) {
+				teamsArray = league[0].fantasy_teams_json;
+			} else {
+				console.log('Transforming fantasy_teams_json into an array');
+				teamsArray = transformToArrayOfTeams(league[0].fantasy_teams_json);
+			}
+
+			draftOrder = shuffle(teamsArray);
+			console.log('Shuffled Fantasy Teams:', draftOrder);
+
+			draftOrder;
+			console.log(draftOrder);
+		} else {
+			console.error('No league data found or fantasy_teams_json is missing');
+		}
+	}
+
+	function transformToArrayOfTeams(data) {
+		return Object.values(data);
+	}
+
+	function startDrafting() {
+		if (draftOrder.length > 0) {
+			const currentParticipant = draftOrder[currentParticipantIndex];
+			console.log('Putting', currentParticipant.team_name, 'on the clock');
+
+			currentParticipantIndex++;
+			if (currentParticipantIndex >= draftOrder.length) {
+				currentParticipantIndex = 0;
+			}
+		}
+	}
+
+	function selectPro() {
+		console.log('Select a pro');
+	}
+
 	onMount(async () => {
+		fetchFantasyTeams();
 		try {
 			// Fetching pros data and ordering by rank
 			let { data: prosData, error: prosError } = await supabase
@@ -41,23 +113,11 @@
 			loadingTeams = false;
 		}
 	});
-
-	function closeDrawer() {
-		drawerStore.close();
-	}
-
-	function getTeamName(teamId) {
-		const team = teams.find((t) => t.team_id === teamId);
-		return team ? team.name : 'Unknown';
-	}
-
 </script>
 
 <div
-	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
+	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex flex-col items-center justify-center z-50"
 >
-	<!-- Generate MatchUps Component -->
-	<GenerateMatchUps {getDraftOrder} />
 	<!-- Close button -->
 	<button
 		on:click={closeDrawer}
@@ -66,8 +126,44 @@
 		Close
 	</button>
 
+	<div class="flex flex-col items-center justify-center w-full">
+		<!-- Participant List -->
+		<div class="text-white mt-8">
+			<h2 class="text-xl font-semibold mb-2">Draft Order:</h2>
+			<div class="flex flex-row flex-wrap">
+				{#each draftOrder as participant, index}
+					<div class="mx-2">{index + 1}: {participant.team_name}</div>
+				{/each}
+			</div>
+		</div>
+
+		<!-- Form for selecting a pro -->
+		<div class="w-full max-w-md p-4 rounded-lg shadow-lg mt-4 flex items-center">
+			<form on:submit={selectPro} class="flex-grow">
+				<div class="mb-4">
+					<label for="proName" class="block text-sm font-medium text-white-700">Pro Name:</label>
+					<input
+						type="text"
+						id="proName"
+						class="mt-1 p-2 w-full rounded border border-gray-300"
+						bind:value={selectedPro}
+						required
+					/>
+				</div>
+			</form>
+			<button
+				type="submit"
+				class="bg-blue-500 text-white mt-2 px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+				disabled={!isDrafting || countdownTime <= 0}
+			>
+				Draft
+			</button>
+		</div>
+		<p class="mt-2 text-white">Time remaining: {countdownTime} seconds</p>
+	</div>
+
 	<!-- Display pro details in a table -->
-	<div class="overflow-auto max-h-[80vh] w-[90vw] bg-white rounded-lg p-4">
+	<div class="overflow-auto max-h-[80vh] w-[90vw] bg-white rounded-lg p-4 mt-4">
 		{#if loading || loadingTeams}
 			<p class="text-black">Loading...</p>
 		{:else if error || errorTeams}
@@ -77,28 +173,20 @@
 				<thead>
 					<tr class="text-left">
 						<th>Rank</th>
-						<!-- Moved Rank to the first position -->
 						<th>Image</th>
-						<!-- Moved Image next -->
 						<th>Name</th>
-						<!-- Moved Name to the third position -->
 						<th>Team</th>
-						<!-- Team remains the last -->
 					</tr>
 				</thead>
 				<tbody>
 					{#each pros as pro}
 						<tr>
 							<td>{pro.rank}</td>
-							<!-- Rank first -->
 							<td>
 								<img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" />
 							</td>
-							<!-- Image next -->
 							<td>{pro.name}</td>
-							<!-- Name third -->
-							<td>{getTeamName(pro.team_id)}</td>
-							<!-- Team last -->
+							<td>{pro.team_id}</td>
 						</tr>
 					{/each}
 				</tbody>

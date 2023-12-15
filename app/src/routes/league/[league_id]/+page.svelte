@@ -5,7 +5,6 @@
 	import DraftCountdown from '$lib/components/DraftCountdown.svelte';
 	import DraftButton from '$lib/components/DraftButton.svelte';
 	import DraftOverlay from '$lib/components/DraftOverlay.svelte'; // Assuming this is the correct path
-	import GenerateMatchUps from '$lib/components/GenerateMatchUps.svelte';
 	import Icon from '@iconify/svelte';
 
 	let draftStartTime; // Declare draftStartTime at the module level
@@ -22,21 +21,6 @@
 
 	function openPopup() {
 		isFantasyParticipantJoinLeaguePopupVisible.set(true);
-	}
-
-	function getDraftOrder(draftOrderData) {
-		console.log('Entering getDraftOrder function');
-
-		// Define your draft order data here
-		const owners = draftOrderData.map((item, index) => ({
-			owner_id: item.owner_id,
-			team_name: item.team_name
-		}));
-
-		// Log the generated owners array
-		console.log('Owners of teams and draft order:', owners);
-
-		// Continue with the rest of the function logic
 	}
 </script>
 
@@ -70,6 +54,10 @@
 	let needed = nonNullParticipantCount - 6;
 	let positiveValue = Math.abs(needed);
 	$: subscribedLeagueData = $leagueData;
+	let isDrafting = false;
+	let selectedPro = '';
+	let countdownTime = '';
+	let selectPro = '';
 
 	function startDraft() {
 		console.log('Draft started');
@@ -77,7 +65,6 @@
 
 		setTimeout(() => {
 			isDiceRolling = false;
-			// Trigger function in generateMatchUps component here
 		}, 3000);
 	}
 
@@ -104,11 +91,7 @@
 			console.log('Attempting to open drawer');
 			console.log('showDraftOverlay before opening drawer:', showDraftOverlay);
 			if (drawerStore) {
-				drawerStore.open({
-					content: GenerateMatchUps,
-					props: { getDraftOrder }
-				});
-				console.log('Drawer opened with GenerateMatchUps');
+				drawerStore.open({});
 				// Set showDraftOverlay to true here if necessary
 				showDraftOverlay = true;
 			} else {
@@ -263,7 +246,7 @@
 	{/if}
 
 	{#if showDraftOverlay}
-		<DraftOverlay {getDraftOrder} />
+		<DraftOverlay />
 	{/if}
 
 	{#if additionalParticipantsNeeded > 0}
