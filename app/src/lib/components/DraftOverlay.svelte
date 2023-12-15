@@ -3,13 +3,14 @@
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
+	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
 
 	const drawerStore = getDrawerStore();
 
 	let draftOrder = [];
 	let currentParticipantIndex = 0;
 	let selectedPro = '';
-	let countdownTime = '';
+	let countdownTime = 60;
 	let isDrafting = false;
 
 	let pros = [];
@@ -18,6 +19,8 @@
 	let loadingTeams = true;
 	let error = null;
 	let errorTeams = null;
+	let leagueId;
+	$: subscribedLeagueData = $leagueData;
 
 	function closeDrawer() {
 		drawerStore.close();
@@ -69,10 +72,32 @@
 		return Object.values(data);
 	}
 
-	function startDrafting() {
+	async function startDrafting() {
+		console.log($leagueData.league_id);
+		leagueId = $leagueData.league_id;
 		if (draftOrder.length > 0) {
 			const currentParticipant = draftOrder[currentParticipantIndex];
 			console.log('Putting', currentParticipant.team_name, 'on the clock');
+
+			// Update draft_status to "In Progress"
+			const { data, error } = await supabase
+				.from('league') // Replace with your table name
+				.update({ draft_status: 'In Progress' })
+				.eq('league_id', leagueId); // Replace with your league ID
+
+			if (error) {
+				console.error('Error updating draft_status:', error);
+				return;
+			}
+
+			// Start the countdown timer
+			const interval = setInterval(() => {
+				countdownTime--;
+				if (countdownTime <= 0) {
+					clearInterval(interval);
+					// Handle timer completion here (e.g., end of draft)
+				}
+			}, 1000);
 
 			currentParticipantIndex++;
 			if (currentParticipantIndex >= draftOrder.length) {
@@ -112,6 +137,7 @@
 			loading = false;
 			loadingTeams = false;
 		}
+		startDrafting();
 	});
 </script>
 
@@ -121,10 +147,8 @@
 	<!-- Close button -->
 	<button
 		on:click={closeDrawer}
-		class="absolute top-2 right-2 bg-white text-black px-4 py-2 rounded shadow-lg"
+		class="absolute top-2 right-2 bg-white text-black px-4 py-2 rounded shadow-lg">Close</button
 	>
-		Close
-	</button>
 
 	<div class="flex flex-col items-center justify-center w-full">
 		<!-- Participant List -->
@@ -154,10 +178,8 @@
 			<button
 				type="submit"
 				class="bg-blue-500 text-white mt-2 px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
-				disabled={!isDrafting || countdownTime <= 0}
+				disabled={!isDrafting || countdownTime <= 0}>Draft</button
 			>
-				Draft
-			</button>
 		</div>
 		<p class="mt-2 text-white">Time remaining: {countdownTime} seconds</p>
 	</div>
