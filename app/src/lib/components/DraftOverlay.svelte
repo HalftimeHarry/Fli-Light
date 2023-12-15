@@ -59,6 +59,7 @@
 			console.log('Shuffled Fantasy Teams:', draftOrder);
 
 			draftOrder;
+			console.log(draftOrder);
 		} else {
 			console.error('No league data found or fantasy_teams_json is missing');
 		}
@@ -85,6 +86,7 @@
 	}
 
 	onMount(async () => {
+		fetchFantasyTeams();
 		try {
 			// Fetching pros data and ordering by rank
 			let { data: prosData, error: prosError } = await supabase
@@ -114,7 +116,7 @@
 </script>
 
 <div
-	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex justify-center items-center z-50"
+	class="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-95 flex flex-col items-center justify-center z-50"
 >
 	<!-- Close button -->
 	<button
@@ -124,40 +126,45 @@
 		Close
 	</button>
 
-	<!-- List of Team Names -->
-	<div class="absolute flex flex-row top-2 left-2 text-white">
-		{#each draftOrder as team}
-			<div class="mx-2">{team.team_name}</div>
-		{/each}
-	</div>
-
-	<!-- Form for selecting a pro -->
-	<div class="bg-white w-full max-w-md p-4 rounded-lg shadow-lg mt-4">
-		<h2 class="text-xl font-semibold mb-4">Select a Pro</h2>
-		<form on:submit={selectPro}>
-			<div class="mb-4">
-				<label for="proName" class="block text-sm font-medium text-gray-700">Pro Name:</label>
-				<input
-					type="text"
-					id="proName"
-					class="mt-1 p-2 w-full rounded border border-gray-300"
-					bind:value={selectedPro}
-					required
-				/>
+	<div class="flex flex-col items-center justify-center w-full">
+		<!-- Participant List -->
+		<div class="text-white mt-8">
+			<h2 class="text-xl font-semibold mb-2">Draft Order:</h2>
+			<div class="flex flex-row flex-wrap">
+				{#each draftOrder as participant, index}
+					<div class="mx-2">{index + 1}: {participant.team_name}</div>
+				{/each}
 			</div>
-			<button
-				type="submit"
-				class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
-				disabled={!isDrafting || countdownTime <= 0}
-			>
-				Draft
-			</button>
-		</form>
-		<p class="mt-2 text-gray-500">Time remaining: {countdownTime} seconds</p>
+		</div>
+
+		<!-- Form for selecting a pro -->
+		<div class="bg-white w-full max-w-md p-4 rounded-lg shadow-lg mt-4">
+			<h2 class="text-xl font-semibold mb-4">Select a Pro</h2>
+			<form on:submit={selectPro}>
+				<div class="mb-4">
+					<label for="proName" class="block text-sm font-medium text-gray-700">Pro Name:</label>
+					<input
+						type="text"
+						id="proName"
+						class="mt-1 p-2 w-full rounded border border-gray-300"
+						bind:value={selectedPro}
+						required
+					/>
+				</div>
+				<button
+					type="submit"
+					class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+					disabled={!isDrafting || countdownTime <= 0}
+				>
+					Draft
+				</button>
+			</form>
+			<p class="mt-2 text-gray-500">Time remaining: {countdownTime} seconds</p>
+		</div>
 	</div>
 
 	<!-- Display pro details in a table -->
-	<div class="overflow-auto max-h-[80vh] w-[90vw] bg-white rounded-lg p-4">
+	<div class="overflow-auto max-h-[80vh] w-[90vw] bg-white rounded-lg p-4 mt-4">
 		{#if loading || loadingTeams}
 			<p class="text-black">Loading...</p>
 		{:else if error || errorTeams}
@@ -180,7 +187,7 @@
 								<img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" />
 							</td>
 							<td>{pro.name}</td>
-							<td>{(pro.team_id)}</td>
+							<td>{pro.team_id}</td>
 						</tr>
 					{/each}
 				</tbody>
