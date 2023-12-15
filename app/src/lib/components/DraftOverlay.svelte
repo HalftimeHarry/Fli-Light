@@ -11,7 +11,6 @@
 	let selectedPro = '';
 	let countdownTime = '';
 	let isDrafting = false;
-	
 
 	let pros = [];
 	let teams = [];
@@ -85,8 +84,32 @@
 		console.log('Select a pro');
 	}
 
-	onMount(() => {
-		fetchFantasyTeams();
+	onMount(async () => {
+		try {
+			// Fetching pros data and ordering by rank
+			let { data: prosData, error: prosError } = await supabase
+				.from('pros')
+				.select('*')
+				.order('rank', { ascending: true });
+
+			if (prosError) throw prosError;
+
+			// Fetching teams data
+			let { data: teamsData, error: teamsError } = await supabase
+				.from('teams')
+				.select('team_id, name');
+
+			if (teamsError) throw teamsError;
+
+			// Storing the fetched data in variables
+			pros = prosData;
+			teams = teamsData;
+		} catch (err) {
+			error = err;
+		} finally {
+			loading = false;
+			loadingTeams = false;
+		}
 	});
 </script>
 
@@ -157,7 +180,7 @@
 								<img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" />
 							</td>
 							<td>{pro.name}</td>
-							<td>{getTeamName(pro.team_id)}</td>
+							<td>{(pro.team_id)}</td>
 						</tr>
 					{/each}
 				</tbody>
