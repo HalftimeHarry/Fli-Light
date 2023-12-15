@@ -87,7 +87,6 @@
 
 	onMount(() => {
 		fetchFantasyTeams();
-		startDrafting();
 	});
 </script>
 

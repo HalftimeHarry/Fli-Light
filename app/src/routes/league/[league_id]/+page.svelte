@@ -246,7 +246,7 @@
 	{/if}
 
 	{#if showDraftOverlay}
-		<DraftOverlay {isDrafting} {selectedPro} {countdownTime} {startDraft} {selectPro} />
+		<DraftOverlay />
 	{/if}
 
 	{#if additionalParticipantsNeeded > 0}
