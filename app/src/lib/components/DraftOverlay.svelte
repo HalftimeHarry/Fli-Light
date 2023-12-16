@@ -106,8 +106,45 @@
 		}
 	}
 
-	function selectPro() {
-		console.log('Select a pro');
+	async function selectPro() {
+		// Check if selectedPro is empty
+		if (!selectedPro) {
+			console.error('Please enter a pro name');
+			return;
+		}
+
+		// Find the selected pro in the pros array
+		const selectedProIndex = pros.findIndex((pro) => pro.name === selectedPro);
+
+		if (selectedProIndex === -1) {
+			console.error('Pro not found');
+			return;
+		}
+
+		// Update the selected pro's status to "Drafted" (or any other status you prefer)
+		const { data, error } = await supabase
+			.from('pros') // Replace with your table name
+			.update({ status: 'Drafted', drafted_by: draftOrder[currentParticipantIndex].team_name })
+			.eq('id', pros[selectedProIndex].id);
+
+		if (error) {
+			console.error('Error updating pro status:', error);
+			return;
+		}
+
+		// Perform any other actions you need here
+
+		// Clear the selected pro input field
+		selectedPro = '';
+
+		// Move to the next participant
+		currentParticipantIndex++;
+
+		if (currentParticipantIndex >= draftOrder.length) {
+			currentParticipantIndex = 0;
+		}
+
+		console.log('Pro drafted:', selectedPro);
 	}
 
 	onMount(async () => {
@@ -138,6 +175,8 @@
 			loadingTeams = false;
 		}
 		startDrafting();
+		console.log('Pros array:', pros);
+		console.log('Pros array length:', pros.length);
 	});
 </script>
 
@@ -165,25 +204,51 @@
 		<div class="w-full max-w-md p-4 rounded-lg shadow-lg mt-4 flex items-center">
 			<form on:submit={selectPro} class="flex-grow">
 				<div class="mb-4">
-					<label for="proName" class="block text-sm font-medium text-white-700">Pro Name:</label>
-					<input
-						type="text"
-						id="proName"
-						class="mt-1 p-2 w-full rounded border border-gray-300"
-						bind:value={selectedPro}
-						required
-					/>
+					<label for="proName" class="block text-sm font-medium text-white-700">Select a Pro:</label
+					>
+
+					<!-- Display the image of the first pro from the table if pros array is not empty -->
+					{#if pros.length > 0}
+						<div class="flex items-center">
+							<img
+								src={pros[0].pro_image_url}
+								alt={pros[0].name}
+								class="h-10 w-10 rounded-full mr-2"
+							/>
+							<span>{pros[0].name}</span>
+						</div>
+					{:else}
+						<p class="text-white">No pros available</p>
+					{/if}
+
+					<!-- Add buttons to swap pro in the queue if pros array is not empty -->
+					{#if pros.length > 0}
+						<div class="mt-2 flex space-x-2">
+							{#each pros as pro (pro.pro_id)}
+								<button
+									type="button"
+									class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+									on:click={() => swapPro(pro)}
+								>
+									Select {pro.name}
+								</button>
+							{/each}
+						</div>
+					{/if}
 				</div>
 			</form>
 			<button
 				type="submit"
 				class="bg-blue-500 text-white mt-2 px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
-				disabled={!isDrafting || countdownTime <= 0}>Draft</button
+				on:click={selectPro}
+				disabled={!isDrafting || countdownTime <= 0}
 			>
+				Draft
+			</button>
 		</div>
+
 		<p class="mt-2 text-white">Time remaining: {countdownTime} seconds</p>
 	</div>
-
 	<!-- Display pro details in a table -->
 	<div class="overflow-auto max-h-[80vh] w-[90vw] bg-white rounded-lg p-4 mt-4">
 		{#if loading || loadingTeams}
@@ -201,7 +266,8 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each pros as pro}
+					{#each pros as pro (pro.pro_id)}
+						<!-- Use pro.pro_id as the unique key -->
 						<tr>
 							<td>{pro.rank}</td>
 							<td>
