@@ -175,8 +175,6 @@
 			loadingTeams = false;
 		}
 		startDrafting();
-		console.log('Pros array:', pros);
-		console.log('Pros array length:', pros.length);
 	});
 </script>
 
@@ -207,7 +205,7 @@
 					<label for="proName" class="block text-sm font-medium text-white-700">Select a Pro:</label
 					>
 
-					<!-- Display the image of the first pro from the table if pros array is not empty -->
+					<!-- Display the first pro from the table as a suggestion -->
 					{#if pros.length > 0}
 						<div class="flex items-center">
 							<img
@@ -221,20 +219,53 @@
 						<p class="text-white">No pros available</p>
 					{/if}
 
-					<!-- Add buttons to swap pro in the queue if pros array is not empty -->
-					{#if pros.length > 0}
-						<div class="mt-2 flex space-x-2">
-							{#each pros as pro (pro.pro_id)}
-								<button
-									type="button"
-									class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
-									on:click={() => swapPro(pro)}
-								>
-									Select {pro.name}
-								</button>
-							{/each}
-						</div>
-					{/if}
+					<!-- Display pro details in a table -->
+					<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
+						{#if loading || loadingTeams}
+							<p class="text-black">Loading...</p>
+						{:else if error || errorTeams}
+							<p class="text-black">Error: {error?.message || errorTeams?.message}</p>
+						{:else}
+							<table class="min-w-full text-black">
+								<thead>
+									<tr class="text-left">
+										<th>Rank</th>
+										<th>Image</th>
+										<th>Name</th>
+										<th>Team</th>
+										<th>Select</th>
+										<!-- Add a new column for selecting a pro -->
+									</tr>
+								</thead>
+								<tbody>
+									{#each pros as pro (pro.pro_id)}
+										<!-- Use pro.pro_id as the unique key -->
+										<tr>
+											<td>{pro.rank}</td>
+											<td>
+												<img
+													src={pro.pro_image_url}
+													alt={pro.name}
+													class="h-10 w-10 rounded-full"
+												/>
+											</td>
+											<td>{pro.name}</td>
+											<td>{pro.team_id}</td>
+											<td>
+												<button
+													type="button"
+													class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+													on:click={() => swapPro(pro)}
+												>
+													Select
+												</button>
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						{/if}
+					</div>
 				</div>
 			</form>
 			<button
@@ -248,37 +279,5 @@
 		</div>
 
 		<p class="mt-2 text-white">Time remaining: {countdownTime} seconds</p>
-	</div>
-	<!-- Display pro details in a table -->
-	<div class="overflow-auto max-h-[80vh] w-[90vw] bg-white rounded-lg p-4 mt-4">
-		{#if loading || loadingTeams}
-			<p class="text-black">Loading...</p>
-		{:else if error || errorTeams}
-			<p class="text-black">Error: {error?.message || errorTeams?.message}</p>
-		{:else}
-			<table class="min-w-full text-black">
-				<thead>
-					<tr class="text-left">
-						<th>Rank</th>
-						<th>Image</th>
-						<th>Name</th>
-						<th>Team</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each pros as pro (pro.pro_id)}
-						<!-- Use pro.pro_id as the unique key -->
-						<tr>
-							<td>{pro.rank}</td>
-							<td>
-								<img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" />
-							</td>
-							<td>{pro.name}</td>
-							<td>{pro.team_id}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		{/if}
 	</div>
 </div>
