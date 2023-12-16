@@ -3,13 +3,14 @@
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
+	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
 
 	const drawerStore = getDrawerStore();
 
 	let draftOrder = [];
 	let currentParticipantIndex = 0;
 	let selectedPro = '';
-	let countdownTime = '';
+	let countdownTime = 60;
 	let isDrafting = false;
 
 	let pros = [];
@@ -18,6 +19,8 @@
 	let loadingTeams = true;
 	let error = null;
 	let errorTeams = null;
+	let leagueId;
+	$: subscribedLeagueData = $leagueData;
 
 	function closeDrawer() {
 		drawerStore.close();
@@ -69,10 +72,32 @@
 		return Object.values(data);
 	}
 
-	function startDrafting() {
+	async function startDrafting() {
+		console.log($leagueData.league_id);
+		leagueId = $leagueData.league_id;
 		if (draftOrder.length > 0) {
 			const currentParticipant = draftOrder[currentParticipantIndex];
 			console.log('Putting', currentParticipant.team_name, 'on the clock');
+
+			// Update draft_status to "In Progress"
+			const { data, error } = await supabase
+				.from('league') // Replace with your table name
+				.update({ draft_status: 'In Progress' })
+				.eq('league_id', leagueId); // Replace with your league ID
+
+			if (error) {
+				console.error('Error updating draft_status:', error);
+				return;
+			}
+
+			// Start the countdown timer
+			const interval = setInterval(() => {
+				countdownTime--;
+				if (countdownTime <= 0) {
+					clearInterval(interval);
+					// Handle timer completion here (e.g., end of draft)
+				}
+			}, 1000);
 
 			currentParticipantIndex++;
 			if (currentParticipantIndex >= draftOrder.length) {
@@ -81,8 +106,45 @@
 		}
 	}
 
-	function selectPro() {
-		console.log('Select a pro');
+	async function selectPro() {
+		// Check if selectedPro is empty
+		if (!selectedPro) {
+			console.error('Please enter a pro name');
+			return;
+		}
+
+		// Find the selected pro in the pros array
+		const selectedProIndex = pros.findIndex((pro) => pro.name === selectedPro);
+
+		if (selectedProIndex === -1) {
+			console.error('Pro not found');
+			return;
+		}
+
+		// Update the selected pro's status to "Drafted" (or any other status you prefer)
+		const { data, error } = await supabase
+			.from('pros') // Replace with your table name
+			.update({ status: 'Drafted', drafted_by: draftOrder[currentParticipantIndex].team_name })
+			.eq('id', pros[selectedProIndex].id);
+
+		if (error) {
+			console.error('Error updating pro status:', error);
+			return;
+		}
+
+		// Perform any other actions you need here
+
+		// Clear the selected pro input field
+		selectedPro = '';
+
+		// Move to the next participant
+		currentParticipantIndex++;
+
+		if (currentParticipantIndex >= draftOrder.length) {
+			currentParticipantIndex = 0;
+		}
+
+		console.log('Pro drafted:', selectedPro);
 	}
 
 	onMount(async () => {
@@ -112,6 +174,7 @@
 			loading = false;
 			loadingTeams = false;
 		}
+		startDrafting();
 	});
 </script>
 
@@ -121,10 +184,8 @@
 	<!-- Close button -->
 	<button
 		on:click={closeDrawer}
-		class="absolute top-2 right-2 bg-white text-black px-4 py-2 rounded shadow-lg"
+		class="absolute top-2 right-2 bg-white text-black px-4 py-2 rounded shadow-lg">Close</button
 	>
-		Close
-	</button>
 
 	<div class="flex flex-col items-center justify-center w-full">
 		<!-- Participant List -->
@@ -138,59 +199,82 @@
 		</div>
 
 		<!-- Form for selecting a pro -->
-		<div class="w-full max-w-md p-4 rounded-lg shadow-lg mt-4 flex items-center">
-			<form on:submit={selectPro} class="flex-grow">
-				<div class="mb-4">
-					<label for="proName" class="block text-sm font-medium text-white-700">Pro Name:</label>
-					<input
-						type="text"
-						id="proName"
-						class="mt-1 p-2 w-full rounded border border-gray-300"
-						bind:value={selectedPro}
-						required
-					/>
+		<div class="w-full max-w-md p-4 rounded-lg shadow-lg mt-4 flex items-center justify-between">
+			<form on:submit={selectPro} class="flex-grow flex flex-col">
+				<div class="mb-4 flex items-center">
+
+
+					<!-- Display the first pro from the table as a suggestion -->
+					{#if pros.length > 0}
+						<div class="flex items-center ml-2">
+							<img
+								src={pros[0].pro_image_url}
+								alt={pros[0].name}
+								class="h-10 w-10 rounded-full mr-2"
+							/>
+							<span>World Ranking: # {pros[0].rank}</span>
+						</div>
+
+						<!-- Inline the "Draft" button and change its color to green -->
+						<button
+							type="submit"
+							class="ml-auto bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:bg-green-600"
+							on:click={selectPro}
+							disabled={!isDrafting || countdownTime <= 0}
+						>
+							Draft {pros[0].name}
+						</button>
+					{:else}
+						<p class="text-white">No pros available</p>
+					{/if}
+				</div>
+
+				<!-- Display pro details in a table -->
+				<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
+					{#if loading || loadingTeams}
+						<p class="text-black">Loading...</p>
+					{:else if error || errorTeams}
+						<p class="text-black">Error: {error?.message || errorTeams?.message}</p>
+					{:else}
+						<table class="min-w-full text-black">
+							<thead>
+								<tr class="text-left">
+									<th>Rank</th>
+									<th>Image</th>
+									<th>Name</th>
+									<th>Team</th>
+									<th>Select</th>
+									<!-- Add a new column for selecting a pro -->
+								</tr>
+							</thead>
+							<tbody>
+								{#each pros as pro (pro.pro_id)}
+									<!-- Use pro.pro_id as the unique key -->
+									<tr>
+										<td>{pro.rank}</td>
+										<td>
+											<img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" />
+										</td>
+										<td>{pro.name}</td>
+										<td>{pro.team_id}</td>
+										<td>
+											<button
+												type="button"
+												class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+												on:click={() => swapPro(pro)}
+											>
+												Select
+											</button>
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					{/if}
 				</div>
 			</form>
-			<button
-				type="submit"
-				class="bg-blue-500 text-white mt-2 px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
-				disabled={!isDrafting || countdownTime <= 0}
-			>
-				Draft
-			</button>
 		</div>
-		<p class="mt-2 text-white">Time remaining: {countdownTime} seconds</p>
-	</div>
 
-	<!-- Display pro details in a table -->
-	<div class="overflow-auto max-h-[80vh] w-[90vw] bg-white rounded-lg p-4 mt-4">
-		{#if loading || loadingTeams}
-			<p class="text-black">Loading...</p>
-		{:else if error || errorTeams}
-			<p class="text-black">Error: {error?.message || errorTeams?.message}</p>
-		{:else}
-			<table class="min-w-full text-black">
-				<thead>
-					<tr class="text-left">
-						<th>Rank</th>
-						<th>Image</th>
-						<th>Name</th>
-						<th>Team</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each pros as pro}
-						<tr>
-							<td>{pro.rank}</td>
-							<td>
-								<img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" />
-							</td>
-							<td>{pro.name}</td>
-							<td>{pro.team_id}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		{/if}
+		<p class="mt-2 text-white">Time remaining: {countdownTime} seconds</p>
 	</div>
 </div>
