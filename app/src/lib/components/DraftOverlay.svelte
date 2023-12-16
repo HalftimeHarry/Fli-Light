@@ -199,83 +199,80 @@
 		</div>
 
 		<!-- Form for selecting a pro -->
-		<div class="w-full max-w-md p-4 rounded-lg shadow-lg mt-4 flex items-center">
-			<form on:submit={selectPro} class="flex-grow">
-				<div class="mb-4">
-					<label for="proName" class="block text-sm font-medium text-white-700">Select a Pro:</label
-					>
+		<div class="w-full max-w-md p-4 rounded-lg shadow-lg mt-4 flex items-center justify-between">
+			<form on:submit={selectPro} class="flex-grow flex flex-col">
+				<div class="mb-4 flex items-center">
+
 
 					<!-- Display the first pro from the table as a suggestion -->
 					{#if pros.length > 0}
-						<div class="flex items-center">
+						<div class="flex items-center ml-2">
 							<img
 								src={pros[0].pro_image_url}
 								alt={pros[0].name}
 								class="h-10 w-10 rounded-full mr-2"
 							/>
-							<span>{pros[0].name}</span>
+							<span>World Ranking: # {pros[0].rank}</span>
 						</div>
+
+						<!-- Inline the "Draft" button and change its color to green -->
+						<button
+							type="submit"
+							class="ml-auto bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:bg-green-600"
+							on:click={selectPro}
+							disabled={!isDrafting || countdownTime <= 0}
+						>
+							Draft {pros[0].name}
+						</button>
 					{:else}
 						<p class="text-white">No pros available</p>
 					{/if}
+				</div>
 
-					<!-- Display pro details in a table -->
-					<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
-						{#if loading || loadingTeams}
-							<p class="text-black">Loading...</p>
-						{:else if error || errorTeams}
-							<p class="text-black">Error: {error?.message || errorTeams?.message}</p>
-						{:else}
-							<table class="min-w-full text-black">
-								<thead>
-									<tr class="text-left">
-										<th>Rank</th>
-										<th>Image</th>
-										<th>Name</th>
-										<th>Team</th>
-										<th>Select</th>
-										<!-- Add a new column for selecting a pro -->
+				<!-- Display pro details in a table -->
+				<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
+					{#if loading || loadingTeams}
+						<p class="text-black">Loading...</p>
+					{:else if error || errorTeams}
+						<p class="text-black">Error: {error?.message || errorTeams?.message}</p>
+					{:else}
+						<table class="min-w-full text-black">
+							<thead>
+								<tr class="text-left">
+									<th>Rank</th>
+									<th>Image</th>
+									<th>Name</th>
+									<th>Team</th>
+									<th>Select</th>
+									<!-- Add a new column for selecting a pro -->
+								</tr>
+							</thead>
+							<tbody>
+								{#each pros as pro (pro.pro_id)}
+									<!-- Use pro.pro_id as the unique key -->
+									<tr>
+										<td>{pro.rank}</td>
+										<td>
+											<img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" />
+										</td>
+										<td>{pro.name}</td>
+										<td>{pro.team_id}</td>
+										<td>
+											<button
+												type="button"
+												class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+												on:click={() => swapPro(pro)}
+											>
+												Select
+											</button>
+										</td>
 									</tr>
-								</thead>
-								<tbody>
-									{#each pros as pro (pro.pro_id)}
-										<!-- Use pro.pro_id as the unique key -->
-										<tr>
-											<td>{pro.rank}</td>
-											<td>
-												<img
-													src={pro.pro_image_url}
-													alt={pro.name}
-													class="h-10 w-10 rounded-full"
-												/>
-											</td>
-											<td>{pro.name}</td>
-											<td>{pro.team_id}</td>
-											<td>
-												<button
-													type="button"
-													class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
-													on:click={() => swapPro(pro)}
-												>
-													Select
-												</button>
-											</td>
-										</tr>
-									{/each}
-								</tbody>
-							</table>
-						{/if}
-					</div>
+								{/each}
+							</tbody>
+						</table>
+					{/if}
 				</div>
 			</form>
-			<button
-				type="submit"
-				class="bg-blue-500 text-white mt-2 px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
-				on:click={selectPro}
-				disabled={!isDrafting || countdownTime <= 0}
-			>
-				Draft
-			</button>
 		</div>
 
 		<p class="mt-2 text-white">Time remaining: {countdownTime} seconds</p>
