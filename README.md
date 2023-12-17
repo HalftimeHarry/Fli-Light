@@ -136,23 +136,79 @@ fantasy_scores_json
 "tournament_1": {
 "round_1": {
 "fantasy_team_1": {
-"score": 45,
-"details": {
-"player_1": 15,
-"player_2": 12,
-"player_3": 10,
-"player_4": 8
+"team_info": {
+"owner_id": "774cb858-9e5e-4c67-acd2-6b9c5ed1838a",
+"team_name": "Sample Name 1"
+},
+"score": 0,
+"fantasy_pros": {
+"pro_male_1": 0,
+"pro_female_1": 0,
+"pro_male_2": 0,
+"pro_female_2": 0
+},
+"reserve_pros": {
+"reserve_pro_male": 0,
+"reserve_pro_female": 0
 }
 },
 "fantasy_team_2": {
-"score": 50,
-"details": {
-"player_1": 18,
-"player_2": 15,
-"player_3": 10,
-"player_4": 7
+"team_info": {
+"owner_id": "774cb858-9e5e-4c67-acd2-6b9c5ed1838a",
+"team_name": "Sample Name 2"
+},
+"score": 0,
+"fantasy_pros": {
+"pro_male_1": 0,
+"pro_female_1": 0,
+"pro_male_2": 0,
+"pro_female_2": 0
+},
+"reserve_pros": {
+"reserve_pro_male": 0,
+"reserve_pro_female": 0
 }
 },
+"fantasy_team_3": {
+"team_info": {
+"owner_id": "774cb858-9e5e-4c67-acd2-6b9c5ed1838a",
+"team_name": "Sample Name 3"
+},
+"score": 0,
+"fantasy_pros": {
+"pro_male_1": 0,
+"pro_female_1": 0,
+"pro_male_2": 0,
+"pro_female_2": 0
+},
+"reserve_pros": {
+"reserve_pro_male": 0,
+"reserve_pro_female": 0
+}
+},
+"fantasy_team_4": {
+"team_info": {
+"owner_id": "774cb858-9e5e-4c67-acd2-6b9c5ed1838a",
+"team_name": "Sample Name 4"
+},
+"score": 0,
+"fantasy_pros": {
+"pro_male_1": 0,
+"pro_female_1": 0,
+"pro_male_2": 0,
+"pro_female_2": 0
+},
+"reserve_pros": {
+"reserve_pro_male": 0,
+"reserve_pro_female": 0
+}
+},
+// Other fantasy teams for round 1
+},
+// Other rounds
+},
+// Other tournaments
+}
 
 ## Fantasy Teams
 
