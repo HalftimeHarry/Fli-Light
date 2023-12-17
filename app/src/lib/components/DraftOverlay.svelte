@@ -10,6 +10,7 @@
 	let draftOrder = [];
 	let currentParticipantIndex = 0;
 	let selectedPro = '';
+	let selectedProIndex = -1; // Initialize with an index outside the valid range
 	let countdownTime = 60;
 	let isDrafting = false;
 
@@ -24,6 +25,14 @@
 
 	function closeDrawer() {
 		drawerStore.close();
+	}
+
+	// Function to set the default pro
+	function setDefaultPro() {
+		if (pros.length > 0) {
+			selectedProIndex = 0;
+			selectedPro = pros[0].name;
+		}
 	}
 
 	function shuffle(array) {
@@ -106,45 +115,37 @@
 		}
 	}
 
+	function swapPro(pro) {
+		selectedProIndex = pros.findIndex((p) => p.pro_id === pro.pro_id);
+		console.log(selectedProIndex);
+	}
+
 	async function selectPro() {
-		// Check if selectedPro is empty
-		if (!selectedPro) {
-			console.error('Please enter a pro name');
-			return;
+		if (selectedProIndex !== -1) {
+			// Update the selected pro's status to "Drafted" (or any other status you prefer)
+			const selectedPro = pros[selectedProIndex];
+			const { data, error } = await supabase
+				.from('pros')
+				.update({ status: 'Drafted', drafted_by: draftOrder[currentParticipantIndex].team_name })
+				.eq('id', selectedPro.id);
+
+			if (error) {
+				console.error('Error updating pro status:', error);
+				return;
+			}
+
+			// Clear the selected pro input field
+			selectedProIndex = -1;
+
+			// Move to the next participant
+			currentParticipantIndex++;
+
+			if (currentParticipantIndex >= draftOrder.length) {
+				currentParticipantIndex = 0;
+			}
+
+			console.log('Pro drafted:', selectedPro.name);
 		}
-
-		// Find the selected pro in the pros array
-		const selectedProIndex = pros.findIndex((pro) => pro.name === selectedPro);
-
-		if (selectedProIndex === -1) {
-			console.error('Pro not found');
-			return;
-		}
-
-		// Update the selected pro's status to "Drafted" (or any other status you prefer)
-		const { data, error } = await supabase
-			.from('pros') // Replace with your table name
-			.update({ status: 'Drafted', drafted_by: draftOrder[currentParticipantIndex].team_name })
-			.eq('id', pros[selectedProIndex].id);
-
-		if (error) {
-			console.error('Error updating pro status:', error);
-			return;
-		}
-
-		// Perform any other actions you need here
-
-		// Clear the selected pro input field
-		selectedPro = '';
-
-		// Move to the next participant
-		currentParticipantIndex++;
-
-		if (currentParticipantIndex >= draftOrder.length) {
-			currentParticipantIndex = 0;
-		}
-
-		console.log('Pro drafted:', selectedPro);
 	}
 
 	onMount(async () => {
@@ -168,6 +169,8 @@
 			// Storing the fetched data in variables
 			pros = prosData;
 			teams = teamsData;
+			// Set the default pro
+			setDefaultPro();
 		} catch (err) {
 			error = err;
 		} finally {
@@ -202,17 +205,15 @@
 		<div class="w-full max-w-md p-4 rounded-lg shadow-lg mt-4 flex items-center justify-between">
 			<form on:submit={selectPro} class="flex-grow flex flex-col">
 				<div class="mb-4 flex items-center">
-
-
-					<!-- Display the first pro from the table as a suggestion -->
-					{#if pros.length > 0}
+					<!-- Display the selected pro from the table as a suggestion -->
+					{#if selectedProIndex !== -1}
 						<div class="flex items-center ml-2">
 							<img
-								src={pros[0].pro_image_url}
-								alt={pros[0].name}
+								src={pros[selectedProIndex].pro_image_url}
+								alt={pros[selectedProIndex].name}
 								class="h-10 w-10 rounded-full mr-2"
 							/>
-							<span>World Ranking: # {pros[0].rank}</span>
+							<span>World Ranking: # {pros[selectedProIndex].rank}</span>
 						</div>
 
 						<!-- Inline the "Draft" button and change its color to green -->
@@ -222,14 +223,14 @@
 							on:click={selectPro}
 							disabled={!isDrafting || countdownTime <= 0}
 						>
-							Draft {pros[0].name}
+							Draft {pros[selectedProIndex].name}
 						</button>
 					{:else}
 						<p class="text-white">No pros available</p>
 					{/if}
 				</div>
 
-				<!-- Display pro details in a table -->
+				<!-- Display pro details in a table excluding the selected pro -->
 				<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
 					{#if loading || loadingTeams}
 						<p class="text-black">Loading...</p>
@@ -248,25 +249,32 @@
 								</tr>
 							</thead>
 							<tbody>
-								{#each pros as pro (pro.pro_id)}
+								{#each pros as pro, index (pro.pro_id)}
 									<!-- Use pro.pro_id as the unique key -->
-									<tr>
-										<td>{pro.rank}</td>
-										<td>
-											<img src={pro.pro_image_url} alt={pro.name} class="h-10 w-10 rounded-full" />
-										</td>
-										<td>{pro.name}</td>
-										<td>{pro.team_id}</td>
-										<td>
-											<button
-												type="button"
-												class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
-												on:click={() => swapPro(pro)}
-											>
-												Select
-											</button>
-										</td>
-									</tr>
+									{#if index !== selectedProIndex}
+										<!-- Exclude the selected pro -->
+										<tr>
+											<td>{pro.rank}</td>
+											<td>
+												<img
+													src={pro.pro_image_url}
+													alt={pro.name}
+													class="h-10 w-10 rounded-full"
+												/>
+											</td>
+											<td>{pro.name}</td>
+											<td>{pro.team_id}</td>
+											<td>
+												<button
+													type="button"
+													class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+													on:click={() => swapPro(pro)}
+												>
+													Select
+												</button>
+											</td>
+										</tr>
+									{/if}
 								{/each}
 							</tbody>
 						</table>
