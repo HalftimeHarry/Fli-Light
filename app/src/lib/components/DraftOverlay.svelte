@@ -21,6 +21,8 @@
 	let error = null;
 	let errorTeams = null;
 	let leagueId;
+	let fantasyTeamKey = ''; // Declare fantasyTeamKey outside the function
+	let autoDraftInterval; // Add this variable to store the auto-draft interval
 	$: subscribedLeagueData = $leagueData;
 
 	function closeDrawer() {
@@ -100,11 +102,13 @@
 			}
 
 			// Start the countdown timer
-			const interval = setInterval(() => {
+			countdownTime = 60; // Reset the countdown time
+			autoDraftInterval = setInterval(() => {
 				countdownTime--;
 				if (countdownTime <= 0) {
-					clearInterval(interval);
+					clearInterval(autoDraftInterval);
 					// Handle timer completion here (e.g., end of draft)
+					autoDraft(); // Call the autoDraft function when the timer completes
 				}
 			}, 1000);
 
@@ -115,22 +119,119 @@
 		}
 	}
 
+	function autoDraft() {
+		// Add your logic to automatically select a pro and call draftProWithConditions
+		if (selectedProIndex === -1) {
+			// Automatically select a pro, for example, the first available pro
+			selectedProIndex = pros.findIndex((p, index) => index !== selectedProIndex);
+
+			if (selectedProIndex !== -1) {
+				selectedPro = pros[selectedProIndex].name;
+				draftProWithConditions();
+			}
+		}
+	}
+
 	function swapPro(pro) {
 		selectedProIndex = pros.findIndex((p) => p.pro_id === pro.pro_id);
 		console.log(selectedProIndex);
 	}
 
-	async function selectPro() {
-		if (selectedProIndex !== -1) {
-			// Update the selected pro's status to "Drafted" (or any other status you prefer)
-			const selectedPro = pros[selectedProIndex];
-			const { data, error } = await supabase
-				.from('pros')
-				.update({ status: 'Drafted', drafted_by: draftOrder[currentParticipantIndex].team_name })
-				.eq('id', selectedPro.id);
+	// Function to handle draft order
+	function handleDraftOrder() {
+		const currentTeam = draftOrder[currentParticipantIndex];
 
-			if (error) {
-				console.error('Error updating pro status:', error);
+		if (currentTeam) {
+			// Put the current team on the clock
+			console.log('Putting', currentTeam.team_name, 'on the clock');
+
+			// Start the countdown timer
+			startCountdownTimer();
+
+			// Move to the next participant
+			currentParticipantIndex++;
+			if (currentParticipantIndex >= draftOrder.length) {
+				currentParticipantIndex = 0; // Reset to the first participant
+			}
+		} else {
+			// All participants have drafted, perform auto-draft
+			clearInterval(autoDraftInterval);
+			autoDraft();
+		}
+	}
+
+	// Function to start the countdown timer
+	function startCountdownTimer() {
+		countdownTime = 60; // Reset the countdown time
+		autoDraftInterval = setInterval(() => {
+			countdownTime--;
+			if (countdownTime <= 0) {
+				clearInterval(autoDraftInterval);
+				// Handle timer completion here (e.g., end of round)
+				handleDraftOrder(); // Call the function to switch to the next participant or auto-draft
+			}
+		}, 1000);
+	}
+
+	async function draftProWithConditions() {
+		console.log('Drafting this pro');
+
+		if (selectedProIndex === -1) {
+			// No pro is selected, nothing to draft
+			return;
+		}
+
+		// Get the selected pro's ID
+		const selectedPro = pros[selectedProIndex];
+		const selectedProId = selectedPro ? selectedPro.pro_id : null;
+
+		// Check if selectedPro is defined
+		if (!selectedPro || selectedProId === null) {
+			console.error('Selected pro is undefined or has no ID.');
+			return;
+		}
+
+		// Construct fantasyTeamKey
+		const fantasyTeamKey = `fantasy_team_${currentParticipantIndex + 1}`; // Adjust the index as needed
+		const proKey = `pro_male_${selectedProIndex + 1}`; // Adjust the index as needed
+
+		// Check if the pro has already been drafted
+		if (
+			subscribedLeagueData.fantasy_scores_json &&
+			subscribedLeagueData.fantasy_scores_json[fantasyTeamKey] &&
+			subscribedLeagueData.fantasy_scores_json[fantasyTeamKey].fantasy_pros &&
+			subscribedLeagueData.fantasy_scores_json[fantasyTeamKey].fantasy_pros[proKey] ===
+				selectedProId
+		) {
+			console.log(
+				`${pros[selectedProIndex].name} (ID: ${selectedProId}) has already been drafted.`
+			);
+			return;
+		}
+
+		// Update fantasy_scores_json
+		const updatePayload = {
+			fantasy_scores_json: {
+				...subscribedLeagueData.fantasy_scores_json,
+				[fantasyTeamKey]: {
+					...subscribedLeagueData.fantasy_scores_json[fantasyTeamKey],
+					fantasy_pros: {
+						...subscribedLeagueData.fantasy_scores_json[fantasyTeamKey].fantasy_pros,
+						[proKey]: selectedProId // Use the pro_id as the value
+					}
+				}
+			}
+		};
+
+		try {
+			// Update the league data with the new fantasy_scores_json
+			const { data: updateData, error: updateError } = await supabase
+				.from('league')
+				.update(updatePayload)
+				.eq('league_id', leagueId);
+
+			if (updateError) {
+				console.error('Error updating fantasy_scores_json:', updateError);
 				return;
 			}
 
@@ -138,13 +239,15 @@
 			selectedProIndex = -1;
 
 			// Move to the next participant
-			currentParticipantIndex++;
+			currentParticipantIndex = (currentParticipantIndex + 1) % draftOrder.length;
 
-			if (currentParticipantIndex >= draftOrder.length) {
-				currentParticipantIndex = 0;
+			if (selectedProIndex !== -1) {
+				console.log('Pro drafted:', pros[selectedProIndex].name);
+			} else {
+				console.log('No pro drafted.');
 			}
-
-			console.log('Pro drafted:', selectedPro.name);
+		} catch (error) {
+			console.error('Error:', error);
 		}
 	}
 
@@ -203,7 +306,7 @@
 
 		<!-- Form for selecting a pro -->
 		<div class="w-full max-w-md p-4 rounded-lg shadow-lg mt-4 flex items-center justify-between">
-			<form on:submit={selectPro} class="flex-grow flex flex-col">
+			<form on:submit={draftProWithConditions} class="flex-grow flex flex-col">
 				<div class="mb-4 flex items-center">
 					<!-- Display the selected pro from the table as a suggestion -->
 					{#if selectedProIndex !== -1}
@@ -220,8 +323,7 @@
 						<button
 							type="submit"
 							class="ml-auto bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:bg-green-600"
-							on:click={selectPro}
-							disabled={!isDrafting || countdownTime <= 0}
+							on:click={draftProWithConditions}
 						>
 							Draft {pros[selectedProIndex].name}
 						</button>
