@@ -23,6 +23,7 @@
 	let leagueId;
 	let fantasyTeamKey = ''; // Declare fantasyTeamKey outside the function
 	let autoDraftInterval; // Add this variable to store the auto-draft interval
+	let currentRound = 1; // Initialize it to 1 or the appropriate starting round
 	$: subscribedLeagueData = $leagueData;
 
 	function closeDrawer() {
@@ -72,8 +73,8 @@
 			draftOrder = shuffle(teamsArray);
 			console.log('Shuffled Fantasy Teams:', draftOrder);
 
-			draftOrder;
-			console.log(draftOrder);
+			// Start the drafting process
+			startDrafting();
 		} else {
 			console.error('No league data found or fantasy_teams_json is missing');
 		}
@@ -88,7 +89,12 @@
 		leagueId = $leagueData.league_id;
 		if (draftOrder.length > 0) {
 			const currentParticipant = draftOrder[currentParticipantIndex];
+			console.log('Current Participant:', currentParticipant); // Log current participant
 			console.log('Putting', currentParticipant.team_name, 'on the clock');
+			console.log('Owner ID', currentParticipant.owner_id, 'match id when drafting');
+
+			// Pass the current participant's owner_id to handleDraftOrder
+			handleDraftOrder(currentParticipant.owner_id);
 
 			// Update draft_status to "In Progress"
 			const { data, error } = await supabase
@@ -108,7 +114,11 @@
 				if (countdownTime <= 0) {
 					clearInterval(autoDraftInterval);
 					// Handle timer completion here (e.g., end of draft)
-					autoDraft(); // Call the autoDraft function when the timer completes
+					console.log('Current Round:', currentRound); // Log current round
+					draftProWithConditions(currentParticipant, currentRound); // Pass currentParticipant and currentRound as arguments
+
+					// Increment the currentRound
+					currentRound++; // Update the round for the next draft
 				}
 			}, 1000);
 
@@ -162,19 +172,33 @@
 
 	// Function to start the countdown timer
 	function startCountdownTimer() {
-		countdownTime = 60; // Reset the countdown time
-		autoDraftInterval = setInterval(() => {
+		console.log('Countdown Timer Started'); // Log when the countdown timer starts
+
+		function updateTimer() {
 			countdownTime--;
+			console.log('Time remaining:', countdownTime);
+
 			if (countdownTime <= 0) {
-				clearInterval(autoDraftInterval);
 				// Handle timer completion here (e.g., end of round)
-				handleDraftOrder(); // Call the function to switch to the next participant or auto-draft
+				clearInterval(autoDraftInterval);
+				console.log('Countdown Timer Ended'); // Log when the countdown timer ends
+				handleDraftOrder();
+			} else {
+				// Continue the countdown
+				autoDraftInterval = setTimeout(updateTimer, 1000);
 			}
-		}, 1000);
+		}
 	}
 
-	async function draftProWithConditions() {
-		console.log('Drafting this pro');
+	async function draftProWithConditions(currentTeam) {
+		console.log('Current Team:', currentTeam);
+		console.log(currentTeam);
+
+		// Check if currentTeam has associated fantasy team data
+		if (currentTeam.fantasy_scores_json) {
+			console.error('Current participant has no associated fantasy team');
+			return;
+		}
 
 		if (selectedProIndex === -1) {
 			// No pro is selected, nothing to draft
@@ -184,23 +208,47 @@
 		// Get the selected pro's ID
 		const selectedPro = pros[selectedProIndex];
 		const selectedProId = selectedPro ? selectedPro.pro_id : null;
+		console.log('Drafting this pro', selectedProId); // Log when a pro is being drafted
 
 		// Check if selectedPro is defined
 		if (!selectedPro || selectedProId === null) {
+			console.log('Selected Pro ID:', selectedProId);
 			console.error('Selected pro is undefined or has no ID.');
 			return;
 		}
 
-		// Construct fantasyTeamKey
-		const fantasyTeamKey = `fantasy_team_${currentParticipantIndex + 1}`; // Adjust the index as needed
+		// Get the current participant's UUID
+		const currentParticipantUUID = draftOrder[currentParticipantIndex].owner_id;
+
+		// Find the fantasy team associated with the current participant
+		let currentFantasyTeam = null;
+		for (const teamKey in subscribedLeagueData.fantasy_scores_json) {
+			const team = subscribedLeagueData.fantasy_scores_json[teamKey];
+
+			console.log('Checking team:', teamKey);
+			console.log('Team owner_id:', team.team_info.owner_id);
+			console.log('Current participant UUID:', currentParticipantUUID);
+
+			if (team.team_info.owner_id === currentParticipantUUID) {
+				currentFantasyTeam = teamKey;
+				break;
+			}
+		}
+		console.log('Current Fantasy Team:', currentFantasyTeam); // Log current fantasy team
+		console.log('Selected Pro ID:', selectedProId); // Log selected pro ID
+		if (currentFantasyTeam) {
+			console.error('Current participant has no associated fantasy team'); // Log the error message
+			return;
+		}
+
+		// Construct proKey based on the selected pro's index
 		const proKey = `pro_male_${selectedProIndex + 1}`; // Adjust the index as needed
 
 		// Check if the pro has already been drafted
 		if (
-			subscribedLeagueData.fantasy_scores_json &&
-			subscribedLeagueData.fantasy_scores_json[fantasyTeamKey] &&
-			subscribedLeagueData.fantasy_scores_json[fantasyTeamKey].fantasy_pros &&
-			subscribedLeagueData.fantasy_scores_json[fantasyTeamKey].fantasy_pros[proKey] ===
+			subscribedLeagueData.fantasy_scores_json[currentFantasyTeam] &&
+			subscribedLeagueData.fantasy_scores_json[currentFantasyTeam].fantasy_pros &&
+			subscribedLeagueData.fantasy_scores_json[currentFantasyTeam].fantasy_pros[proKey] ===
 				selectedProId
 		) {
 			console.log(
@@ -209,17 +257,19 @@
 			return;
 		}
 
-		// Update fantasy_scores_json
+		// Update fantasy_scores_json with the drafted pro
+		const updatedFantasyTeam = {
+			...subscribedLeagueData.fantasy_scores_json[currentFantasyTeam],
+			fantasy_pros: {
+				...subscribedLeagueData.fantasy_scores_json[currentFantasyTeam].fantasy_pros,
+				[proKey]: selectedProId // Use the pro_id as the value
+			}
+		};
+
 		const updatePayload = {
 			fantasy_scores_json: {
 				...subscribedLeagueData.fantasy_scores_json,
-				[fantasyTeamKey]: {
-					...subscribedLeagueData.fantasy_scores_json[fantasyTeamKey],
-					fantasy_pros: {
-						...subscribedLeagueData.fantasy_scores_json[fantasyTeamKey].fantasy_pros,
-						[proKey]: selectedProId // Use the pro_id as the value
-					}
-				}
+				[currentFantasyTeam]: updatedFantasyTeam
 			}
 		};
 
@@ -240,6 +290,8 @@
 
 			// Move to the next participant
 			currentParticipantIndex = (currentParticipantIndex + 1) % draftOrder.length;
+			console.log('Current Participant Index:', currentParticipantIndex); // Log current participant index
+			console.log('Draft Order:', draftOrder); // Log the draft order array
 
 			if (selectedProIndex !== -1) {
 				console.log('Pro drafted:', pros[selectedProIndex].name);
@@ -280,7 +332,6 @@
 			loading = false;
 			loadingTeams = false;
 		}
-		startDrafting();
 	});
 </script>
 
