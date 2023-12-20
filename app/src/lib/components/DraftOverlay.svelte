@@ -236,21 +236,25 @@
 		}
 		console.log('Current Fantasy Team:', currentFantasyTeam); // Log current fantasy team
 		console.log('Selected Pro ID:', selectedProId); // Log selected pro ID
+		// Check if currentFantasyTeam is null
 		if (currentFantasyTeam) {
-			console.error('Current participant has no associated fantasy team'); // Log the error message
+			console.error('Current participant has no associated fantasy team');
 			return;
 		}
 
-		// Construct proKey based on the selected pro's index
-		const proKey = `pro_male_${selectedProIndex + 1}`; // Adjust the index as needed
+		console.log('Current Fantasy Team:', currentFantasyTeam);
 
-		// Check if the pro has already been drafted
-		if (
-			subscribedLeagueData.fantasy_scores_json[currentFantasyTeam] &&
-			subscribedLeagueData.fantasy_scores_json[currentFantasyTeam].fantasy_pros &&
-			subscribedLeagueData.fantasy_scores_json[currentFantasyTeam].fantasy_pros[proKey] ===
-				selectedProId
-		) {
+		// Construct proKey based on the selected pro's index
+		const proKey = `pro_male_${selectedProIndex + 1}`;
+		console.log(!currentFantasyTeam.fantasy_pros);
+		// Check if proKey exists in currentFantasyTeam.fantasy_pros
+		if (!currentFantasyTeam.fantasy_pros) {
+			console.error('Fantasy Pros property does not exist in the current fantasy team');
+			return;
+		}
+
+		// Check if proKey already exists in the fantasy_pros of currentFantasyTeam
+		if (currentFantasyTeam.fantasy_pros[proKey] !== undefined) {
 			console.log(
 				`${pros[selectedProIndex].name} (ID: ${selectedProId}) has already been drafted.`
 			);
@@ -259,10 +263,10 @@
 
 		// Update fantasy_scores_json with the drafted pro
 		const updatedFantasyTeam = {
-			...subscribedLeagueData.fantasy_scores_json[currentFantasyTeam],
+			...currentFantasyTeam,
 			fantasy_pros: {
-				...subscribedLeagueData.fantasy_scores_json[currentFantasyTeam].fantasy_pros,
-				[proKey]: selectedProId // Use the pro_id as the value
+				...currentFantasyTeam.fantasy_pros,
+				[proKey]: selectedProId
 			}
 		};
 
