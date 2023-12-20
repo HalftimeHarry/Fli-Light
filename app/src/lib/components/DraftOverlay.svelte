@@ -191,17 +191,16 @@
 	}
 
 	async function draftProWithConditions(currentTeam) {
-		console.log('Current Team:', currentTeam);
-		console.log(currentTeam);
-
-		// Check if currentTeam has associated fantasy team data
-		if (currentTeam.fantasy_scores_json) {
-			console.error('Current participant has no associated fantasy team');
-			return;
-		}
+		console.log('Current Team:', currentTeam.owner_id);
 
 		if (selectedProIndex === -1) {
-			// No pro is selected, nothing to draft
+			// No pro is selected, select the pro from the select field if available
+			if (pros.length > 0) {
+				console.log('Auto-drafting', pros[selectedProIndex].name);
+				draftPro(pros[selectedProIndex]);
+			} else {
+				console.log('No pro selected for auto-draft.');
+			}
 			return;
 		}
 
@@ -219,53 +218,53 @@
 
 		// Get the current participant's UUID
 		const currentParticipantUUID = draftOrder[currentParticipantIndex].owner_id;
+		const currentParticipantTeamName = draftOrder[currentParticipantIndex].team_name;
 
-		// Find the fantasy team associated with the current participant
-		let currentFantasyTeam = null;
-		for (const teamKey in subscribedLeagueData.fantasy_scores_json) {
-			const team = subscribedLeagueData.fantasy_scores_json[teamKey];
+		console.log('Current Fantasy Team Key:', currentParticipantUUID);
+		console.log('Current Fantasy Team Name:', currentParticipantTeamName);
+		console.log('Current subscribed:', subscribedLeagueData);
 
-			console.log('Checking team:', teamKey);
-			console.log('Team owner_id:', team.team_info.owner_id);
-			console.log('Current participant UUID:', currentParticipantUUID);
-
-			if (team.team_info.owner_id === currentParticipantUUID) {
-				currentFantasyTeam = teamKey;
-				break;
-			}
-		}
-		console.log('Current Fantasy Team:', currentFantasyTeam); // Log current fantasy team
-		console.log('Selected Pro ID:', selectedProId); // Log selected pro ID
-		// Check if currentFantasyTeam is null
-		if (currentFantasyTeam) {
+		// Check if currentTeam.owner_id is defined
+		if (!currentParticipantUUID) {
 			console.error('Current participant has no associated fantasy team');
 			return;
 		}
 
-		console.log('Current Fantasy Team:', currentFantasyTeam);
+		if (!currentParticipantUUID) {
+			console.error('Current participant has no associated fantasy team');
+			return;
+		}
+
+		// Check if currentFantasyTeam is defined
+		if (!subscribedLeagueData) {
+			console.error('Current participant has no associated fantasy team');
+			return;
+		}
 
 		// Construct proKey based on the selected pro's index
-		const proKey = `pro_male_${selectedProIndex + 1}`;
-		console.log(!currentFantasyTeam.fantasy_pros);
-		// Check if proKey exists in currentFantasyTeam.fantasy_pros
-		if (!currentFantasyTeam.fantasy_pros) {
-			console.error('Fantasy Pros property does not exist in the current fantasy team');
+		if (selectedProIndex >= 0 && selectedProIndex < pros.length) {
+			const proKey = `pro_male_${selectedProIndex + 1}`;
+
+			// Check if fantasy_pros exists within subscribedLeagueData
+			if (
+				subscribedLeagueData.fantasy_pros &&
+				subscribedLeagueData.fantasy_pros[proKey] !== undefined
+			) {
+				console.log(
+					`${pros[selectedProIndex].name} (ID: ${selectedProId}) has already been drafted.`
+				);
+				return;
+			}
+		} else {
+			console.error('Invalid selectedProIndex:', selectedProIndex);
 			return;
 		}
-
-		// Check if proKey already exists in the fantasy_pros of currentFantasyTeam
-		if (currentFantasyTeam.fantasy_pros[proKey] !== undefined) {
-			console.log(
-				`${pros[selectedProIndex].name} (ID: ${selectedProId}) has already been drafted.`
-			);
-			return;
-		}
-
+		let proKey
 		// Update fantasy_scores_json with the drafted pro
 		const updatedFantasyTeam = {
-			...currentFantasyTeam,
+			...subscribedLeagueData,
 			fantasy_pros: {
-				...currentFantasyTeam.fantasy_pros,
+				...subscribedLeagueData.fantasy_pros,
 				[proKey]: selectedProId
 			}
 		};
@@ -273,7 +272,7 @@
 		const updatePayload = {
 			fantasy_scores_json: {
 				...subscribedLeagueData.fantasy_scores_json,
-				[currentFantasyTeam]: updatedFantasyTeam
+				[currentParticipantUUID]: updatedFantasyTeam
 			}
 		};
 
