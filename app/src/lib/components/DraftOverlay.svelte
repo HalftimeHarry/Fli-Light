@@ -132,14 +132,14 @@
 				// Log the initialized draft payload
 				console.log('Initialized Draft Payload:', draftPayload);
 
-				// Update the fantasy_scores_json in the Supabase database with the draftPayload for a specific league_id
+				// Update the draft_order_json in the Supabase database with the draftPayload for a specific league_id
 				const { error: updateError } = await supabase
 					.from('league')
-					.update({ fantasy_scores_json: draftPayload })
+					.update({ draft_order_json: draftPayload })
 					.eq('league_id', leagueId);
 
 				if (updateError) {
-					console.error('Error updating fantasy_scores_json:', updateError);
+					console.error('Error updating draft_order_json:', updateError);
 					return;
 				}
 
@@ -354,13 +354,13 @@
 			return;
 		}
 
-		// Ensure that fantasy_pros is initialized for the current team within fantasy_scores_json
-		if (!subscribedLeagueData.fantasy_scores_json[currentTeam]) {
-			subscribedLeagueData.fantasy_scores_json[currentTeam] = {
+		// Ensure that fantasy_pros is initialized for the current team within draft_order_json
+		if (!subscribedLeagueData.draft_order_json[currentTeam]) {
+			subscribedLeagueData.draft_order_json[currentTeam] = {
 				fantasy_pros: {}
 			};
-		} else if (!subscribedLeagueData.fantasy_scores_json[currentTeam].fantasy_pros) {
-			subscribedLeagueData.fantasy_scores_json[currentTeam].fantasy_pros = {};
+		} else if (!subscribedLeagueData.draft_order_json[currentTeam].fantasy_pros) {
+			subscribedLeagueData.draft_order_json[currentTeam].fantasy_pros = {};
 		}
 
 		if (selectedProIndex < 0 || selectedProIndex >= pros.length) {
@@ -371,8 +371,8 @@
 		const proKey = `pro_male_${selectedProIndex + 1}`;
 
 		if (
-			subscribedLeagueData.fantasy_scores_json[currentTeam]?.fantasy_pros &&
-			subscribedLeagueData.fantasy_scores_json[currentTeam]?.fantasy_pros[proKey] !== undefined
+			subscribedLeagueData.draft_order_json[currentTeam]?.fantasy_pros &&
+			subscribedLeagueData.draft_order_json[currentTeam]?.fantasy_pros[proKey] !== undefined
 		) {
 			console.log(
 				`${pros[selectedProIndex].name} (ID: ${selectedProId}) has already been drafted.`
@@ -381,16 +381,16 @@
 		}
 
 		// Update fantasy_pros for the current team
-		subscribedLeagueData.fantasy_scores_json[currentTeam].fantasy_pros[proKey] = selectedProId;
+		subscribedLeagueData.draft_order_json[currentTeam].fantasy_pros[proKey] = selectedProId;
 
 		const updatePayload = {
-			fantasy_scores_json: {
-				...subscribedLeagueData.fantasy_scores_json,
+			draft_order_json: {
+				...subscribedLeagueData.draft_order_json,
 				[currentTeam.team_name]: {
 					// Access the team name property
-					...subscribedLeagueData.fantasy_scores_json[currentTeam.team_name], // Access the team name property
+					...subscribedLeagueData.draft_order_json[currentTeam.team_name], // Access the team name property
 					fantasy_pros: {
-						...subscribedLeagueData.fantasy_scores_json[currentTeam.team_name]?.fantasy_pros, // Access the team name property
+						...subscribedLeagueData.draft_order_json[currentTeam.team_name]?.fantasy_pros, // Access the team name property
 						[`pro_male_${selectedProIndex + 1}`]: selectedProId
 					}
 				}
