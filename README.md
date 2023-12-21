@@ -131,20 +131,50 @@ assigned or referenced to the row in the scores table. This system if done corre
 
 ## Fantasay Notes
 
-fantasy_scores_json
+draft_order_json
 {
+"draft_rounds": [
+{
+"round_number": 1,
+"draft_order": ["fantasy_team_1", "fantasy_team_2", "fantasy_team_3", "fantasy_team_4", "fantasy_team_5", "fantasy_team_6"],
+"picks": []
+},
+{
+"round_number": 2,
+"draft_order": ["fantasy_team_6", "fantasy_team_5", "fantasy_team_4", "fantasy_team_3", "fantasy_team_2", "fantasy_team_1"],
+"picks": []
+},
+{
+"round_number": 3,
+"draft_order": ["fantasy_team_1", "fantasy_team_2", "fantasy_team_3", "fantasy_team_4", "fantasy_team_5", "fantasy_team_6"],
+"picks": []
+},
+{
+"round_number": 4,
+"draft_order": ["fantasy_team_1", "fantasy_team_2", "fantasy_team_3", "fantasy_team_4", "fantasy_team_5", "fantasy_team_6"],
+"picks": []
+},
+{
+"round_number": 5,
+"draft_order": ["fantasy_team_6", "fantasy_team_5", "fantasy_team_4", "fantasy_team_3", "fantasy_team_2", "fantasy_team_1"],
+"picks": []
+},
+{
+"round_number": 6,
+"draft_order": ["fantasy_team_1", "fantasy_team_2", "fantasy_team_3", "fantasy_team_4", "fantasy_team_5", "fantasy_team_6"],
+"picks": []
+}
+],
+"fantasy_teams": {
 "fantasy_team_1": {
 "score": 0,
 "team_info": {
 "owner_id": "uuid_1",
 "team_name": "Sample Name 1"
 },
-"draft_rounds": [],
 "fantasy_pros": {
 "pro_male_1": 0,
 "pro_male_2": 0,
-"pro_male_4": 0,
-"pro_male_12": 6,
 "pro_female_1": 0,
 "pro_female_2": 0
 },
@@ -159,12 +189,9 @@ fantasy_scores_json
 "owner_id": "uuid_2",
 "team_name": "Sample Name 2"
 },
-"draft_rounds": [],
 "fantasy_pros": {
 "pro_male_1": 0,
 "pro_male_2": 0,
-"pro_male_4": 0,
-"pro_male_6": 0,
 "pro_female_1": 0,
 "pro_female_2": 0
 },
@@ -179,11 +206,9 @@ fantasy_scores_json
 "owner_id": "uuid_3",
 "team_name": "Sample Name 3"
 },
-"draft_rounds": [],
 "fantasy_pros": {
 "pro_male_1": 0,
 "pro_male_2": 0,
-"pro_male_7": 0,
 "pro_female_1": 0,
 "pro_female_2": 0
 },
@@ -198,11 +223,9 @@ fantasy_scores_json
 "owner_id": "uuid_4",
 "team_name": "Sample Name 4"
 },
-"draft_rounds": [],
 "fantasy_pros": {
 "pro_male_1": 0,
 "pro_male_2": 0,
-"pro_male_7": 0,
 "pro_female_1": 0,
 "pro_female_2": 0
 },
@@ -217,7 +240,6 @@ fantasy_scores_json
 "owner_id": "uuid_5",
 "team_name": "Sample Name 5"
 },
-"draft_rounds": [],
 "fantasy_pros": {
 "pro_male_1": 0,
 "pro_male_2": 0,
@@ -235,7 +257,6 @@ fantasy_scores_json
 "owner_id": "uuid_6",
 "team_name": "Sample Name 6"
 },
-"draft_rounds": [],
 "fantasy_pros": {
 "pro_male_1": 0,
 "pro_male_2": 0,
@@ -247,6 +268,9 @@ fantasy_scores_json
 "reserve_pro_female": 0
 }
 }
+},
+"pros": [
+]
 }
 
 ## Fantasy Teams
