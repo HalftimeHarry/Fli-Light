@@ -13,10 +13,28 @@
 	let selectedProIndex = -1; // Initialize with an index outside the valid range
 	let countdownTime = 10;
 	let isDrafting = false;
+	// Update the draftPayload to include round information and snake direction
 	let draftPayload = {
-		pros: [], // You can populate this array with pros data if needed
-		draft_rounds: [],
-		fantasy_teams: {}
+		pros: [],
+		draft_rounds: [
+			{
+				picks: [],
+				draft_order: [
+					// ... Draft order data ...
+				],
+				round_number: 1
+			}
+		],
+		fantasy_teams: {},
+		metadata: {
+			draft_format: 'snake', // or "linear" if applicable
+			total_rounds: 6, // Total number of draft rounds
+			timer_duration: 60, // Timer duration in seconds for each pick
+			male_pro: true, // Set to true if male pros are available
+			female_pro: true, // Set to true if female pros are available
+			reserve_pro_male: true, // Set to true if reserve male pros are available
+			reserve_pro_female: true // Set to true if reserve female pros are available
+		}
 	};
 
 	let pros = [];
@@ -87,52 +105,17 @@
 				draftPayload = {
 					pros: [], // You can populate this array with pros data if needed
 					draft_rounds: [],
-					fantasy_teams: {}
-				};
-
-				// Define the actual primary key column name for your 'league' table
-				const primaryKeyColumnName = 'league_id';
-
-				// Initialize fantasy teams
-				league.forEach((row) => {
-					if (row.hasOwnProperty(primaryKeyColumnName)) {
-						const teamKey = row[primaryKeyColumnName];
-						console.log(teamKey);
-
-						if (teamKey) {
-							const teamNumber = teamKey.split('_').pop();
-							const fantasyTeamKey = 'fantasy_team_' + teamNumber;
-
-							// Check if league_id is defined, if not, provide a default value
-							const leagueIdValue = row.league_id || 'league_id';
-
-							draftPayload.fantasy_teams[fantasyTeamKey] = {
-								score: 0,
-								team_info: {
-									owner_id: 'uuid_' + teamNumber,
-									team_name: 'Sample Name ' + teamNumber
-								},
-								fantasy_pros: {
-									pro_male_1: null, // Initialize to null
-									pro_male_2: null, // Initialize to null
-									pro_female_1: null, // Initialize to null
-									pro_female_2: null // Initialize to null
-								},
-								reserve_pros: {
-									reserve_male: null, // Initialize to null
-									reserve_female: null // Initialize to null
-								}
-							};
-						}
-					} else {
-						console.error(`Missing ${primaryKeyColumnName} property in row:`, row);
-
-						// Handle the missing property with a default value or appropriate action
-						// For example, you can skip this row or provide a default value for it.
-						// Here's an example of providing a default value for the missing property:
-						row[primaryKeyColumnName] = leagueId;
+					fantasy_teams: {},
+					metadata: {
+						draft_format: 'snake', // or "linear" if applicable
+						total_rounds: 6, // Total number of draft rounds
+						timer_duration: 10, // Timer duration in seconds for each pick
+						male_pro: true, // Set to true if male pros are available
+						female_pro: true, // Set to true if female pros are available
+						reserve_pro_male: true, // Set to true if reserve male pros are available
+						reserve_pro_female: true // Set to true if reserve female pros are available
 					}
-				});
+				};
 
 				// Define draftRound here
 				const draftRound = {
@@ -248,30 +231,41 @@
 
 	async function startDrafting() {
 		// Determine the current round based on the draft structure
-		const currentRoundIndex = currentRound - 1;
+		const currentRoundIndex = draftPayload.draft_rounds.length - 1;
+		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
 		const totalRounds = draftPayload.draft_rounds.length;
 
 		if (currentRoundIndex < totalRounds) {
-			const currentParticipant = draftOrder[currentParticipantIndex];
+			const currentParticipant = currentRound.draft_order[currentParticipantIndex];
 			console.log('Current Participant:', currentParticipant.team_name);
 
 			// Draft a pro for the current participant based on the category (male, female, reserve male, reserve female)
-			const draftedPro = draftProBasedOnCategory(currentParticipant, currentRound);
+			const draftedPro = draftProBasedOnCategory(currentParticipant, currentRound.round_number);
 
 			// Update the drafted pro's ID in the respective team's section within fantasy_teams
 			updateDraftedProInFantasyTeam(currentParticipant, draftedPro);
 
 			currentParticipantIndex++;
-
-			if (currentParticipantIndex >= draftOrder.length) {
+			if (currentParticipantIndex >= currentRound.draft_order.length) {
 				// Reverse the draft order for the next round if snake direction is enabled
-				if (is_snake_direction_up) {
-					draftOrder.reverse();
+				if (isSnakeDirectionUp) {
+					currentRound.draft_order.reverse();
 				}
 
-				is_snake_direction_up = !is_snake_direction_up; // Toggle the direction
+				isSnakeDirectionUp = !isSnakeDirectionUp; // Toggle the direction
 				currentParticipantIndex = 0;
-				currentRound++; // Increment the round
+
+				// Increment the round number
+				currentRound.round_number++;
+
+				// Add a new round to draftPayload if needed
+				if (currentRound.round_number <= totalRounds) {
+					draftPayload.draft_rounds.push({
+						picks: [],
+						draft_order: currentRound.draft_order.slice(),
+						round_number: currentRound.round_number
+					});
+				}
 			}
 		} else {
 			// All rounds are complete, and the draft is finished
