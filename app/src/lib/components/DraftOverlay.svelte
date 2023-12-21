@@ -77,7 +77,7 @@
 				console.log('Shuffled Fantasy Teams:', draftOrder);
 
 				// Define the actual primary key column name for your 'league' table
-				const primaryKeyColumnName = 'your_primary_key_column_name';
+				const primaryKeyColumnName = leagueId;
 
 				// Create the draft payload with the desired structure
 				const draftPayload = {
