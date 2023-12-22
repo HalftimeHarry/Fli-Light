@@ -233,40 +233,13 @@
 		// Determine the current round based on the draft structure
 		const currentRoundIndex = draftPayload.draft_rounds.length - 1;
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
-		const totalRounds = draftPayload.draft_rounds.length;
+		const totalRounds = draftPayload.metadata.total_rounds;
 
 		if (currentRoundIndex < totalRounds) {
-			const currentParticipant = currentRound.draft_order[currentParticipantIndex];
-			console.log('Current Participant:', currentParticipant.team_name);
+			// ... (Your existing code for drafting)
 
-			// Draft a pro for the current participant based on the category (male, female, reserve male, reserve female)
-			const draftedPro = draftProBasedOnCategory(currentParticipant, currentRound.round_number);
-
-			// Update the drafted pro's ID in the respective team's section within fantasy_teams
-			updateDraftedProInFantasyTeam(currentParticipant, draftedPro);
-
-			currentParticipantIndex++;
-			if (currentParticipantIndex >= currentRound.draft_order.length) {
-				// Reverse the draft order for the next round if snake direction is enabled
-				if (isSnakeDirectionUp) {
-					currentRound.draft_order.reverse();
-				}
-
-				isSnakeDirectionUp = !isSnakeDirectionUp; // Toggle the direction
-				currentParticipantIndex = 0;
-
-				// Increment the round number
-				currentRound.round_number++;
-
-				// Add a new round to draftPayload if needed
-				if (currentRound.round_number <= totalRounds) {
-					draftPayload.draft_rounds.push({
-						picks: [],
-						draft_order: currentRound.draft_order.slice(),
-						round_number: currentRound.round_number
-					});
-				}
-			}
+			// Start the countdown timer when the draft begins
+			startCountdownTimer(draftPayload.metadata.timer_duration);
 		} else {
 			// All rounds are complete, and the draft is finished
 			console.log('Draft is complete.');
