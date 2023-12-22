@@ -37,6 +37,7 @@
 		}
 	};
 
+	let timeRemaining = draftPayload.metadata.timer_duration;
 	let pros = [];
 	let teams = [];
 	let loading = true;
@@ -229,17 +230,42 @@
 		// Return the drafted pro
 	}
 
+	// Function to handle the end of the countdown timer
+	function handleCountdownEnd(currentParticipant) {
+		clearInterval(countdownInterval); // Stop the countdown
+		console.log('Time is up for', currentParticipant.team_name);
+
+		// Implement the logic to prompt the participant to make a selection
+		// or initiate the auto-draft process here
+	}
+
+	// Function to start the countdown timer for the current participant
+	function startParticipantCountdown(currentParticipant) {
+		timeRemaining = draftPayload.metadata.timer_duration;
+
+		const countdownInterval = setInterval(() => {
+			timeRemaining--;
+
+			if (timeRemaining <= 0) {
+				clearInterval(countdownInterval);
+				handleCountdownEnd(currentParticipant);
+			}
+		}, 1000);
+	}
+
 	async function startDrafting() {
-		// Determine the current round based on the draft structure
 		const currentRoundIndex = draftPayload.draft_rounds.length - 1;
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
 		const totalRounds = draftPayload.metadata.total_rounds;
 
 		if (currentRoundIndex < totalRounds) {
-			// ... (Your existing code for drafting)
+			const currentParticipant = currentRound.draft_order[currentParticipantIndex];
+			console.log('Current Participant:', currentParticipant.team_name);
 
-			// Start the countdown timer when the draft begins
-			startCountdownTimer(draftPayload.metadata.timer_duration);
+			// Start the countdown timer for the current participant
+			startParticipantCountdown(currentParticipant);
+
+			// Rest of your code
 		} else {
 			// All rounds are complete, and the draft is finished
 			console.log('Draft is complete.');
@@ -247,7 +273,6 @@
 	}
 
 	function autoDraft() {
-		// Add your logic to automatically select a pro and call draftProWithConditions
 		if (selectedProIndex === -1) {
 			// Automatically select a pro, for example, the first available pro
 			selectedProIndex = pros.findIndex((p, index) => index !== selectedProIndex);
