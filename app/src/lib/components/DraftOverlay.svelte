@@ -114,16 +114,9 @@
 						reserve_pro_male: true,
 						reserve_pro_female: true
 					},
-					draft_rounds: [
-						{
-							picks: [],
-							draft_order: draftOrder.slice(), // Clone the draft order
-							round_number: 1 // Set an initial round number
-						}
-					],
+					draft_rounds: [], // Initialize draft_rounds as an empty array
 					fantasy_teams: {}
 				};
-
 				// Define draftRound here
 				const draftRound = {
 					picks: [],
@@ -329,40 +322,52 @@
 		}
 	}
 
-		function startCountdownTimer() {
-			console.log('Starting countdown timer...');
-			countdownTime = 10; // Set the initial countdown time
-			console.log('countdownTime set to:', countdownTime); // Add this line
-			clearInterval(countdownInterval);
+	// Updated handleDraftOrder function
+	function handleDraftOrder() {
+		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
 
-			countdownInterval = setInterval(() => {
-				countdownTime--;
-
-				if (countdownTime <= 0) {
-					clearInterval(countdownInterval);
-					console.log('Countdown Timer Ended');
-					// Call the function to handle the end of the timer here, if needed
-				} else {
-					console.log('countdownTime:', countdownTime); // Add this line to track countdownTime
-				}
-			}, 1000);
-		}
-
-		function handleDraftOrder() {
-			const currentTeam = draftOrder[currentParticipantIndex];
+		if (currentRound) {
+			const currentOrder = currentRound.draft_order;
+			const currentTeam = currentOrder[currentParticipantIndex];
 
 			if (currentTeam) {
+				// Put the current team on the clock
 				console.log('Putting', currentTeam.team_name, 'on the clock');
-				startCountdownTimer(); // Start the countdown timer
+
+				// Start the countdown timer
+				startCountdownTimer(currentRound.metadata.timer_duration);
+
+				// Move to the next participant
 				currentParticipantIndex++;
-				if (currentParticipantIndex >= draftOrder.length) {
-					currentParticipantIndex = 0;
+				if (currentParticipantIndex >= currentOrder.length) {
+					currentParticipantIndex = 0; // Reset to the first participant
+					currentRoundIndex++; // Move to the next round
 				}
-			} else {
-				clearInterval(autoDraftInterval);
-				autoDraft();
 			}
+		} else {
+			// All participants have drafted, perform auto-draft or end the draft
+			clearInterval(autoDraftInterval);
+			autoDraft(); // Implement auto-draft logic here if needed
 		}
+	}
+
+	// Updated startCountdownTimer function
+	function startCountdownTimer(duration) {
+		countdownTime = duration; // Set the initial countdown time
+		clearInterval(countdownInterval); // Clear any previous interval
+
+		countdownInterval = setInterval(() => {
+			countdownTime--;
+
+			if (countdownTime <= 0) {
+				clearInterval(countdownInterval); // Stop the countdown when it reaches 0
+				// Handle the end of the countdown here
+				console.log('Countdown Timer Ended');
+				// You can call the function to handle the end of the timer here
+				// For example: handleDraftOrder();
+			}
+		}, 1000);
+	}
 
 	async function draftProWithConditions(currentTeam) {
 		console.log('Current Team:', currentTeam.owner_id);
