@@ -51,6 +51,8 @@
 	let currentRound = 1; // Initialize it to 1 or the appropriate starting round
 	let isSnakeDirectionUp = false; // Initialize isSnakeDirectionUp
 	let countdownInterval;
+	let currentTeam = null; // Initialize it as null
+	let currentRoundIndex = 0; // Initialize it to 0 or the appropriate starting value
 	$: subscribedLeagueData = $leagueData;
 
 	function closeDrawer() {
@@ -246,6 +248,9 @@
 		countdownTime.set(draftPayload.metadata.timer_duration); // Reset countdownTime
 		clearInterval(countdownInterval);
 
+		// Find the current team based on currentParticipant
+		const currentTeam = findTeamByOwnerId(currentParticipant.owner_id);
+
 		countdownInterval = setInterval(() => {
 			countdownTime.update((time) => {
 				return time - 1;
@@ -255,8 +260,18 @@
 				clearInterval(countdownInterval);
 				console.log('We reached the end of the countdown');
 				handleCountdownEnd(currentParticipant);
+
+				// Pass the current team to draftProWithConditions
+				draftProWithConditions(currentTeam);
 			}
 		}, 1000);
+	}
+
+	// Function to find a team by owner_id
+	function findTeamByOwnerId(ownerId) {
+		return draftPayload.draft_rounds[currentRoundIndex]?.draft_order.find(
+			(team) => team.owner_id === ownerId
+		);
 	}
 
 	async function startDrafting() {
@@ -279,17 +294,22 @@
 	}
 
 	function autoDraft() {
+		console.log('Attempt autoDraft call 1st');
 		if (selectedProIndex === -1) {
 			// Automatically select a pro, for example, the first available pro
 			selectedProIndex = pros.findIndex((p, index) => index !== selectedProIndex);
 
 			if (selectedProIndex !== -1) {
 				selectedPro = pros[selectedProIndex].name;
-				console.log('Auto-drafting:', selectedPro); // Add this line for debugging
+				console.log('Auto-drafting:', selectedPro);
+
+				// Attempt auto-draft
+				console.log('Attempt autoDraft call 2nd');
+
 				// You should call the function to draft the selected pro here
-				draftProWithConditions();
+				draftProWithConditions(); // Make sure this function is correctly called
 			} else {
-				console.log('No available pros to auto-draft.'); // Add this line for debugging
+				console.log('No available pros to auto-draft.');
 			}
 		}
 	}
@@ -378,115 +398,131 @@
 	}
 
 	async function draftProWithConditions(currentTeam) {
-		console.log('Drafting pro with conditions.'); // Add this line for debugging
-		console.log('Current Team:', currentTeam.owner_id);
+		console.log('Drafting pro with conditions.');
 
-		const currentParticipantUUID = draftOrder[currentParticipantIndex]?.owner_id;
-		const currentParticipantTeamName = draftOrder[currentParticipantIndex]?.team_name;
+		if (currentTeam) {
+			const currentParticipantUUID = draftOrder[currentParticipantIndex]?.owner_id;
 
-		if (!currentParticipantUUID) {
-			console.error('Current participant has no associated fantasy team');
-			return;
-		}
-
-		// Ensure that fantasy_pros is initialized for the current team within draft_order_json
-		if (!subscribedLeagueData.draft_order_json[currentParticipantTeamName]) {
-			subscribedLeagueData.draft_order_json[currentParticipantTeamName] = {
-				fantasy_pros: {}
-			};
-		} else if (!subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros) {
-			subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros = {};
-		}
-
-		if (selectedProIndex < 0 || selectedProIndex >= pros.length) {
-			console.error('Invalid selectedProIndex:', selectedProIndex);
-			return;
-		}
-
-		const currentRound =
-			subscribedLeagueData.draft_order_json[currentParticipantTeamName].round_number;
-
-		// Check the round number to determine what type of pro to draft
-		let proType = '';
-
-		if (currentRound <= 2) {
-			proType = 'pro_male';
-		} else if (currentRound <= 4) {
-			proType = 'pro_female';
-		} else if (currentRound === 5) {
-			proType = 'reserve_female';
-		} else if (currentRound === 6) {
-			proType = 'reserve_male';
-		}
-
-		console.log('Drafting a', proType);
-
-		if (proType === 'pro_male' || proType === 'pro_female') {
-			// Draft a male or female pro
-			const proKey = `${proType}_${selectedProIndex + 1}`;
-			const selectedPro = pros[selectedProIndex];
-			const selectedProId = selectedPro ? selectedPro.pro_id : null;
-
-			if (!selectedPro || selectedProId === null) {
-				console.log('Selected Pro ID:', selectedProId);
-				console.error('Selected pro is undefined or has no ID.');
+			if (!currentParticipantUUID) {
+				console.error('Current participant has no associated fantasy team');
 				return;
 			}
 
-			if (
-				subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros &&
-				subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros[proKey] !==
-					undefined
-			) {
-				console.log(
-					`${pros[selectedProIndex].name} (ID: ${selectedProId}) has already been drafted.`
-				);
+			const currentParticipant = draftOrder[currentParticipantIndex];
+			const currentParticipantTeamName = currentParticipant ? currentParticipant.team_name : null;
+
+			if (!currentParticipantTeamName) {
+				console.error('Current participant has no team name');
 				return;
 			}
 
-			// Update fantasy_pros for the current team
-			subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros[proKey] =
-				selectedProId;
-		} else {
-			console.error('Invalid proType:', proType);
-			return;
-		}
+			// Initialize draft_order_json if it's null
+			if (!subscribedLeagueData.draft_order_json) {
+				subscribedLeagueData.draft_order_json = {};
+			}
 
-		const updatePayload = {
-			draft_order_json: {
-				...subscribedLeagueData.draft_order_json,
-				[currentParticipantTeamName]: {
-					...subscribedLeagueData.draft_order_json[currentParticipantTeamName],
-					round_number: currentRound + 1 // Increment the round number
+			// Ensure that fantasy_pros is initialized for the current team within draft_order_json
+			if (!subscribedLeagueData.draft_order_json[currentParticipantTeamName]) {
+				subscribedLeagueData.draft_order_json[currentParticipantTeamName] = {};
+			}
+
+			// Capture information about the participant's fantasy team
+			if (!subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros) {
+				subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros = {};
+			}
+
+			if (selectedProIndex < 0 || selectedProIndex >= pros.length) {
+				console.error('Invalid selectedProIndex:', selectedProIndex);
+				return;
+			}
+
+			const currentRound =
+				subscribedLeagueData.draft_order_json[currentParticipantTeamName].round_number;
+
+			// Check the round number to determine what type of pro to draft
+			let proType = '';
+
+			if (currentRound <= 2) {
+				proType = 'pro_male';
+			} else if (currentRound <= 4) {
+				proType = 'pro_female';
+			} else if (currentRound === 5) {
+				proType = 'reserve_female';
+			} else if (currentRound === 6) {
+				proType = 'reserve_male';
+			}
+
+			console.log('Drafting a', proType);
+
+			if (proType === 'pro_male' || proType === 'pro_female') {
+				// Draft a male or female pro
+				const proKey = `${proType}_${selectedProIndex + 1}`;
+				const selectedPro = pros[selectedProIndex];
+				const selectedProId = selectedPro ? selectedPro.pro_id : null;
+
+				if (!selectedPro || selectedProId === null) {
+					console.log('Selected Pro ID:', selectedProId);
+					console.error('Selected pro is undefined or has no ID.');
+					return;
 				}
-			}
-		};
 
-		try {
-			// Update the league data with the new fantasy_pros and incremented round number
-			const { data: updateData, error: updateError } = await supabase
-				.from('league')
-				.update(updatePayload)
-				.eq('league_id', leagueId);
+				if (
+					subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros &&
+					subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros[proKey] !==
+						undefined
+				) {
+					console.log(
+						`${pros[selectedProIndex].name} (ID: ${selectedProId}) has already been drafted.`
+					);
+					return;
+				}
 
-			if (updateError) {
-				console.error('Error updating fantasy_pros:', updateError);
+				// Update fantasy_pros for the current team
+				subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros[proKey] =
+					selectedProId;
+			} else {
+				console.error('Invalid proType:', proType);
 				return;
 			}
 
-			selectedProIndex = -1;
-			currentParticipantIndex = (currentParticipantIndex + 1) % draftOrder.length;
+			const updatePayload = {
+				draft_order_json: {
+					...subscribedLeagueData.draft_order_json,
+					[currentParticipantTeamName]: {
+						...subscribedLeagueData.draft_order_json[currentParticipantTeamName],
+						round_number: currentRound + 1 // Increment the round number
+					}
+				}
+			};
 
-			console.log('Current Participant Index:', currentParticipantIndex);
-			console.log('Draft Order:', draftOrder);
+			try {
+				// Update the league data with the new fantasy_pros and incremented round number
+				const { data: updateData, error: updateError } = await supabase
+					.from('league')
+					.update(updatePayload)
+					.eq('league_id', leagueId);
 
-			if (selectedProIndex !== -1) {
-				console.log('Pro drafted:', pros[selectedProIndex].name);
-			} else {
-				console.log('No pro drafted.');
+				if (updateError) {
+					console.error('Error updating fantasy_pros:', updateError);
+					return;
+				}
+
+				selectedProIndex = -1;
+				currentParticipantIndex = (currentParticipantIndex + 1) % draftOrder.length;
+
+				console.log('Current Participant Index:', currentParticipantIndex);
+				console.log('Draft Order:', draftOrder);
+
+				if (selectedProIndex !== -1) {
+					console.log('Pro drafted:', pros[selectedProIndex].name);
+				} else {
+					console.log('No pro drafted.');
+				}
+			} catch (error) {
+				console.error('Error:', error);
 			}
-		} catch (error) {
-			console.error('Error:', error);
+		} else {
+			console.warn('currentTeam is undefined or null. Handling gracefully.'); // Add a warning message
 		}
 	}
 
