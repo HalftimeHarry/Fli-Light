@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
+	import { writable } from 'svelte/store';
 
 	const drawerStore = getDrawerStore();
 
@@ -11,7 +12,6 @@
 	let currentParticipantIndex = 0;
 	let selectedPro = '';
 	let selectedProIndex = -1; // Initialize with an index outside the valid range
-	let countdownTime = 10;
 	let isDrafting = false;
 	// Update the draftPayload to include round information and snake direction
 	let draftPayload = {
@@ -37,7 +37,7 @@
 		}
 	};
 
-	let timeRemaining = draftPayload.metadata.timer_duration;
+	let countdownTime = writable(draftPayload.metadata.timer_duration);
 	let pros = [];
 	let teams = [];
 	let loading = true;
@@ -142,6 +142,8 @@
 					return;
 				}
 
+				countdownTime = writable(draftPayload.metadata.timer_duration);
+
 				// Start the drafting process
 				startDrafting();
 			} else {
@@ -235,19 +237,23 @@
 		clearInterval(countdownInterval); // Stop the countdown
 		console.log('Time is up for', currentParticipant.team_name);
 
-		// Implement the logic to prompt the participant to make a selection
-		// or initiate the auto-draft process here
+		// Call the autoDraft function when the countdown expires
+		autoDraft();
 	}
 
-	// Function to start the countdown timer for the current participant
+	// Function to start the countdown timer for a participant
 	function startParticipantCountdown(currentParticipant) {
-		timeRemaining = draftPayload.metadata.timer_duration;
+		countdownTime.set(draftPayload.metadata.timer_duration); // Reset countdownTime
+		clearInterval(countdownInterval);
 
-		const countdownInterval = setInterval(() => {
-			timeRemaining--;
+		countdownInterval = setInterval(() => {
+			countdownTime.update((time) => {
+				return time - 1;
+			});
 
-			if (timeRemaining <= 0) {
+			if ($countdownTime <= 0) {
 				clearInterval(countdownInterval);
+				console.log('We reached the end of the countdown');
 				handleCountdownEnd(currentParticipant);
 			}
 		}, 1000);
@@ -265,7 +271,7 @@
 			// Start the countdown timer for the current participant
 			startParticipantCountdown(currentParticipant);
 
-			// Rest of your code
+			// Rest of your code for drafting process
 		} else {
 			// All rounds are complete, and the draft is finished
 			console.log('Draft is complete.');
@@ -279,7 +285,11 @@
 
 			if (selectedProIndex !== -1) {
 				selectedPro = pros[selectedProIndex].name;
+				console.log('Auto-drafting:', selectedPro); // Add this line for debugging
+				// You should call the function to draft the selected pro here
 				draftProWithConditions();
+			} else {
+				console.log('No available pros to auto-draft.'); // Add this line for debugging
 			}
 		}
 	}
@@ -368,6 +378,7 @@
 	}
 
 	async function draftProWithConditions(currentTeam) {
+		console.log('Drafting pro with conditions.'); // Add this line for debugging
 		console.log('Current Team:', currentTeam.owner_id);
 
 		const currentParticipantUUID = draftOrder[currentParticipantIndex]?.owner_id;
@@ -612,6 +623,6 @@
 			</form>
 		</div>
 
-		<p class="mt-2 text-white">Time remaining: {countdownTime} seconds</p>
+		<p class="mt-2 text-white">Time remaining: {$countdownTime} seconds</p>
 	</div>
 </div>
