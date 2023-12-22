@@ -48,6 +48,8 @@
 	let fantasyTeamKey = ''; // Declare fantasyTeamKey outside the function
 	let autoDraftInterval; // Add this variable to store the auto-draft interval
 	let currentRound = 1; // Initialize it to 1 or the appropriate starting round
+	let isSnakeDirectionUp = false; // Initialize isSnakeDirectionUp
+	let countdownInterval;
 	$: subscribedLeagueData = $leagueData;
 
 	function closeDrawer() {
@@ -100,21 +102,26 @@
 
 				draftOrder = shuffle(teamsArray);
 				console.log('Shuffled Fantasy Teams:', draftOrder);
-
-				// Initialize fantasy_teams and draftPayload
+				// Initialize fantasy_teams and draftPayload with the provided draft structure
 				draftPayload = {
-					pros: [], // You can populate this array with pros data if needed
-					draft_rounds: [],
-					fantasy_teams: {},
+					pros: [],
 					metadata: {
-						draft_format: 'snake', // or "linear" if applicable
-						total_rounds: 6, // Total number of draft rounds
-						timer_duration: 10, // Timer duration in seconds for each pick
-						male_pro: true, // Set to true if male pros are available
-						female_pro: true, // Set to true if female pros are available
-						reserve_pro_male: true, // Set to true if reserve male pros are available
-						reserve_pro_female: true // Set to true if reserve female pros are available
-					}
+						male_pro: true,
+						female_pro: true,
+						draft_format: 'snake',
+						total_rounds: 6,
+						timer_duration: 10,
+						reserve_pro_male: true,
+						reserve_pro_female: true
+					},
+					draft_rounds: [
+						{
+							picks: [],
+							draft_order: draftOrder.slice(), // Clone the draft order
+							round_number: 1 // Set an initial round number
+						}
+					],
+					fantasy_teams: {}
 				};
 
 				// Define draftRound here
@@ -291,29 +298,6 @@
 		console.log(selectedProIndex);
 	}
 
-	// Function to handle draft order
-	function handleDraftOrder() {
-		const currentTeam = draftOrder[currentParticipantIndex];
-
-		if (currentTeam) {
-			// Put the current team on the clock
-			console.log('Putting', currentTeam.team_name, 'on the clock');
-
-			// Start the countdown timer
-			startCountdownTimer();
-
-			// Move to the next participant
-			currentParticipantIndex++;
-			if (currentParticipantIndex >= draftOrder.length) {
-				currentParticipantIndex = 0; // Reset to the first participant
-			}
-		} else {
-			// All participants have drafted, perform auto-draft
-			clearInterval(autoDraftInterval);
-			autoDraft();
-		}
-	}
-
 	// After a successful draft pick
 	// Sample code for handling a draft pick
 	function handleDraftPick(teamKey, playerKey) {
@@ -345,25 +329,40 @@
 		}
 	}
 
-	// Function to start the countdown timer
-	function startCountdownTimer() {
-		console.log('Countdown Timer Started'); // Log when the countdown timer starts
+		function startCountdownTimer() {
+			console.log('Starting countdown timer...');
+			countdownTime = 10; // Set the initial countdown time
+			console.log('countdownTime set to:', countdownTime); // Add this line
+			clearInterval(countdownInterval);
 
-		function updateTimer() {
-			countdownTime--;
-			console.log('Time remaining:', countdownTime);
+			countdownInterval = setInterval(() => {
+				countdownTime--;
 
-			if (countdownTime <= 0) {
-				// Handle timer completion here (e.g., end of round)
-				clearInterval(autoDraftInterval);
-				console.log('Countdown Timer Ended'); // Log when the countdown timer ends
-				handleDraftOrder();
+				if (countdownTime <= 0) {
+					clearInterval(countdownInterval);
+					console.log('Countdown Timer Ended');
+					// Call the function to handle the end of the timer here, if needed
+				} else {
+					console.log('countdownTime:', countdownTime); // Add this line to track countdownTime
+				}
+			}, 1000);
+		}
+
+		function handleDraftOrder() {
+			const currentTeam = draftOrder[currentParticipantIndex];
+
+			if (currentTeam) {
+				console.log('Putting', currentTeam.team_name, 'on the clock');
+				startCountdownTimer(); // Start the countdown timer
+				currentParticipantIndex++;
+				if (currentParticipantIndex >= draftOrder.length) {
+					currentParticipantIndex = 0;
+				}
 			} else {
-				// Continue the countdown
-				autoDraftInterval = setTimeout(updateTimer, 1000);
+				clearInterval(autoDraftInterval);
+				autoDraft();
 			}
 		}
-	}
 
 	async function draftProWithConditions(currentTeam) {
 		console.log('Current Team:', currentTeam.owner_id);
