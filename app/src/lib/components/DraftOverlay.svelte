@@ -211,48 +211,6 @@
 		}
 	}
 
-	function draftProBasedOnCategory(currentParticipantTeamName, selectedProId) {
-		console.log('Get pro here then do some checks');
-
-		let proType = '';
-
-		if (currentRound <= 2) {
-			proType = 'pro_male';
-		} else if (currentRound <= 4) {
-			proType = 'pro_female';
-		} else if (currentRound === 5) {
-			proType = 'reserve_female';
-		} else if (currentRound === 6) {
-			proType = 'reserve_male';
-		}
-
-		// Simulate selecting a pro based on the selectedProId
-		const selectedPro = {
-			pro_id: selectedProId,
-			name: 'Sample Pro',
-			type: proType
-			// Add other pro properties as needed
-		};
-
-		// Log the selectedPro object
-		console.log('Selected Pro:', selectedPro);
-
-		// Create an object to represent the drafted pro for the current participant
-		const draftedPro = {
-			pro_id: selectedPro.pro_id,
-			name: selectedPro.name,
-			type: selectedPro.type
-			// Add other pro properties as needed
-		};
-
-		// Here, you can add the draftedPro to the relevant data structure
-		// For example, if you want to add it to fantasy_scores_json, you can do something like this:
-		fantasy_scores_json[currentParticipantTeamName] = draftedPro;
-
-		// Return the drafted pro
-		return draftedPro;
-	}
-
 	// Function to handle the end of the countdown timer
 	function handleCountdownEnd(currentParticipant) {
 		clearInterval(countdownInterval); // Stop the countdown
@@ -502,43 +460,31 @@
 				// Check if the pro has already been drafted using payload
 				console.log(draftPayload);
 				if (
-					draftPayload.fantasy_teams &&
-					draftPayload.fantasy_teams[currentTeam.team_name] &&
-					draftPayload.fantasy_teams[currentTeam.team_name][proKey] !== undefined
+					draftPayload.fantasy_scores_json &&
+					draftPayload.fantasy_scores_json[currentTeam.team_name] &&
+					draftPayload.fantasy_scores_json[currentTeam.team_name][proKey]
 				) {
 					console.log(`${selectedPro.name} (ID: ${selectedProId}) has already been drafted.`);
 					return;
 				}
 
-				// Initialize the draft_order_json object if not exists
-				if (!draftPayload.draft_order_json) {
-					draftPayload.draft_order_json = {};
+				// Retrieve the existing fantasy_scores_json from the database
+				const { data: leagueData, error: leagueError } = await supabase
+					.from('league')
+					.select('fantasy_scores_json')
+					.eq('league_id', leagueId);
+
+				if (leagueError) {
+					console.error('Error fetching fantasy_scores_json:', leagueError);
+					return;
 				}
 
-				// Initialize the current team's draft_order_json if not exists
-				if (!draftPayload.draft_order_json[currentTeam.team_name]) {
-					draftPayload.draft_order_json[currentTeam.team_name] = {};
-				}
+				// Initialize fantasy_scores_json if not exists
+				const existingFantasyScoresJson = leagueData[0].fantasy_scores_json || {};
 
-				// Initialize fantasy_pros within the current team's draft_order_json if not exists
-				if (!draftPayload.draft_order_json[currentTeam.team_name].fantasy_pros) {
-					draftPayload.draft_order_json[currentTeam.team_name].fantasy_pros = {};
-				}
-
-				// Draft the pro by assigning their ID to the appropriate key in payload
-				draftPayload.draft_order_json[currentTeam.team_name].fantasy_pros[proKey] = selectedProId;
-
-				// Log the drafted pro name
-				console.log('Pro drafted:', selectedPro.name);
-
-				// After drafting the pro, update the fantasy_scores_json object
-				if (!draftPayload.fantasy_scores_json) {
-					draftPayload.fantasy_scores_json = {};
-				}
-
-				if (!draftPayload.fantasy_scores_json[currentTeam.team_name]) {
-					draftPayload.fantasy_scores_json[currentTeam.team_name] = {};
-				}
+				// Initialize the current team's fantasy_scores_json if not exists
+				existingFantasyScoresJson[currentTeam.team_name] =
+					existingFantasyScoresJson[currentTeam.team_name] || {};
 
 				// Create a drafted pro object with the required properties
 				const draftedPro = {
@@ -549,12 +495,21 @@
 				};
 
 				// Update the fantasy_scores_json object with the drafted pro
-				draftPayload.fantasy_scores_json[currentTeam.team_name][proKey] = draftedPro;
+				existingFantasyScoresJson[currentTeam.team_name][proKey] = draftedPro;
 
-				console.log('Updated fantasy_scores_json in payload:', draftedPro);
+				// Now, update the database field (fantasy_scores_json) with the modified existingFantasyScoresJson
+				const { error: updateError, data } = await supabase
+					.from('league')
+					.update({ fantasy_scores_json: existingFantasyScoresJson })
+					.eq('league_id', leagueId);
+
 				console.log(`Pro drafted: ${draftedPro.name}`);
 
-				console.log('Updated fantasy_scores_json in payload:', draftPayload.fantasy_scores_json);
+				// Log the error response, if any
+				if (updateError) {
+					console.error('Error updating fantasy_scores_json:', updateError);
+					console.error('Error details:', data); // Log the detailed error response
+				}
 
 				// Increment the selectedProIndex for the next pick
 				selectedProIndex++;
