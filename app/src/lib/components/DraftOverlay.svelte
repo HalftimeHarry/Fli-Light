@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 	import { supabase } from '../../supabaseClient';
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
-	import { writable } from 'svelte/store';
+	import { writable, get } from 'svelte/store';
 
 	const drawerStore = getDrawerStore();
 
@@ -55,6 +55,8 @@
 	let currentTeam = null; // Initialize it as null
 	let currentRoundIndex = 0; // Initialize it to 0 or the appropriate starting value
 	$: subscribedLeagueData = $leagueData;
+	// Define a flag to track if autoDraft has been triggered
+	let autoDraftTriggered = false;
 
 	function closeDrawer() {
 		drawerStore.close();
@@ -252,6 +254,7 @@
 	}
 
 	async function startDrafting() {
+		autoDraftTriggered = false;
 		const currentRoundIndex = draftPayload.draft_rounds.length - 1;
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
 		const totalRounds = draftPayload.metadata.total_rounds;
@@ -274,7 +277,7 @@
 		console.log('Attempt autoDraft call 1st');
 		if (selectedProIndex === -1) {
 			// Automatically select a pro, for example, the first available pro
-			selectedProIndex = pros.findIndex((p, index) => index !== selectedProIndex);
+			selectedProIndex = pros.findIndex((p, index) => !p.drafted);
 
 			if (selectedProIndex !== -1) {
 				selectedPro = pros[selectedProIndex].name;
@@ -284,7 +287,10 @@
 				console.log('Attempt autoDraft call 2nd');
 
 				// You should call the function to draft the selected pro here
-				draftProWithConditions(); // Make sure this function is correctly called
+				draftProWithConditions(currentParticipantTeamName); // Pass the current team name
+				console.log('Calling handleDraftOrder because inside autoDraft');
+				// After auto-draft, move on to the next team
+				handleDraftOrder(); // Remove the parameter here
 			} else {
 				console.log('No available pros to auto-draft.');
 			}
@@ -320,14 +326,14 @@
 		// Check if the draft is complete or continue to the next team
 		if (currentRound <= totalRounds) {
 			// Start the drafting process for the next team
-			startDrafting();
+			console.log('Calling handleDraftOrder because', currentRound, 'is less', totalRounds);
+			handleDraftOrder();
 		} else {
 			// The draft is complete
 			console.log('Draft is complete.');
 		}
 	}
 
-	// Updated handleDraftOrder function
 	function handleDraftOrder() {
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
 
@@ -335,64 +341,15 @@
 			const currentOrder = currentRound.draft_order;
 			const currentTeam = currentOrder[currentParticipantIndex];
 
+			console.log('currentParticipantIndex:', currentParticipantIndex);
+			console.log('currentTeam:', currentTeam);
+
 			if (currentTeam) {
 				// Put the current team on the clock
 				console.log('Putting', currentTeam.team_name, 'on the clock');
 
-				// Start the countdown timer
-				startCountdownTimer(currentRound.metadata.timer_duration);
-
-				// Move to the next participant
-				currentParticipantIndex++;
-				if (currentParticipantIndex >= currentOrder.length) {
-					currentParticipantIndex = 0; // Reset to the first participant
-					currentRoundIndex++; // Move to the next round
-				}
-
-				// Access the selected pro based on selectedProIndex
-				const selectedPro = pros[selectedProIndex];
-
-				if (!selectedPro) {
-					console.error('Selected pro is undefined.');
-					return;
-				}
-
-				// Log the selected pro for debugging purposes
-				console.log('Selected Pro:', selectedPro);
-
-				// Continue with drafting logic using the selected pro
-				const proKey = `${selectedPro.type}_${selectedProIndex + 1}`;
-				const selectedProId = selectedPro.pro_id;
-
-				if (
-					subscribedLeagueData.draft_order_json[currentParticipantTeamName]?.fantasy_pros &&
-					subscribedLeagueData.draft_order_json[currentParticipantTeamName]?.fantasy_pros[
-						proKey
-					] !== undefined
-				) {
-					console.log(`${selectedPro.name} (ID: ${selectedProId}) has already been drafted.`);
-					return;
-				}
-
-				// Log the drafted pro name
-				console.log('Pro drafted:', draftedPro.name);
-
-				if (
-					subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros &&
-					subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros[proKey] !==
-						undefined
-				) {
-					console.log(`${selectedPro.name} (ID: ${selectedProId}) has already been drafted.`);
-					return;
-				}
-
-				subscribedLeagueData.draft_order_json[currentParticipantTeamName].fantasy_pros[proKey] =
-					selectedProId;
-
-				// ... (rest of the code)
-
-				// Log the drafted pro name
-				console.log('Pro drafted:', selectedPro.name);
+				// Continue with drafting logic here
+				startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
 			} else {
 				console.warn('currentTeam is undefined or null. Handling gracefully.');
 			}
@@ -403,42 +360,67 @@
 		}
 	}
 
-	// Updated startCountdownTimer function
-	function startCountdownTimer(duration) {
-		countdownTime = duration; // Set the initial countdown time
-		clearInterval(countdownInterval); // Clear any previous interval
+	async function startCountdownTimer(participant) {
+		const timerDurationInSeconds = get(countdownTime);
 
-		countdownInterval = setInterval(() => {
-			countdownTime--;
+		if (timerDurationInSeconds > 0) {
+			countdownTimer = setTimeout(() => {
+				console.log(`Time is up for ${participant.team_name}`);
 
-			if (countdownTime <= 0) {
-				clearInterval(countdownInterval); // Stop the countdown when it reaches 0
-				// Handle the end of the countdown here
-				console.log('Countdown Timer Ended');
-				// You can call the function to handle the end of the timer here
-				// For example: handleDraftOrder();
+				// Reset the autoDraftTriggered flag
+				autoDraftTriggered = false;
+
+				// Move to the next participant only if autoDraft is not triggered
+				if (!autoDraftTriggered) {
+					currentParticipantIndex++;
+
+					if (currentParticipantIndex >= currentRound.draft_order.length) {
+						// Move to the next round
+						currentRoundIndex++;
+						currentParticipantIndex = 0;
+					}
+
+					if (currentRoundIndex < draftPayload.draft_rounds.length) {
+						startDrafting();
+					} else {
+						console.log('Draft is complete.');
+					}
+				}
+			}, timerDurationInSeconds * 1000); // Convert seconds to milliseconds
+		} else {
+			// Handle the case where the timer duration is 0 or less (no timer needed)
+			console.log('No timer needed for', participant.team_name);
+
+			// Reset the autoDraftTriggered flag
+			autoDraftTriggered = false;
+
+			// Move to the next participant only if autoDraft is not triggered
+			if (!autoDraftTriggered) {
+				currentParticipantIndex++;
+
+				if (currentParticipantIndex >= currentRound.draft_order.length) {
+					// Move to the next round
+					currentRoundIndex++;
+					currentParticipantIndex = 0;
+				}
+
+				if (currentRoundIndex < draftPayload.draft_rounds.length) {
+					startDrafting();
+				} else {
+					console.log('Draft is complete.');
+				}
 			}
-		}, 1000);
+		}
 	}
 
-	async function draftProWithConditions() {
+	async function draftProWithConditions(currentTeamName) {
 		console.log('Drafting pro with conditions.');
 
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
-		console.log(currentRound);
 
 		if (currentRound) {
 			const currentOrder = currentRound.draft_order;
-
-			// Debug statements
-			console.log('Current Round:', currentRound);
-			console.log('Current Order:', currentOrder);
-			console.log('Current Participant Index:', currentParticipantIndex);
-
 			const currentTeam = currentOrder[currentParticipantIndex];
-
-			// Debug statement
-			console.log('Current Team:', currentTeam);
 
 			if (currentTeam) {
 				// Access the selected pro based on selectedProIndex
@@ -457,8 +439,6 @@
 				const proKey = `pro_${genderType}_${selectedProIndex + 1}`;
 				const selectedProId = selectedPro.pro_id;
 
-				// Check if the pro has already been drafted using payload
-				console.log(draftPayload);
 				if (
 					draftPayload.fantasy_scores_json &&
 					draftPayload.fantasy_scores_json[currentTeam.team_name] &&
@@ -519,6 +499,10 @@
 
 			// Move to the next participant
 			currentParticipantIndex++;
+
+			// Importantly, after you have successfully drafted the pro within your currentTeam's fantasy_scores_json,
+			// call the handleDraftOrder function to move to the next participant and continue the draft.
+			handleDraftOrder(currentTeamName);
 
 			if (currentParticipantIndex >= currentOrder.length) {
 				currentParticipantIndex = 0; // Reset to the first participant
