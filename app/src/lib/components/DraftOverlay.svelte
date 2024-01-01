@@ -352,6 +352,8 @@
 				startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
 			} else {
 				console.warn('currentTeam is undefined or null. Handling gracefully.');
+				// Handle the case when the draft is completed (no more teams to draft)
+				// You can perform any necessary actions here, such as ending the draft.
 			}
 		} else {
 			// All participants have drafted, perform auto-draft or end the draft
@@ -490,6 +492,9 @@
 					console.error('Error updating fantasy_scores_json:', updateError);
 					console.error('Error details:', data); // Log the detailed error response
 				}
+
+				// Remove the drafted pro from the pros array
+				pros.splice(selectedProIndex, 1);
 
 				// Increment the selectedProIndex for the next pick
 				selectedProIndex++;
