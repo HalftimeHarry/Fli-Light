@@ -116,7 +116,7 @@
 						female_pro: true,
 						draft_format: 'snake',
 						total_rounds: 6,
-						timer_duration: 11,
+						timer_duration: 6,
 						reserve_pro_male: true,
 						reserve_pro_female: true
 					},
@@ -342,11 +342,17 @@
 			const currentTeam = currentOrder[currentParticipantIndex];
 
 			console.log('currentParticipantIndex:', currentParticipantIndex);
-			console.log('currentTeam:', currentTeam);
+			if (currentParticipantIndex === currentOrder.length) {
+				console.log('Starting Round 2');
+				currentRound.draft_order = currentOrder.slice().reverse();
+				currentParticipantIndex = currentOrder.length - 1; // Start from the last participant
+				currentRoundIndex++; // Move to the next round
+			}
 
 			if (currentTeam) {
 				// Put the current team on the clock
 				console.log('Putting', currentTeam.team_name, 'on the clock');
+				console.log('Round', currentRound.round_number);
 
 				// Continue with drafting logic here
 				startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
