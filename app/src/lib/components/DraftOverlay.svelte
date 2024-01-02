@@ -346,7 +346,10 @@
 				console.log('Starting Round 2');
 				currentRound.draft_order = currentOrder.slice().reverse();
 				currentParticipantIndex = currentOrder.length - 1; // Start from the last participant
-				currentRoundIndex++; // Move to the next round
+
+				// Update currentTeam after reversing the order
+				const currentTeam = currentOrder[currentParticipantIndex];
+				// Rest of your code
 			}
 
 			if (currentTeam) {
