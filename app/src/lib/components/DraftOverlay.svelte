@@ -116,7 +116,7 @@
 						female_pro: true,
 						draft_format: 'snake',
 						total_rounds: 6,
-						timer_duration: 11,
+						timer_duration: 6,
 						reserve_pro_male: true,
 						reserve_pro_female: true
 					},
@@ -334,6 +334,34 @@
 		}
 	}
 
+	// Define handleRound2 at a higher scope
+	function handleRound2(currentOrder) {
+		console.log(currentOrder);
+		console.log('Starting Round 2');
+
+		// Reverse the order for Round 2
+		const reversedOrder = currentOrder.slice().reverse();
+
+		// Initialize the currentParticipantIndex to start from the last participant
+		let currentParticipantIndex = reversedOrder.length - 1;
+
+		// Iterate through the teams in Round 2
+		for (const currentTeam of reversedOrder) {
+			// Rest of your Round 2-specific logic here
+			console.log('Current Team:', currentTeam);
+			console.log('Owner ID:', currentTeam.owner_id);
+
+			// You can access and draft the pros in this team as in Round 1
+
+			// Move to the next participant
+			currentParticipantIndex--;
+		}
+
+		// After Round 2 is complete, you can move to the next round or perform other actions
+		// For example, you can call handleRound3() to start Round 3, etc.
+		// You can also check if Round 2 was the last round and proceed accordingly.
+	}
+
 	function handleDraftOrder() {
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
 
@@ -342,16 +370,30 @@
 			const currentTeam = currentOrder[currentParticipantIndex];
 
 			console.log('currentParticipantIndex:', currentParticipantIndex);
-			console.log('currentTeam:', currentTeam);
+
+			if (currentParticipantIndex === currentOrder.length) {
+				updateCurrentRound();
+				handleRound2(currentOrder); // Pass currentOrder as an argument
+			} else if (currentRoundIndex === 2) {
+				handleRound3(); // Call Round 3 logic
+			} else if (currentRoundIndex === 3) {
+				handleRound4(); // Call Round 4 logic
+			}
 
 			if (currentTeam) {
 				// Put the current team on the clock
 				console.log('Putting', currentTeam.team_name, 'on the clock');
+				console.log('Round', currentRound.round_number);
 
 				// Continue with drafting logic here
 				startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
 			} else {
 				console.warn('currentTeam is undefined or null. Handling gracefully.');
+				// Handle the case when the draft is completed (no more teams to draft)
+				// You can perform any necessary actions here, such as ending the draft.
+				if (currentRoundIndex === 4) {
+					handleReservePicks(); // Call Reserve Picks logic when regular rounds are completed
+				}
 			}
 		} else {
 			// All participants have drafted, perform auto-draft or end the draft
@@ -413,6 +455,24 @@
 		}
 	}
 
+	// Update the current_round field to 2 in the league table
+	async function updateCurrentRound() {
+		try {
+			const { data, error } = await supabase
+				.from('league')
+				.update({ current_round: 2 }) // Update to the next round
+				.eq('league_id', leagueId);
+
+			if (error) {
+				console.error('Error updating current_round:', error);
+			} else {
+				console.log('Current round updated successfully.');
+			}
+		} catch (err) {
+			console.error('Error:', err.message);
+		}
+	}
+
 	async function draftProWithConditions(currentTeamName) {
 		console.log('Drafting pro with conditions.');
 
@@ -439,16 +499,7 @@
 				const proKey = `pro_${genderType}_${selectedProIndex + 1}`;
 				const selectedProId = selectedPro.pro_id;
 
-				if (
-					draftPayload.fantasy_scores_json &&
-					draftPayload.fantasy_scores_json[currentTeam.team_name] &&
-					draftPayload.fantasy_scores_json[currentTeam.team_name][proKey]
-				) {
-					console.log(`${selectedPro.name} (ID: ${selectedProId}) has already been drafted.`);
-					return;
-				}
-
-				// Retrieve the existing fantasy_scores_json from the database
+				// Fetch the existing fantasy_scores_json from the database
 				const { data: leagueData, error: leagueError } = await supabase
 					.from('league')
 					.select('fantasy_scores_json')
@@ -465,6 +516,9 @@
 				// Initialize the current team's fantasy_scores_json if not exists
 				existingFantasyScoresJson[currentTeam.team_name] =
 					existingFantasyScoresJson[currentTeam.team_name] || {};
+
+				// Add owner_id to the current team's fantasy_scores_json for Round 1
+				existingFantasyScoresJson[currentTeam.team_name].owner_id = currentTeam.owner_id;
 
 				// Create a drafted pro object with the required properties
 				const draftedPro = {
@@ -490,6 +544,9 @@
 					console.error('Error updating fantasy_scores_json:', updateError);
 					console.error('Error details:', data); // Log the detailed error response
 				}
+
+				// Remove the drafted pro from the pros array
+				pros.splice(selectedProIndex, 1);
 
 				// Increment the selectedProIndex for the next pick
 				selectedProIndex++;
