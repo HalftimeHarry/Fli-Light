@@ -338,15 +338,29 @@
 	function handleRound2(currentOrder) {
 		console.log(currentOrder);
 		console.log('Starting Round 2');
+
+		// Reverse the order for Round 2
 		const reversedOrder = currentOrder.slice().reverse();
-		const currentParticipantIndex = reversedOrder.length - 1; // Start from the last participant
 
-		// Update currentTeam after reversing the order
-		const currentTeam = reversedOrder[currentParticipantIndex];
-		// Rest of your Round 2-specific logic
+		// Initialize the currentParticipantIndex to start from the last participant
+		let currentParticipantIndex = reversedOrder.length - 1;
+
+		// Iterate through the teams in Round 2
+		for (const currentTeam of reversedOrder) {
+			// Rest of your Round 2-specific logic here
+			console.log('Current Team:', currentTeam);
+			console.log('Owner ID:', currentTeam.owner_id);
+
+			// You can access and draft the pros in this team as in Round 1
+
+			// Move to the next participant
+			currentParticipantIndex--;
+		}
+
+		// After Round 2 is complete, you can move to the next round or perform other actions
+		// For example, you can call handleRound3() to start Round 3, etc.
+		// You can also check if Round 2 was the last round and proceed accordingly.
 	}
-
-	// Define other round and reserve pick handling functions at this level if needed
 
 	function handleDraftOrder() {
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
@@ -358,6 +372,7 @@
 			console.log('currentParticipantIndex:', currentParticipantIndex);
 
 			if (currentParticipantIndex === currentOrder.length) {
+				updateCurrentRound();
 				handleRound2(currentOrder); // Pass currentOrder as an argument
 			} else if (currentRoundIndex === 2) {
 				handleRound3(); // Call Round 3 logic
@@ -437,6 +452,24 @@
 					console.log('Draft is complete.');
 				}
 			}
+		}
+	}
+
+	// Update the current_round field to 2 in the league table
+	async function updateCurrentRound() {
+		try {
+			const { data, error } = await supabase
+				.from('league')
+				.update({ current_round: 2 }) // Update to the next round
+				.eq('league_id', leagueId);
+
+			if (error) {
+				console.error('Error updating current_round:', error);
+			} else {
+				console.log('Current round updated successfully.');
+			}
+		} catch (err) {
+			console.error('Error:', err.message);
 		}
 	}
 
