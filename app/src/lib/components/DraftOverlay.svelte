@@ -5,7 +5,6 @@
 	import { supabase } from '../../supabaseClient';
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
 	import { writable, get } from 'svelte/store';
-	import DraftCard from '$lib/components/DraftCard.svelte'; // Import the DraftCard component
 
 	const drawerStore = getDrawerStore();
 
@@ -59,22 +58,6 @@
 	// Define a flag to track if autoDraft has been triggered
 	let autoDraftTriggered = false;
 	// Example draft pick data (replace with your actual data)
-	let draftPicks = [
-		{
-			round: 1,
-			pick: 1,
-			teamName: 'Team A',
-			proName: 'Player X'
-		},
-		{
-			round: 1,
-			pick: 2,
-			teamName: 'Team B',
-			proName: 'Player Y'
-		}
-		// Add more draft picks here
-	];
-	console.log(draftPicks);
 
 	function closeDrawer() {
 		drawerStore.close();
@@ -726,13 +709,5 @@
 		<p class="mt-2 text-white">Time remaining: {$countdownTime} seconds</p>
 	</div>
 	<!-- Render DraftCard components for each draft pick -->
-	{#each draftPicks as pick, index}
-		<DraftCard
-			round={pick.round}
-			pick={pick.pick}
-			teamName={pick.teamName}
-			playerName={pick.playerName}
-			key={index}
-		/>
-	{/each}
+
 </div>
