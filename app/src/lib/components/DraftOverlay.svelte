@@ -743,12 +743,39 @@
 			<p>{$currentDisplayTeam ? `${$currentDisplayTeam} is on the clock` : 'No current team'}</p>
 		{/if}
 	</div>
-	<!-- Display the draft picks in your Svelte component -->
-	<div class="draft-picks">
-		{#each $draftPicks as pick, index}
-			<div class="pick-item">
-				<p>{pick.teamName.team_name} selects {pick.selectedPro.name}</p>
+	<!-- Display draft picks as a table with header cells for rounds -->
+	<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
+		{#if $draftPicks.length > 0}
+			<div class="container mx-auto px-4">
+				<table class="min-w-full text-black">
+					<thead>
+						<tr class="text-left">
+							<th>Team</th>
+							<th>Rd 1</th>
+							<th>Rd 2</th>
+							<th>Rd 3</th>
+							<th>Rd 4</th>
+							<th>Reserve Female</th>
+							<th>Reserve Male</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each $draftPicks as pick, index}
+							<tr class={index % 2 === 0 ? 'bg-gray-200' : ''}>
+								<td>{pick.teamName.team_name}</td>
+								<td>{pick.selectedPro.name}</td>
+								<td>Rd 2</td>
+								<td>Rd 3</td>
+								<td>Rd 4</td>
+								<td>Rd 5</td>
+								<td>Rd 6</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
 			</div>
-		{/each}
+		{:else}
+			<p class="text-black">No draft picks available.</p>
+		{/if}
 	</div>
 </div>
