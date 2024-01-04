@@ -5,6 +5,7 @@
 	import { supabase } from '../../supabaseClient';
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
 	import { writable, get } from 'svelte/store';
+	import { draftPicks } from '$lib/utilities/draftPicks.js'; // Adjust the import path as needed
 
 	const drawerStore = getDrawerStore();
 
@@ -118,7 +119,7 @@
 						female_pro: true,
 						draft_format: 'snake',
 						total_rounds: 6,
-						timer_duration: 12,
+						timer_duration: 6,
 						reserve_pro_male: true,
 						reserve_pro_female: true
 					},
@@ -159,6 +160,18 @@
 		} catch (err) {
 			console.error('Error initializing draft:', err);
 		}
+	}
+
+	// Update the addDraftPick function
+	function addDraftPick(teamName, selectedPro) {
+		// Create a draft pick object
+		const draftPick = {
+			teamName: teamName,
+			selectedPro: selectedPro
+		};
+
+		// Push the new draft pick into the draftPicks store
+		draftPicks.update((picks) => [...picks, draftPick]);
 	}
 
 	async function fetchFantasyTeams() {
@@ -503,6 +516,9 @@
 				// Log the selected pro for debugging purposes
 				console.log('Selected Pro:', selectedPro);
 
+				// Call addDraftPick to add the draft pick to the list
+				addDraftPick(currentTeamName, selectedPro);
+
 				// Continue with drafting logic for selected pro
 				const genderType = selectedPro.gender === true ? 'male' : 'female';
 				const proKey = `pro_${genderType}_${selectedProIndex + 1}`;
@@ -725,6 +741,41 @@
 			</div>
 		{:else}
 			<p>{$currentDisplayTeam ? `${$currentDisplayTeam} is on the clock` : 'No current team'}</p>
+		{/if}
+	</div>
+	<!-- Display draft picks as a table with header cells for rounds -->
+	<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
+		{#if $draftPicks.length > 0}
+			<div class="container mx-auto px-4">
+				<table class="min-w-full text-black">
+					<thead>
+						<tr class="text-left">
+							<th>Team</th>
+							<th>Rd 1</th>
+							<th>Rd 2</th>
+							<th>Rd 3</th>
+							<th>Rd 4</th>
+							<th>Reserve Female</th>
+							<th>Reserve Male</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each $draftPicks as pick, index}
+							<tr class={index % 2 === 0 ? 'bg-gray-200' : ''}>
+								<td>{pick.teamName.team_name}</td>
+								<td>{pick.selectedPro.name}</td>
+								<td>Rd 2</td>
+								<td>Rd 3</td>
+								<td>Rd 4</td>
+								<td>Rd 5</td>
+								<td>Rd 6</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{:else}
+			<p class="text-black">No draft picks available.</p>
 		{/if}
 	</div>
 </div>
