@@ -52,12 +52,13 @@
 	let currentRound = 1; // Initialize it to 1 or the appropriate starting round
 	let isSnakeDirectionUp = false; // Initialize isSnakeDirectionUp
 	let countdownInterval;
-	let currentTeam = null; // Initialize it as null
+	export const currentDisplayTeam = writable(null);
 	let currentRoundIndex = 0; // Initialize it to 0 or the appropriate starting value
 	$: subscribedLeagueData = $leagueData;
 	// Define a flag to track if autoDraft has been triggered
 	let autoDraftTriggered = false;
 	// Example draft pick data (replace with your actual data)
+	let initialDisplayTriggered = false;
 
 	function closeDrawer() {
 		drawerStore.close();
@@ -117,7 +118,7 @@
 						female_pro: true,
 						draft_format: 'snake',
 						total_rounds: 6,
-						timer_duration: 6,
+						timer_duration: 12,
 						reserve_pro_male: true,
 						reserve_pro_female: true
 					},
@@ -383,10 +384,17 @@
 
 			if (currentTeam) {
 				// Put the current team on the clock
+
+				console.log(currentDisplayTeam);
 				console.log('Putting', currentTeam.team_name, 'on the clock');
 				console.log('Round', currentRound.round_number);
 
-				// Continue with drafting logic here
+				// Set a delay before showing the participant's name
+				setTimeout(() => {
+					console.log('Setting currentDisplayTeam to', currentTeam.team_name);
+					currentDisplayTeam.set(currentTeam.team_name);
+				}, 1000);
+
 				startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
 			} else {
 				console.warn('currentTeam is undefined or null. Handling gracefully.');
@@ -708,6 +716,15 @@
 
 		<p class="mt-2 text-white">Time remaining: {$countdownTime} seconds</p>
 	</div>
-	<!-- Render DraftCard components for each draft pick -->
-
+	<div class="mt-2 text-white">
+		{#if $currentDisplayTeam === null}
+			<div class="mx-2">
+				{#if draftOrder[0]}
+					{draftOrder[0].team_name} is on the clock
+				{/if}
+			</div>
+		{:else}
+			<p>{$currentDisplayTeam ? `${$currentDisplayTeam} is on the clock` : 'No current team'}</p>
+		{/if}
+	</div>
 </div>
