@@ -119,7 +119,7 @@
 						female_pro: true,
 						draft_format: 'snake',
 						total_rounds: 6,
-						timer_duration: 12,
+						timer_duration: 6,
 						reserve_pro_male: true,
 						reserve_pro_female: true
 					},
