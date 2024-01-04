@@ -5,6 +5,7 @@
 	import { supabase } from '../../supabaseClient';
 	import { leagueData } from '$lib/utilities/leagueDataForFantasyStore.ts';
 	import { writable, get } from 'svelte/store';
+	import { draftPicks } from '$lib/utilities/draftPicks.js'; // Adjust the import path as needed
 
 	const drawerStore = getDrawerStore();
 
@@ -159,6 +160,18 @@
 		} catch (err) {
 			console.error('Error initializing draft:', err);
 		}
+	}
+
+	// Update the addDraftPick function
+	function addDraftPick(teamName, selectedPro) {
+		// Create a draft pick object
+		const draftPick = {
+			teamName: teamName,
+			selectedPro: selectedPro
+		};
+
+		// Push the new draft pick into the draftPicks store
+		draftPicks.update((picks) => [...picks, draftPick]);
 	}
 
 	async function fetchFantasyTeams() {
@@ -503,6 +516,9 @@
 				// Log the selected pro for debugging purposes
 				console.log('Selected Pro:', selectedPro);
 
+				// Call addDraftPick to add the draft pick to the list
+				addDraftPick(currentTeamName, selectedPro);
+
 				// Continue with drafting logic for selected pro
 				const genderType = selectedPro.gender === true ? 'male' : 'female';
 				const proKey = `pro_${genderType}_${selectedProIndex + 1}`;
@@ -726,5 +742,13 @@
 		{:else}
 			<p>{$currentDisplayTeam ? `${$currentDisplayTeam} is on the clock` : 'No current team'}</p>
 		{/if}
+	</div>
+	<!-- Display the draft picks in your Svelte component -->
+	<div class="draft-picks">
+		{#each $draftPicks as pick, index}
+			<div class="pick-item">
+				<p>{pick.teamName.team_name} selects {pick.selectedPro.name}</p>
+			</div>
+		{/each}
 	</div>
 </div>
