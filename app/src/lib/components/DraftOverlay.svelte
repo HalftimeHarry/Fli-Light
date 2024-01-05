@@ -162,18 +162,59 @@
 		}
 	}
 
+	function transitionToNextRound() {
+		const lastRound = draftPayload.draft_rounds[draftPayload.draft_rounds.length - 1];
+		let newRoundNumber = lastRound.round_number + 1;
+
+		let newDraftOrder =
+			newRoundNumber % 2 === 0
+				? lastRound.draft_order.slice().reverse()
+				: [...lastRound.draft_order];
+
+		draftPayload.draft_rounds.push({
+			picks: [],
+			draft_order: newDraftOrder,
+			round_number: newRoundNumber
+		});
+
+		currentParticipantIndex = 0;
+		currentRoundIndex = draftPayload.draft_rounds.length - 1;
+
+		console.log(`Transitioning to Round ${newRoundNumber}`);
+		// Depending on the round, call the appropriate round handling function
+		if (newRoundNumber === 2) {
+			handleRound2();
+		} else if (newRoundNumber === 3) {
+			handleRound3();
+		} else if (newRoundNumber === 4) {
+			handleRound4();
+		}
+		// Add more conditions for further rounds if needed
+	}
+
 	// Update the addDraftPick function
 	function addDraftPick(teamName, selectedPro) {
+		// Access the current round from draftPayload
+		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
+
 		// Create a draft pick object
 		const draftPick = {
 			teamName: teamName,
-			selectedPro: selectedPro
+			selectedPro: selectedPro.name // Assuming 'selectedPro' has a 'name' property
 		};
 
-		// Push the new draft pick into the draftPicks store
-		draftPicks.update((picks) => [...picks, draftPick]);
-	}
+		// Add the pick to the current round's picks in draftPayload
+		currentRound.picks.push(draftPick);
 
+		// Update the draftPicks store
+		draftPicks.update((picks) => {
+			// Add the new draft pick to the existing array of picks
+			return [...picks, draftPick];
+		});
+
+		// Log the updated store for debugging
+		draftPicks.subscribe((value) => console.log(value));
+	}
 	async function fetchFantasyTeams() {
 		console.log('Fetching fantasy teams...');
 		let { data: league, error } = await supabase.from('league').select('fantasy_teams_json');
@@ -230,11 +271,20 @@
 
 	// Function to handle the end of the countdown timer
 	function handleCountdownEnd(currentParticipant) {
-		clearInterval(countdownInterval); // Stop the countdown
+		clearInterval(countdownInterval);
 		console.log('Time is up for', currentParticipant.team_name);
 
-		// Call the autoDraft function when the countdown expires
-		autoDraft();
+		switch (currentRoundIndex) {
+			case 0:
+				autoDraft(); // Round 1 auto-draft logic
+				break;
+			case 1:
+				autoDraftRound2(); // Round 2 auto-draft logic
+				break;
+			// Add cases for additional rounds
+			default:
+				console.log('Unknown round. No auto-draft function available.');
+		}
 	}
 
 	// Function to start the countdown timer for a participant
@@ -298,7 +348,7 @@
 		if (selectedProIndex === -1) {
 			// Automatically select a pro, for example, the first available pro
 			selectedProIndex = pros.findIndex((p, index) => !p.drafted);
-
+			console.log(selectedProIndex);
 			if (selectedProIndex !== -1) {
 				selectedPro = pros[selectedProIndex].name;
 				console.log('Auto-drafting:', selectedPro);
@@ -315,6 +365,41 @@
 				console.log('No available pros to auto-draft.');
 			}
 		}
+	}
+
+	function autoDraftRound2() {
+		console.log('Starting autoDraft for Round 2');
+		let selectedProIndexRound2;
+		// Round 2 specific logic here
+		if (selectedProIndexRound2 === -1) {
+			selectedProIndexRound2 = pros.findIndex((p, index) => !p.drafted && isEligibleForRound2(p));
+
+			if (selectedProIndexRound2 !== -1) {
+				selectedProRound2 = pros[selectedProIndexRound2].name;
+				console.log('Auto-drafting for Round 2:', selectedProRound2);
+
+				// Call function to draft the selected pro for Round 2
+				draftProWithConditionsRound2(currentParticipantTeamName);
+
+				// Proceed to the next step or team after auto-draft in Round 2
+				handleDraftOrderRound2();
+			} else {
+				console.log('No available pros to auto-draft in Round 2.');
+			}
+		}
+	}
+
+	// Additional helper functions for Round 2
+	function isEligibleForRound2(pro) {
+		// Define eligibility criteria for Round 2
+	}
+
+	function draftProWithConditionsRound2(teamName) {
+		// Specific drafting logic for Round 2
+	}
+
+	function handleDraftOrderRound2() {
+		// Logic to handle draft order for Round 2
 	}
 
 	function swapPro(pro) {
@@ -354,49 +439,41 @@
 		}
 	}
 
-	// Define handleRound2 at a higher scope
-	async function handleRound2(currentOrder) {
+	async function handleRound2() {
 		console.log('Starting Round 2');
-		console.log(currentOrder);
 
-		let round2;
-
-		let { data: league, error } = await supabase.from('league').select('current_round');
-		round2 = league[0].current_round;
-		if (round2) {
-			const reversedOrder = currentOrder.slice().reverse();
-			const currentTeam = reversedOrder[currentParticipantIndex];
+		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
+		if (currentRound) {
+			const currentTeam = currentRound.draft_order[currentParticipantIndex];
 
 			console.log('currentParticipantIndex:', currentParticipantIndex);
 
-			if (currentParticipantIndex === currentOrder.length) {
-				updateCurrentRound();
-			}
 			if (currentTeam) {
 				// Put the current team on the clock
 				console.log('Putting', currentTeam.team_name, 'on the clock');
-
 				currentDisplayTeam.set(currentTeam.team_name);
 
 				startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
 			} else {
 				console.warn('currentTeam is undefined or null. Handling gracefully.');
 				// Handle the case when the draft is completed (no more teams to draft)
-				// You can perform any necessary actions here, such as ending the draft.
 				if (currentRoundIndex === 4) {
 					handleReservePicks(); // Call Reserve Picks logic when regular rounds are completed
+				} else {
+					// Transition to the next round if needed
+					transitionToNextRound();
 				}
 			}
 		} else {
 			// All participants have drafted, perform auto-draft or end the draft
 			clearInterval(autoDraftInterval);
-			autoDraft(); // Implement auto-draft logic here if needed
+			autoDraftRound2(); // Implement auto-draft logic here if needed
 		}
 	}
 
 	function handleDraftOrder() {
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
-		console.log(currentRound);
+		console.log('Current Round:', currentRound);
 
 		if (currentRound) {
 			const currentOrder = currentRound.draft_order;
@@ -404,34 +481,22 @@
 
 			console.log('currentParticipantIndex:', currentParticipantIndex);
 
-			if (currentParticipantIndex === currentOrder.length) {
-				updateCurrentRound();
-				handleRound2(currentOrder); // Pass currentOrder as an argument
-			} else if (currentRoundIndex === 2) {
-				handleRound3(); // Call Round 3 logic
-			} else if (currentRoundIndex === 3) {
-				handleRound4(); // Call Round 4 logic
-			}
+			if (currentParticipantIndex < currentOrder.length) {
+				if (currentTeam) {
+					// Put the current team on the clock
+					console.log('Putting', currentTeam.team_name, 'on the clock');
+					currentDisplayTeam.set(currentTeam.team_name);
 
-			if (currentTeam) {
-				// Put the current team on the clock
-
-				console.log(currentDisplayTeam);
-				console.log('Putting', currentTeam.team_name, 'on the clock');
-				console.log('Round', currentRound.round_number);
-
-				currentDisplayTeam.set(currentTeam.team_name);
-
-				startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
-			} else {
-				console.warn('currentTeam is undefined or null. Handling gracefully.');
-				// Handle the case when the draft is completed (no more teams to draft)
-				// You can perform any necessary actions here, such as ending the draft.
-				if (currentRoundIndex === 4) {
-					handleReservePicks(); // Call Reserve Picks logic when regular rounds are completed
+					startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
+				} else {
+					console.warn('currentTeam is undefined or null. Handling gracefully.');
 				}
+			} else {
+				// End of the current round, transition to the next round
+				transitionToNextRound();
 			}
 		} else {
+			console.log('All rounds completed or current round is undefined.');
 			// All participants have drafted, perform auto-draft or end the draft
 			clearInterval(autoDraftInterval);
 			autoDraft(); // Implement auto-draft logic here if needed
@@ -488,24 +553,6 @@
 					console.log('Draft is complete.');
 				}
 			}
-		}
-	}
-
-	// Update the current_round field to 2 in the league table
-	async function updateCurrentRound() {
-		try {
-			const { data, error } = await supabase
-				.from('league')
-				.update({ current_round: 2 }) // Update to the next round
-				.eq('league_id', leagueId);
-
-			if (error) {
-				console.error('Error updating current_round:', error);
-			} else {
-				console.log('Current round updated successfully.');
-			}
-		} catch (err) {
-			console.error('Error:', err.message);
 		}
 	}
 
@@ -758,6 +805,7 @@
 		{/if}
 	</div>
 	<!-- Display draft picks as a table with header cells for rounds -->
+	<!-- Display draft picks as a table with header cells for rounds -->
 	<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
 		{#if $draftPicks.length > 0}
 			<div class="container mx-auto px-4">
@@ -774,15 +822,15 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each $draftPicks as pick, index}
-							<tr class={index % 2 === 0 ? 'bg-gray-200' : ''}>
+						{#each $draftPicks as pick}
+							<tr>
 								<td>{pick.teamName.team_name}</td>
-								<td>{pick.selectedPro.name}</td>
-								<td>Rd 2</td>
-								<td>Rd 3</td>
-								<td>Rd 4</td>
-								<td>Rd 5</td>
-								<td>Rd 6</td>
+								<td>{pick.selectedPro}</td>
+								<td>{'-'}</td>
+								<td>{'-'}</td>
+								<td>{'-'}</td>
+								<td>{'-'}</td>
+								<td>{'-'}</td>
 							</tr>
 						{/each}
 					</tbody>
