@@ -281,7 +281,12 @@
 			// Start the countdown timer for the current participant
 			startParticipantCountdown(currentParticipant);
 
-			// Rest of your code for drafting process
+			if (currentRoundIndex === 1) {
+				// Round 2 begins, call handleRound2 with the reversed order
+				handleRound2(currentRound.draft_order.slice().reverse());
+			} else {
+				// Rest of your code for drafting process
+			}
 		} else {
 			// All rounds are complete, and the draft is finished
 			console.log('Draft is complete.');
@@ -350,35 +355,48 @@
 	}
 
 	// Define handleRound2 at a higher scope
-	function handleRound2(currentOrder) {
-		console.log(currentOrder);
+	async function handleRound2(currentOrder) {
 		console.log('Starting Round 2');
+		console.log(currentOrder);
 
-		// Reverse the order for Round 2
-		const reversedOrder = currentOrder.slice().reverse();
+		let round2;
 
-		// Initialize the currentParticipantIndex to start from the last participant
-		let currentParticipantIndex = reversedOrder.length - 1;
+		let { data: league, error } = await supabase.from('league').select('current_round');
+		round2 = league[0].current_round;
+		if (round2) {
+			const reversedOrder = currentOrder.slice().reverse();
+			const currentTeam = reversedOrder[currentParticipantIndex];
 
-		// Iterate through the teams in Round 2
-		for (const currentTeam of reversedOrder) {
-			// Rest of your Round 2-specific logic here
-			console.log('Current Team:', currentTeam);
-			console.log('Owner ID:', currentTeam.owner_id);
+			console.log('currentParticipantIndex:', currentParticipantIndex);
 
-			// You can access and draft the pros in this team as in Round 1
+			if (currentParticipantIndex === currentOrder.length) {
+				updateCurrentRound();
+			}
+			if (currentTeam) {
+				// Put the current team on the clock
+				console.log('Putting', currentTeam.team_name, 'on the clock');
 
-			// Move to the next participant
-			currentParticipantIndex--;
+				currentDisplayTeam.set(currentTeam.team_name);
+
+				startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
+			} else {
+				console.warn('currentTeam is undefined or null. Handling gracefully.');
+				// Handle the case when the draft is completed (no more teams to draft)
+				// You can perform any necessary actions here, such as ending the draft.
+				if (currentRoundIndex === 4) {
+					handleReservePicks(); // Call Reserve Picks logic when regular rounds are completed
+				}
+			}
+		} else {
+			// All participants have drafted, perform auto-draft or end the draft
+			clearInterval(autoDraftInterval);
+			autoDraft(); // Implement auto-draft logic here if needed
 		}
-
-		// After Round 2 is complete, you can move to the next round or perform other actions
-		// For example, you can call handleRound3() to start Round 3, etc.
-		// You can also check if Round 2 was the last round and proceed accordingly.
 	}
 
 	function handleDraftOrder() {
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
+		console.log(currentRound);
 
 		if (currentRound) {
 			const currentOrder = currentRound.draft_order;
@@ -402,11 +420,7 @@
 				console.log('Putting', currentTeam.team_name, 'on the clock');
 				console.log('Round', currentRound.round_number);
 
-				// Set a delay before showing the participant's name
-				setTimeout(() => {
-					console.log('Setting currentDisplayTeam to', currentTeam.team_name);
-					currentDisplayTeam.set(currentTeam.team_name);
-				}, 1000);
+				currentDisplayTeam.set(currentTeam.team_name);
 
 				startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
 			} else {
