@@ -210,6 +210,9 @@
 		// Update the draftPicks store
 		draftPicks.update((picks) => [...picks, draftPick]);
 
+		// Trigger Svelte update
+    	draftPayload = { ...draftPayload };
+
 		// Log the updated store for debugging
 		draftPicks.subscribe((value) => console.log(value));
 	}
