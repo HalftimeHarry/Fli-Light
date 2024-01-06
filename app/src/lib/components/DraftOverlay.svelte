@@ -823,11 +823,12 @@
 						{#each draftOrder as team}
 							<tr>
 								<td>{team.team_name}</td>
-								{#each draftPayload.draft_rounds as round, roundIndex}
+								{#each Array(6) as _, roundIndex}
+									<!-- Assuming 6 rounds -->
 									<td>
-										{#if round.picks.find((pick) => pick.teamName === team.team_name && pick.round === roundIndex + 1)}
-											{round.picks.find(
-												(pick) => pick.teamName === team.team_name && pick.round === roundIndex + 1
+										{#if draftPayload.draft_rounds[roundIndex]?.picks && draftPayload.draft_rounds[roundIndex].picks.find((pick) => pick.teamName === team.team_name)}
+											{draftPayload.draft_rounds[roundIndex].picks.find(
+												(pick) => pick.teamName === team.team_name
 											).selectedPro}
 										{:else}
 											{'-'}
