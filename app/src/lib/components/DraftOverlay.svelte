@@ -374,15 +374,15 @@
 	}
 
 	function autoDraftRound3() {
-		console.log('Starting autoDraft for Round 2');
-		let selectedProIndexRound2;
-		// Round 2 specific logic here
+		console.log('Starting autoDraft for Round 3');
+		let selectedProIndexRound3;
+		// Round 3 specific logic here
 		if (selectedProIndexRound3 === -1) {
 			selectedProIndexRound3 = pros.findIndex((p, index) => !p.drafted);
 
-			if (selectedProIndexRound2 !== -1) {
-				selectedProRound2 = pros[selectedProIndexRound2].name;
-				console.log('Auto-drafting for Round 2:', selectedProRound2);
+			if (selectedProIndexRound3 !== -1) {
+				selectedProRound3 = pros[selectedProIndexRound2].name;
+				console.log('Auto-drafting for Round 2:', selectedProRound3);
 
 				// Call function to draft the selected pro for Round 2
 				draftProWithConditionsRound2(currentParticipantTeamName);
@@ -390,7 +390,7 @@
 				// Proceed to the next step or team after auto-draft in Round 2
 				handleDraftOrderRound2();
 			} else {
-				console.log('No available pros to auto-draft in Round 2.');
+				console.log('No available pros to auto-draft in Round 3.');
 			}
 		}
 	}
