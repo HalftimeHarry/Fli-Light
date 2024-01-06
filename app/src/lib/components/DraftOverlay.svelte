@@ -192,29 +192,28 @@
 		// Add more conditions for further rounds if needed
 	}
 
-	// Update the addDraftPick function
+	// Update the addDraftPick function to include round information
 	function addDraftPick(teamName, selectedPro) {
-		// Access the current round from draftPayload
-		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
+		// Access the current round number
+		const currentRoundNumber = currentRoundIndex + 1; // currentRoundIndex is 0-based
 
-		// Create a draft pick object
+		// Create a draft pick object including the round number
 		const draftPick = {
-			teamName: teamName,
-			selectedPro: selectedPro.name // Assuming 'selectedPro' has a 'name' property
+			teamName: teamName.team_name, // Assuming teamName is an object with a team_name property
+			selectedPro: selectedPro.name, // Assuming selectedPro has a name property
+			round: currentRoundNumber
 		};
 
 		// Add the pick to the current round's picks in draftPayload
-		currentRound.picks.push(draftPick);
+		draftPayload.draft_rounds[currentRoundIndex].picks.push(draftPick);
 
 		// Update the draftPicks store
-		draftPicks.update((picks) => {
-			// Add the new draft pick to the existing array of picks
-			return [...picks, draftPick];
-		});
+		draftPicks.update((picks) => [...picks, draftPick]);
 
 		// Log the updated store for debugging
 		draftPicks.subscribe((value) => console.log(value));
 	}
+
 	async function fetchFantasyTeams() {
 		console.log('Fetching fantasy teams...');
 		let { data: league, error } = await supabase.from('league').select('fantasy_teams_json');
@@ -805,9 +804,8 @@
 		{/if}
 	</div>
 	<!-- Display draft picks as a table with header cells for rounds -->
-	<!-- Display draft picks as a table with header cells for rounds -->
 	<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
-		{#if $draftPicks.length > 0}
+		{#if draftPayload.draft_rounds.length > 0}
 			<div class="container mx-auto px-4">
 				<table class="min-w-full text-black">
 					<thead>
@@ -822,15 +820,20 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each $draftPicks as pick}
+						{#each draftOrder as team}
 							<tr>
-								<td>{pick.teamName.team_name}</td>
-								<td>{pick.selectedPro}</td>
-								<td>{'-'}</td>
-								<td>{'-'}</td>
-								<td>{'-'}</td>
-								<td>{'-'}</td>
-								<td>{'-'}</td>
+								<td>{team.team_name}</td>
+								{#each draftPayload.draft_rounds as round, roundIndex}
+									<td>
+										{#if round.picks.find((pick) => pick.teamName === team.team_name && pick.round === roundIndex + 1)}
+											{round.picks.find(
+												(pick) => pick.teamName === team.team_name && pick.round === roundIndex + 1
+											).selectedPro}
+										{:else}
+											{'-'}
+										{/if}
+									</td>
+								{/each}
 							</tr>
 						{/each}
 					</tbody>
