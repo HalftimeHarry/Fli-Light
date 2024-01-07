@@ -399,6 +399,26 @@
 		}
 	}
 
+	function reviewRemainingPros() {
+		console.log('Reviewing remaining pros for recommendation');
+
+		// Example criteria: Find the highest-ranked undrafted pro
+		let highestRankedUndraftedProIndex = pros.findIndex(
+			(p) => !p.drafted && p.rank === Math.min(...pros.filter((p) => !p.drafted).map((p) => p.rank))
+		);
+
+		if (highestRankedUndraftedProIndex !== -1) {
+			// Update selectedProIndex and selectedPro
+			selectedProIndex = highestRankedUndraftedProIndex;
+			selectedPro = pros[selectedProIndex].name;
+
+			console.log('Recommended Pro:', selectedPro);
+		} else {
+			console.log('No undrafted pros available for recommendation');
+			// Handle the case where no undrafted pros are available
+		}
+	}
+
 	function autoDraftRound3() {
 		console.log('Starting autoDraft for Round 3');
 		let selectedProIndexRound3 = -1;
@@ -406,6 +426,7 @@
 		console.log('Initial selectedProIndexRound3:', selectedProIndexRound3);
 
 		if (selectedProIndexRound3 === -1 || selectedProIndexRound3 === undefined) {
+			console.log(selectedProIndexRound3);
 			selectedProIndexRound3 = pros.findIndex((p, index) => !p.drafted);
 			console.log('Updated selectedProIndexRound3:', selectedProIndexRound3);
 
@@ -530,6 +551,9 @@
 					// Put the current team on the clock
 					console.log('Putting', currentTeam.team_name, 'on the clock');
 					currentDisplayTeam.set(currentTeam.team_name);
+
+					// Review and recommend a pro at the start of each turn in Round 3
+					reviewRemainingPros();
 
 					startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
 				} else {
