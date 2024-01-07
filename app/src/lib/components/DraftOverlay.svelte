@@ -287,7 +287,10 @@
 			case 1:
 				autoDraftRound2(); // Round 2 auto-draft logic
 				break;
-			// Add cases for additional rounds
+			case 2:
+				autoDraftRound3(); // Round 3 auto-draft logic
+				break;
+			// Add cases for additional rounds as needed
 			default:
 				console.log('Unknown round. No auto-draft function available.');
 		}
@@ -354,7 +357,7 @@
 		if (selectedProIndex === -1) {
 			// Automatically select a pro, for example, the first available pro
 			selectedProIndex = pros.findIndex((p, index) => !p.drafted);
-			console.log(selectedProIndex);
+			console.log('Pro-index:', selectedProIndex);
 			if (selectedProIndex !== -1) {
 				selectedPro = pros[selectedProIndex].name;
 				console.log('Auto-drafting:', selectedPro);
@@ -373,31 +376,10 @@
 		}
 	}
 
-	function autoDraftRound3() {
-		console.log('Starting autoDraft for Round 3');
-		let selectedProIndexRound3;
-		// Round 3 specific logic here
-		if (selectedProIndexRound3 === -1) {
-			selectedProIndexRound3 = pros.findIndex((p, index) => !p.drafted);
-
-			if (selectedProIndexRound3 !== -1) {
-				selectedProRound3 = pros[selectedProIndexRound2].name;
-				console.log('Auto-drafting for Round 2:', selectedProRound3);
-
-				// Call function to draft the selected pro for Round 2
-				draftProWithConditionsRound2(currentParticipantTeamName);
-
-				// Proceed to the next step or team after auto-draft in Round 2
-				handleDraftOrderRound2();
-			} else {
-				console.log('No available pros to auto-draft in Round 3.');
-			}
-		}
-	}
-
 	function autoDraftRound2() {
 		console.log('Starting autoDraft for Round 2');
 		let selectedProIndexRound2;
+		console.log('Pro-index:', selectedProIndexRound2);
 		// Round 2 specific logic here
 		if (selectedProIndexRound2 === -1) {
 			selectedProIndexRound2 = pros.findIndex((p, index) => !p.drafted);
@@ -410,19 +392,58 @@
 				draftProWithConditionsRound2(currentParticipantTeamName);
 
 				// Proceed to the next step or team after auto-draft in Round 2
-				handleDraftOrderRound2();
+				handleDraftOrderRound3();
 			} else {
 				console.log('No available pros to auto-draft in Round 2.');
 			}
 		}
 	}
 
-	function draftProWithConditionsRound2(teamName) {
+	function autoDraftRound3() {
+		console.log('Starting autoDraft for Round 3');
+		let selectedProIndexRound3 = -1;
+
+		console.log('Initial selectedProIndexRound3:', selectedProIndexRound3);
+
+		if (selectedProIndexRound3 === -1 || selectedProIndexRound3 === undefined) {
+			selectedProIndexRound3 = pros.findIndex((p, index) => !p.drafted);
+			console.log('Updated selectedProIndexRound3:', selectedProIndexRound3);
+
+			if (selectedProIndexRound3 !== -1) {
+				let selectedProRound3 = pros[selectedProIndexRound3].name;
+				console.log('Auto-drafting for Round 3:', selectedProRound3);
+
+				// Determine the current participant's team name
+				const currentTeam = draftOrder[currentParticipantIndex];
+				const currentParticipantTeamName = currentTeam.team_name;
+
+				// Call function to draft the selected pro for Round 3
+				draftProWithConditionsRound3(currentParticipantTeamName);
+
+				// Proceed to the next step or team after auto-draft in Round 3
+				handleDraftOrderRound4();
+			} else {
+				console.log('No available pros to auto-draft in Round 3.');
+			}
+		} else {
+			console.log('selectedProIndexRound3 is not -1:', selectedProIndexRound3);
+		}
+	}
+
+	function draftProWithConditionsRound3(teamName) {
 		// Specific drafting logic for Round 2
 	}
 
 	function handleDraftOrderRound2() {
 		// Logic to handle draft order for Round 2
+	}
+
+	function handleDraftOrderRound3() {
+		// Logic to handle draft order for Round 2
+	}
+
+	function handleDraftOrderRound4() {
+		console.log('start round 4');
 	}
 
 	function swapPro(pro) {
@@ -462,38 +483,6 @@
 		}
 	}
 
-	async function handleRound3() {
-		console.log('Starting Round 3');
-
-		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
-		if (currentRound) {
-			const currentOrder = currentRound.draft_order;
-			const currentTeam = currentOrder[currentParticipantIndex];
-
-			console.log('currentParticipantIndex:', currentParticipantIndex);
-
-			if (currentParticipantIndex < currentOrder.length) {
-				if (currentTeam) {
-					// Put the current team on the clock
-					console.log('Putting', currentTeam.team_name, 'on the clock');
-					currentDisplayTeam.set(currentTeam.team_name);
-
-					startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
-				} else {
-					console.warn('currentTeam is undefined or null. Handling gracefully.');
-				}
-			} else {
-				// End of the current round, transition to the next round
-				transitionToNextRound();
-			}
-		} else {
-			console.log('All rounds completed or current round is undefined.');
-			// All participants have drafted, perform auto-draft or end the draft
-			clearInterval(autoDraftInterval);
-			autoDraft3(); // Implement auto-draft logic here if needed
-		}
-	}
-
 	async function handleRound2() {
 		console.log('Starting Round 2');
 
@@ -523,6 +512,38 @@
 			// All participants have drafted, perform auto-draft or end the draft
 			clearInterval(autoDraftInterval);
 			autoDraftRound2(); // Implement auto-draft logic here if needed
+		}
+	}
+
+	async function handleRound3() {
+		console.log('Starting Round 3');
+
+		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
+		if (currentRound) {
+			const currentOrder = currentRound.draft_order;
+			const currentTeam = currentOrder[currentParticipantIndex];
+
+			console.log('currentParticipantIndex:', currentParticipantIndex);
+
+			if (currentParticipantIndex < currentOrder.length) {
+				if (currentTeam) {
+					// Put the current team on the clock
+					console.log('Putting', currentTeam.team_name, 'on the clock');
+					currentDisplayTeam.set(currentTeam.team_name);
+
+					startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
+				} else {
+					console.warn('currentTeam is undefined or null. Handling gracefully.');
+				}
+			} else {
+				// End of the current round, transition to the next round
+				transitionToNextRound();
+			}
+		} else {
+			console.log('All rounds completed or current round is undefined.');
+			// All participants have drafted, perform auto-draft or end the draft
+			clearInterval(autoDraftInterval);
+			autoDraftRound3(); // Implement auto-draft logic here if needed
 		}
 	}
 
