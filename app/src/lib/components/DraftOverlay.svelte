@@ -451,6 +451,37 @@
 		}
 	}
 
+	function autoDraftRound4() {
+		console.log('Starting autoDraft for Round 4');
+		let selectedProIndexRound4 = -1;
+
+		console.log('Initial selectedProIndexRound4:', selectedProIndexRound4);
+
+		if (selectedProIndexRound4 === -1 || selectedProIndexRound4 === undefined) {
+			selectedProIndexRound4 = pros.findIndex((p, index) => !p.drafted);
+			console.log('Updated selectedProIndexRound4:', selectedProIndexRound4);
+
+			if (selectedProIndexRound4 !== -1) {
+				let selectedProRound4 = pros[selectedProIndexRound4].name;
+				console.log('Auto-drafting for Round 4:', selectedProRound4);
+
+				// Determine the current participant's team name
+				const currentTeam = draftOrder[currentParticipantIndex];
+				const currentParticipantTeamName = currentTeam.team_name;
+
+				// Call function to draft the selected pro for Round 4
+				draftProWithConditionsRound4(currentParticipantTeamName);
+
+				// Proceed to the next step or team after auto-draft in Round 4
+				handleDraftOrderRound5();
+			} else {
+				console.log('No available pros to auto-draft in Round 4.');
+			}
+		} else {
+			console.log('selectedProIndexRound4 is not -1:', selectedProIndexRound4);
+		}
+	}
+
 	function draftProWithConditionsRound3(teamName) {
 		// Specific drafting logic for Round 2
 	}
@@ -568,6 +599,38 @@
 			// All participants have drafted, perform auto-draft or end the draft
 			clearInterval(autoDraftInterval);
 			autoDraftRound3(); // Implement auto-draft logic here if needed
+		}
+	}
+
+	async function handleRound4() {
+		console.log('Starting Round 4');
+
+		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
+		if (currentRound) {
+			const currentOrder = currentRound.draft_order;
+			const currentTeam = currentOrder[currentParticipantIndex];
+
+			console.log('currentParticipantIndex:', currentParticipantIndex);
+
+			if (currentParticipantIndex < currentOrder.length) {
+				if (currentTeam) {
+					console.log('Putting', currentTeam.team_name, 'on the clock');
+					currentDisplayTeam.set(currentTeam.team_name);
+
+					// Review and recommend a pro at the start of each turn in Round 4
+					reviewRemainingPros();
+
+					startParticipantCountdown(currentTeam);
+				} else {
+					console.warn('currentTeam is undefined or null.');
+				}
+			} else {
+				transitionToNextRound();
+			}
+		} else {
+			console.log('Round 4 is complete or undefined.');
+			clearInterval(autoDraftInterval);
+			// Call autoDraftRound4 or handle the end of the draft
 		}
 	}
 
