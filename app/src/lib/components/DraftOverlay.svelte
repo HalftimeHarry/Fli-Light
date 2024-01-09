@@ -51,7 +51,7 @@
 	let fantasyTeamKey = ''; // Declare fantasyTeamKey outside the function
 	let autoDraftInterval; // Add this variable to store the auto-draft interval
 	let currentRound = 1; // Initialize it to 1 or the appropriate starting round
-	let isSnakeDirectionUp = false; // Initialize isSnakeDirectionUp
+	let fantasyScoresJson = writable({});
 	let countdownInterval;
 	export const currentDisplayTeam = writable(null);
 	let currentRoundIndex = 0; // Initialize it to 0 or the appropriate starting value
@@ -399,6 +399,43 @@
 		}
 	}
 
+	async function fetchFantasyScores() {
+		let { data, error } = await supabase.from('league').select('fantasy_scores_json');
+		if (error) {
+			console.error('Error fetching fantasy scores:', error);
+			return;
+		}
+		// Assuming data is an array and you need the first item
+		fantasyScoresJson.set(data.length > 0 ? data[0].fantasy_scores_json : {});
+	}
+
+	function getTeamCompositionFromJson(currentParticipantTeamName, fantasyScores) {
+		if (!fantasyScores) {
+			console.error('Fantasy scores JSON is null');
+			return { maleCount: 0, femaleCount: 0 };
+		}
+
+		if (!fantasyScores[currentParticipantTeamName]) {
+			console.error(`Team ${currentParticipantTeamName} not found in fantasy scores JSON`);
+			return { maleCount: 0, femaleCount: 0 };
+		}
+
+		const teamData = fantasyScores[currentParticipantTeamName];
+		let maleCount = 0;
+		let femaleCount = 0;
+
+		for (const playerId in teamData) {
+			const playerGender = teamData[playerId].gender;
+			if (playerGender === 'male') {
+				maleCount++;
+			} else if (playerGender === 'female') {
+				femaleCount++;
+			}
+		}
+
+		return { maleCount, femaleCount };
+	}
+
 	function reviewRemainingPros() {
 		console.log('Reviewing remaining pros for recommendation');
 
@@ -448,6 +485,37 @@
 			}
 		} else {
 			console.log('selectedProIndexRound3 is not -1:', selectedProIndexRound3);
+		}
+	}
+
+	function autoDraftRound4() {
+		console.log('Starting autoDraft for Round 4');
+		let selectedProIndexRound4 = -1;
+
+		console.log('Initial selectedProIndexRound4:', selectedProIndexRound4);
+
+		if (selectedProIndexRound4 === -1 || selectedProIndexRound4 === undefined) {
+			selectedProIndexRound4 = pros.findIndex((p, index) => !p.drafted);
+			console.log('Updated selectedProIndexRound4:', selectedProIndexRound4);
+
+			if (selectedProIndexRound4 !== -1) {
+				let selectedProRound4 = pros[selectedProIndexRound4].name;
+				console.log('Auto-drafting for Round 4:', selectedProRound4);
+
+				// Determine the current participant's team name
+				const currentTeam = draftOrder[currentParticipantIndex];
+				const currentParticipantTeamName = currentTeam.team_name;
+
+				// Call function to draft the selected pro for Round 4
+				draftProWithConditionsRound4(currentParticipantTeamName);
+
+				// Proceed to the next step or team after auto-draft in Round 4
+				handleDraftOrderRound5();
+			} else {
+				console.log('No available pros to auto-draft in Round 4.');
+			}
+		} else {
+			console.log('selectedProIndexRound4 is not -1:', selectedProIndexRound4);
 		}
 	}
 
@@ -541,6 +609,50 @@
 
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
 		if (currentRound) {
+			const currentTeam = currentRound.draft_order[currentParticipantIndex];
+			if (currentTeam) {
+				console.log('Putting', currentTeam.team_name, 'on the clock');
+				currentDisplayTeam.set(currentTeam.team_name);
+
+				// Ensure fantasyScoresJson is fetched and available
+				fetchFantasyScores()
+					.then(() => {
+						// Check the team's current male and female balance
+						const teamComposition = getTeamCompositionFromJson(
+							currentTeam.team_name,
+							$fantasyScoresJson
+						);
+						if (!teamComposition) {
+							console.error('Unable to get team composition');
+							return; // Exit the function if the team composition cannot be determined
+						}
+						console.log('Team Composition for', currentTeam.team_name, ':', teamComposition);
+
+						// Recommend a pro based on the team's composition
+						reviewRemainingPros(currentTeam.team_name);
+
+						// Start the countdown timer for the current team
+						startParticipantCountdown(currentTeam);
+					})
+					.catch((error) => {
+						console.error('Error fetching fantasy scores:', error);
+					});
+			} else {
+				console.warn('currentTeam is undefined or null.');
+				// You might want to handle this case as well (e.g., transitioning to the next round or handling errors)
+			}
+		} else {
+			console.log('Round 3 is complete or undefined.');
+			clearInterval(autoDraftInterval);
+			autoDraftRound3();
+		}
+	}
+
+	async function handleRound4() {
+		console.log('Starting Round 4');
+
+		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
+		if (currentRound) {
 			const currentOrder = currentRound.draft_order;
 			const currentTeam = currentOrder[currentParticipantIndex];
 
@@ -548,26 +660,23 @@
 
 			if (currentParticipantIndex < currentOrder.length) {
 				if (currentTeam) {
-					// Put the current team on the clock
 					console.log('Putting', currentTeam.team_name, 'on the clock');
 					currentDisplayTeam.set(currentTeam.team_name);
 
-					// Review and recommend a pro at the start of each turn in Round 3
+					// Review and recommend a pro at the start of each turn in Round 4
 					reviewRemainingPros();
 
-					startParticipantCountdown(currentTeam); // Start the countdown timer for the current team
+					startParticipantCountdown(currentTeam);
 				} else {
-					console.warn('currentTeam is undefined or null. Handling gracefully.');
+					console.warn('currentTeam is undefined or null.');
 				}
 			} else {
-				// End of the current round, transition to the next round
 				transitionToNextRound();
 			}
 		} else {
-			console.log('All rounds completed or current round is undefined.');
-			// All participants have drafted, perform auto-draft or end the draft
+			console.log('Round 4 is complete or undefined.');
 			clearInterval(autoDraftInterval);
-			autoDraftRound3(); // Implement auto-draft logic here if needed
+			// Call autoDraftRound4 or handle the end of the draft
 		}
 	}
 
@@ -759,6 +868,8 @@
 	}
 
 	onMount(async () => {
+		await fetchFantasyTeams(); // Existing function to fetch teams
+		await fetchFantasyScores(); // Fetch fantasy scores
 		fetchFantasyTeams();
 		try {
 			// Fetching pros data and ordering by rank
