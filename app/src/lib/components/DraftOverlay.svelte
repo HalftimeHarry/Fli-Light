@@ -405,7 +405,6 @@
 			console.error('Error fetching fantasy scores:', error);
 			return;
 		}
-		// Assuming data is an array and you need the first item
 		fantasyScoresJson.set(data.length > 0 ? data[0].fantasy_scores_json : {});
 	}
 
@@ -424,15 +423,21 @@
 		let maleCount = 0;
 		let femaleCount = 0;
 
+		// Iterate over each player in the teamData
 		for (const playerId in teamData) {
-			const playerGender = teamData[playerId].gender;
-			if (playerGender === 'male') {
-				maleCount++;
-			} else if (playerGender === 'female') {
-				femaleCount++;
+			if (teamData.hasOwnProperty(playerId) && playerId !== 'owner_id') {
+				const playerType = teamData[playerId].type;
+				if (playerType === 'male') {
+					maleCount++;
+				} else if (playerType === 'female') {
+					femaleCount++;
+				}
 			}
 		}
 
+		console.log(
+			`Team ${currentParticipantTeamName} composition: ${maleCount} males, ${femaleCount} females`
+		);
 		return { maleCount, femaleCount };
 	}
 
