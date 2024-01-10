@@ -94,11 +94,19 @@
 		}
 	}
 
-	$: {
-		if (currentRoundIndex >= 2) {
-			handleProsFiltering();
-		}
-	}
+$: currentParticipantIndex, currentRoundIndex, async () => {
+    if (currentRoundIndex >= 2) {
+        const currentTeam = draftOrder[currentParticipantIndex];
+        if (currentTeam && currentTeam.team_name) {
+            await updateFilteredPros(currentTeam.team_name);
+        } else {
+            console.error('Current team or team name is undefined');
+            // Handle this error appropriately
+        }
+    } else {
+        filteredPros = pros; // No restrictions for Rounds 1 and 2
+    }
+};
 
 	async function handleProsFiltering() {
 		await reviewRemainingPros(currentTeamNameForRound3);
