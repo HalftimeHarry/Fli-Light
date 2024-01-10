@@ -484,7 +484,7 @@
 				draftProWithConditionsRound3(currentParticipantTeamName);
 
 				// Proceed to the next step or team after auto-draft in Round 3
-				handleDraftOrderRound4();
+
 			} else {
 				console.log('No available pros to auto-draft in Round 3.');
 			}
@@ -526,18 +526,6 @@
 
 	function draftProWithConditionsRound3(teamName) {
 		// Specific drafting logic for Round 2
-	}
-
-	function handleDraftOrderRound2() {
-		// Logic to handle draft order for Round 2
-	}
-
-	function handleDraftOrderRound3() {
-		// Logic to handle draft order for Round 2
-	}
-
-	function handleDraftOrderRound4() {
-		console.log('start round 4');
 	}
 
 	function swapPro(pro) {
