@@ -74,22 +74,12 @@
 	}
 	$: {
 		if (currentRoundIndex >= 2) {
-			const teamComposition = getTeamCompositionFromJson(
-				currentTeamNameForRound3,
-				$fantasyScoresJson
-			);
-			if (teamComposition.femaleCount >= 2) {
-				// Show only male pros
-				filteredPros = pros.filter((p) => p.gender === 'male');
-			} else if (teamComposition.maleCount >= 2) {
-				// Show only female pros
-				filteredPros = pros.filter((p) => p.gender === 'female');
-			} else {
-				// Show all pros
-				filteredPros = pros;
+			const currentTeam = draftOrder[currentParticipantIndex];
+			if (currentTeam) {
+				updateFilteredPros(currentTeam.team_name);
 			}
 		} else {
-			// For rounds 1 and 2, show all pros without filtering
+			// For rounds 1 and 2, show all pros
 			filteredPros = pros;
 		}
 	}
@@ -485,32 +475,25 @@
 		return { maleCount, femaleCount };
 	}
 
-	async function reviewRemainingPros(currentParticipantTeamName) {
-		const teamComposition = await getTeamCompositionFromJson(currentParticipantTeamName);
-		console.log(
-			`Reviewing remaining pros for ${currentParticipantTeamName} with composition:`,
-			teamComposition
-		);
+	async function reviewRemainingPros(teamName) {
+		const teamComposition = await getTeamCompositionFromJson(teamName, $fantasyScoresJson);
 
-		// Your logic to recommend pros based on team composition
-		// Example: if the team has more male players, recommend a female player, and vice versa
-		let recommendedProIndex = -1;
-		if (teamComposition.maleCount > teamComposition.femaleCount) {
-			// Recommend a female pro
+		if (teamComposition.femaleCount >= 2) {
+			// Recommend male pro
+			recommendedProIndex = pros.findIndex((p) => !p.drafted && p.gender === 'male');
+		} else if (teamComposition.maleCount >= 2) {
+			// Recommend female pro
 			recommendedProIndex = pros.findIndex((p) => !p.drafted && p.gender === 'female');
 		} else {
-			// Recommend a male pro
-			recommendedProIndex = pros.findIndex((p) => !p.drafted && p.gender === 'male');
+			// Recommend any pro
+			recommendedProIndex = pros.findIndex((p) => !p.drafted);
 		}
 
 		if (recommendedProIndex !== -1) {
-			const recommendedPro = pros[recommendedProIndex];
-			console.log(`Recommended Pro for ${currentParticipantTeamName}:`, recommendedPro.name);
-			selectedProIndex = recommendedProIndex; // Update the selected pro index
+			recommendedPro = pros[recommendedProIndex];
+			console.log(`Recommended Pro: ${recommendedPro.name}`);
 		} else {
-			console.log(
-				`No suitable pros available for recommendation for ${currentParticipantTeamName}`
-			);
+			console.log('No suitable pros available for recommendation.');
 		}
 	}
 
@@ -924,6 +907,7 @@
 	}
 
 	onMount(async () => {
+		filteredPros = pros; // Initialize with all pros
 		await fetchFantasyTeams(); // Existing function to fetch teams
 		await fetchFantasyScores(); // Fetch fantasy scores
 		await fetchProsData(); // Assuming you have a function to fetch pros data
