@@ -77,39 +77,38 @@
 		}
 	}
 
-async function updateProsForRound() {
-    const currentTeam = draftOrder[currentParticipantIndex];
-    if (currentTeam) {
-        const teamComposition = await getTeamCompositionFromJson(currentTeam.team_name);
+	async function updateProsForRound() {
+		const currentTeam = draftOrder[currentParticipantIndex];
+		if (currentTeam) {
+			const teamComposition = await getTeamCompositionFromJson(currentTeam.team_name);
 
-        let genderToRecommend = null;
-        if (teamComposition.femaleCount >= 2) {
-            genderToRecommend = true; // Adjust this according to your actual data structure
-        } else if (teamComposition.maleCount >= 2) {
-            genderToRecommend = false;
-        }
+			let genderToRecommend = null;
+			if (teamComposition.femaleCount >= 2) {
+				genderToRecommend = true; // Adjust this according to your actual data structure
+			} else if (teamComposition.maleCount >= 2) {
+				genderToRecommend = false;
+			}
 
-        filteredPros = pros.filter(
-            (pro) => (!genderToRecommend || pro.gender === genderToRecommend) && !pro.drafted
-        );
+			filteredPros = pros.filter(
+				(pro) => (!genderToRecommend || pro.gender === genderToRecommend) && !pro.drafted
+			);
 
-        // Check if there are any filtered pros available
-        if (filteredPros.length > 0) {
-            // Set the recommended pro to the first item in the filtered list
-            recommendedPro = filteredPros[0];
-            selectedPro = recommendedPro.name;
-            selectedProIndex = pros.findIndex(pro => pro.pro_id === recommendedPro.pro_id);
-        } else {
-            console.log('No suitable pros available for recommendation.');
-            recommendedPro = null;
-            selectedPro = '';
-            selectedProIndex = -1;
-        }
+			// Check if there are any filtered pros available
+			if (filteredPros.length > 0) {
+				// Set the recommended pro to the first item in the filtered list
+				recommendedPro = filteredPros[0];
+				selectedPro = recommendedPro.name;
+				selectedProIndex = pros.findIndex((pro) => pro.pro_id === recommendedPro.pro_id);
+			} else {
+				console.log('No suitable pros available for recommendation.');
+				recommendedPro = null;
+				selectedPro = '';
+				selectedProIndex = -1;
+			}
 
-        console.log(`Recommended Pro for ${currentTeam.team_name}:`, recommendedPro);
-    }
-}
-
+			console.log(`Recommended Pro for ${currentTeam.team_name}:`, recommendedPro);
+		}
+	}
 
 	function updateTeamCompositions() {
 		// Logic to update team compositions based on the latest fantasy scores
@@ -473,7 +472,7 @@ async function updateProsForRound() {
 
 		// Check and log the fantasyScores for debugging
 		console.log(
-			`Fantasy Scores for ${currentParticipantTeamName}:`,
+			`Raw Fantasy Scores for ${currentParticipantTeamName}:`,
 			fantasyScores[currentParticipantTeamName]
 		);
 
@@ -503,7 +502,10 @@ async function updateProsForRound() {
 		}
 
 		// Log the calculated team composition
-		console.log(`Team Composition for ${currentParticipantTeamName}:`, { maleCount, femaleCount });
+		console.log(`Calculated Team Composition for ${currentParticipantTeamName}:`, {
+			maleCount,
+			femaleCount
+		});
 
 		return { maleCount, femaleCount };
 	}
