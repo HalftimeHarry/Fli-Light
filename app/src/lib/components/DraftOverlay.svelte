@@ -64,19 +64,12 @@
 	let recommendedPro = null;
 	let currentTeamNameForRound3; // Top-level variable declaration
 
-	function updateTeamCompositions() {
-		// Logic to update team compositions based on the latest fantasy scores
-		draftOrder.forEach((team) => {
-			const teamComposition = getTeamCompositionFromJson(team.team_name, $fantasyScoresJson);
-			// Perform actions based on updated team composition, e.g., update UI elements
-			console.log(teamComposition);
-		});
-	}
 	$: {
 		if (currentRoundIndex >= 2) {
 			const currentTeam = draftOrder[currentParticipantIndex];
+			console.log('Reactive for round 3');
 			if (currentTeam) {
-				updateFilteredPros(currentTeam.team_name);
+				updateProsForRound();
 			}
 		} else {
 			// For rounds 1 and 2, show all pros
@@ -84,14 +77,36 @@
 		}
 	}
 
-	$: {
-		if (currentRoundIndex >= 2 && $fantasyScoresJson) {
-			const currentTeam = draftOrder[currentParticipantIndex];
-			if (currentTeam) {
-				console.log('Updating for team:', currentTeam.team_name);
-				updateFilteredPros(currentTeam.team_name);
+	async function updateProsForRound() {
+		const currentTeam = draftOrder[currentParticipantIndex];
+		if (currentTeam) {
+			const teamComposition = await getTeamCompositionFromJson(currentTeam.team_name);
+
+			let genderToRecommend = null;
+			if (teamComposition.femaleCount >= 2) {
+				genderToRecommend = true; // Assuming true is for male
+			} else if (teamComposition.maleCount >= 2) {
+				genderToRecommend = false; // Assuming false is for female
 			}
+
+			if (genderToRecommend !== null) {
+				filteredPros = pros.filter((pro) => pro.gender === genderToRecommend && !pro.drafted);
+			} else {
+				// If no specific gender to recommend, show all undrafted pros
+				filteredPros = pros.filter((pro) => !pro.drafted);
+			}
+
+			console.log(`Filtered Pros for ${currentTeam.team_name}:`, filteredPros);
 		}
+	}
+
+	function updateTeamCompositions() {
+		// Logic to update team compositions based on the latest fantasy scores
+		draftOrder.forEach((team) => {
+			const teamComposition = getTeamCompositionFromJson(team.team_name, $fantasyScoresJson);
+			// Perform actions based on updated team composition, e.g., update UI elements
+			console.log(teamComposition);
+		});
 	}
 
 	async function handleProsFiltering() {
@@ -446,11 +461,18 @@
 		}
 
 		// Check and log the fantasyScores for debugging
-		console.log(`Fantasy Scores for ${currentParticipantTeamName}:`, fantasyScores);
+		console.log(
+			`Fantasy Scores for ${currentParticipantTeamName}:`,
+			fantasyScores[currentParticipantTeamName]
+		);
 
 		if (!fantasyScores[currentParticipantTeamName]) {
-			console.error(`Team ${currentParticipantTeamName} not found in fantasy scores JSON`);
-			return { maleCount: 0, femaleCount: 0 };
+			console.log(`Team Composition for ${currentParticipantTeamName}:`, {
+				maleCount,
+				femaleCount
+			});
+
+			return { maleCount, femaleCount };
 		}
 
 		const teamData = fantasyScores[currentParticipantTeamName];
@@ -477,6 +499,7 @@
 
 	async function reviewRemainingPros(teamName) {
 		const teamComposition = await getTeamCompositionFromJson(teamName, $fantasyScoresJson);
+		let recommendedProIndex; // Define the variable at the start of the function
 
 		if (teamComposition.femaleCount >= 2) {
 			// Recommend male pro
@@ -499,31 +522,52 @@
 
 	async function updateFilteredPros(currentParticipantTeamName) {
 		const teamComposition = await getTeamCompositionFromJson(currentParticipantTeamName);
-		console.log('Pros before filtering:', pros);
-		console.log('filtering this:', teamComposition);
 
+		// Existing logic to filter pros based on team composition
 		if (teamComposition.femaleCount >= 2) {
-			// Assuming gender is a boolean
-			filteredPros = pros.filter((pro) => pro.gender === true && !pro.drafted);
+			filteredPros = pros.filter((pro) => pro.gender === 'male' && !pro.drafted);
 		} else if (teamComposition.maleCount >= 2) {
-			filteredPros = pros.filter((pro) => pro.gender === false && !pro.drafted);
+			filteredPros = pros.filter((pro) => pro.gender === 'female' && !pro.drafted);
 		} else {
 			filteredPros = pros.filter((pro) => !pro.drafted);
 		}
 
+		// Check if filteredPros is empty and adjust accordingly
+		if (filteredPros.length === 0) {
+			console.log('No available pros of the required gender. Showing all available pros.');
+			filteredPros = pros.filter((pro) => !pro.drafted);
+		}
+
+		// Log the filtered pros for debugging
 		console.log('Filtered Pros:', filteredPros);
 	}
 
-	function autoDraftRound3() {
+	async function autoDraftRound3() {
 		console.log('Starting autoDraft for Round 3');
-		let selectedProIndexRound3 = -1;
+		let selectedProIndexRound3;
 
-		// Fetch fantasy scores and team composition for the current team
 		const currentTeam = draftOrder[currentParticipantIndex];
 		const currentTeamName = currentTeam.team_name;
-		console.log($fantasyScoresJson);
-		const teamComposition = getTeamCompositionFromJson(currentTeamName, $fantasyScoresJson);
-		console.log(teamComposition);
+
+		console.log(`Fetching fantasy scores for ${currentTeamName}`);
+		await fetchFantasyScores(); // Ensure the fantasy scores are up-to-date
+
+		console.log(`Updating filtered pros for ${currentTeamName}`);
+		await updateFilteredPros(currentTeamName); // This will update the filteredPros based on the team composition
+
+		// Find the first available pro in the filtered list
+		selectedProIndexRound3 = filteredPros.findIndex((pro) => !pro.drafted);
+
+		// Log the selected pro for debugging
+		if (selectedProIndexRound3 !== -1) {
+			const selectedProRound3 = filteredPros[selectedProIndexRound3];
+			console.log(`Auto-drafting for Round 3: ${selectedProRound3.name}`);
+		} else {
+			console.log('No available pros to auto-draft in Round 3.');
+		}
+
+		// Additional logic for auto-drafting the selected pro
+		// ...
 	}
 
 	function autoDraftRound4() {
@@ -632,36 +676,26 @@
 
 	async function handleRound3() {
 		console.log('Starting Round 3');
-
 		const currentRound = draftPayload.draft_rounds[currentRoundIndex];
+
 		if (currentRound) {
 			const currentTeam = currentRound.draft_order[currentParticipantIndex];
 			if (currentTeam) {
 				currentTeamNameForRound3 = currentTeam.team_name;
 				console.log('Putting', currentTeamNameForRound3, 'on the clock');
 
-				await fetchFantasyScores(); // Fetch and wait for fantasy scores
-				const teamComposition = getTeamCompositionFromJson(
-					currentTeamNameForRound3,
-					$fantasyScoresJson
-				);
+				// Update the pros list based on team composition
+				await updateProsForRound();
 
-				// Review remaining pros and filter based on team composition
-				reviewRemainingPros(currentTeamNameForRound3, teamComposition);
-				console.log(reviewRemainingPros);
-
-				// Logic to recommend the top available pro
 				if (filteredPros.length > 0) {
-					recommendedPro = filteredPros.sort((a, b) => a.rank - b.rank).find((pro) => !pro.drafted);
-
-					if (recommendedPro) {
-						console.log(`Recommended Pro for ${currentTeamNameForRound3}:`, recommendedPro.name);
-						selectedProIndex = pros.findIndex((p) => p.pro_id === recommendedPro.pro_id);
-					} else {
-						console.log(
-							`No suitable pros available for recommendation for ${currentTeamNameForRound3}`
-						);
-					}
+					// Automatically select the first available pro
+					recommendedPro = filteredPros[0];
+					selectedProIndex = pros.findIndex((p) => p.pro_id === recommendedPro.pro_id);
+					console.log(`Recommended Pro for ${currentTeamNameForRound3}:`, recommendedPro.name);
+				} else {
+					console.log(
+						`No suitable pros available for recommendation for ${currentTeamNameForRound3}`
+					);
 				}
 
 				// Start the countdown timer for the current team
@@ -939,12 +973,6 @@
 			loadingTeams = false;
 		}
 	});
-
-	// Reactive statement
-	$: if (currentRoundIndex >= 2 && $fantasyScoresJson) {
-		console.log('Participant selecting');
-		updateFilteredPros();
-	}
 </script>
 
 <div
