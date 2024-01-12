@@ -77,28 +77,39 @@
 		}
 	}
 
-	async function updateProsForRound() {
-		const currentTeam = draftOrder[currentParticipantIndex];
-		if (currentTeam) {
-			const teamComposition = await getTeamCompositionFromJson(currentTeam.team_name);
+async function updateProsForRound() {
+    const currentTeam = draftOrder[currentParticipantIndex];
+    if (currentTeam) {
+        const teamComposition = await getTeamCompositionFromJson(currentTeam.team_name);
 
-			let genderToRecommend = null;
-			if (teamComposition.femaleCount >= 2) {
-				genderToRecommend = true; // Assuming true is for male
-			} else if (teamComposition.maleCount >= 2) {
-				genderToRecommend = false; // Assuming false is for female
-			}
+        let genderToRecommend = null;
+        if (teamComposition.femaleCount >= 2) {
+            genderToRecommend = true; // Adjust this according to your actual data structure
+        } else if (teamComposition.maleCount >= 2) {
+            genderToRecommend = false;
+        }
 
-			if (genderToRecommend !== null) {
-				filteredPros = pros.filter((pro) => pro.gender === genderToRecommend && !pro.drafted);
-			} else {
-				// If no specific gender to recommend, show all undrafted pros
-				filteredPros = pros.filter((pro) => !pro.drafted);
-			}
+        filteredPros = pros.filter(
+            (pro) => (!genderToRecommend || pro.gender === genderToRecommend) && !pro.drafted
+        );
 
-			console.log(`Filtered Pros for ${currentTeam.team_name}:`, filteredPros);
-		}
-	}
+        // Check if there are any filtered pros available
+        if (filteredPros.length > 0) {
+            // Set the recommended pro to the first item in the filtered list
+            recommendedPro = filteredPros[0];
+            selectedPro = recommendedPro.name;
+            selectedProIndex = pros.findIndex(pro => pro.pro_id === recommendedPro.pro_id);
+        } else {
+            console.log('No suitable pros available for recommendation.');
+            recommendedPro = null;
+            selectedPro = '';
+            selectedProIndex = -1;
+        }
+
+        console.log(`Recommended Pro for ${currentTeam.team_name}:`, recommendedPro);
+    }
+}
+
 
 	function updateTeamCompositions() {
 		// Logic to update team compositions based on the latest fantasy scores
