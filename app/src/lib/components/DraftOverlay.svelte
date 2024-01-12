@@ -1098,10 +1098,10 @@
 		{/if}
 	</div>
 	<!-- Display draft picks as a table with header cells for rounds -->
-	<div class="overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
+	<div class="container mx-auto overflow-auto max-h-[40vh] w-full bg-white rounded-lg p-2 mt-2">
 		{#if draftPayload.draft_rounds.length > 0}
-			<div class="container mx-auto px-4">
-				<table class="min-w-full text-black">
+			<div class="container mx-auto">
+				<table class="min-w-full text-black striped-table">
 					<thead>
 						<tr class="text-left">
 							<th>Team</th>
@@ -1139,3 +1139,9 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.striped-table tr:nth-child(even) {
+		@apply bg-gray-200; /* Adjust the shade of grey as needed */
+	}
+</style>
