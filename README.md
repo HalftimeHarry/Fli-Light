@@ -86,17 +86,20 @@ Utilize Supabase's Auth module to ensure your backend operations are secure.
 Relationships:
 
 A pro belongs to one team, and a team may have multiple pros.
-A team can have one sponsor, but a sponsor might sponsor multiple teams.
+A team can have one sponsor, but in the future a sponsor might sponsor multiple teams.
 A tournament is played at one venue and has leaderboards associated with it.
 Displaying Information:
 
 Live Tournament Leaderboard: Use the Leaderboards table and the associated tournament_id to show live scores and positions during an ongoing tournament.
+
 Team and Pro Earnings Leaderboard: Query the Teams and Pros tables respectively, ordering by the earnings field to showcase which teams and pros are earning the most throughout the league.
 Remember to constantly test your implementation to ensure data integrity, especially when dealing with leaderboards and earnings calculations. Given that this is a nationwide league with potentially a lot of fans and players watching, ensuring accuracy and timely updates will be key to its success.
 
 Assign groups to holes.
-Assign scorers to enter scores.
-Create a user-friendly interface for scorers to enter scores, including multi-step forms.
+Assign a scorer per group to enter scores.
+I have Created a user-friendly interface for scorers to enter scores, including multi-step forms.
+
+To Do:
 Calculate team scores.
 Provide a verification mechanism for entered scores.
 Here's a high-level overview of how you can approach this:
@@ -104,15 +107,19 @@ Here's a high-level overview of how you can approach this:
 Assigning Groups to Holes:
 
 You can continue using the approach mentioned earlier, where you retrieve the hole count and create groups for each hole.
-Assigning Scorers:I assume we need to insert a row for the count returned and for example a proup is assigned Hole 1 {and we are not referencing this to the hole in the database I assume it's not important but I may be wrong we may want to reference the hole in the database?}
+Assigning Scorers: I assume we need to insert a row for the count returned and for example a group is assigned Hole 1.
 
 In your user management system, you can assign the role "Scorer" to users who should have access to enter scores.
-We can hardcode this to start I feel I may simply reassign the email for future tournaments and at the very least we can always make this more dynaminc as the app grows?
+
+This is hardcoded I feel I may simply reassign the email for future tournaments and at the very least we can always make this more dynaminc as the app grows?
 User-Friendly Score Entry:
 
-Create a user interface for scorers to enter scores. You can use a multi-step form or a single form, depending on your preference and requirements.
-Use a frontend framework like Svelte or any other of your choice to build the interface.
-The form should allow scorers to select the group, hole, and enter scores for players. You can use form validation to ensure data integrity.
+I have Created a user interface for scorers to enter scores. You can use a multi-step form or a single form, depending on your preference and requirements.
+
+I used Svelte to build the interface.
+The form should allow scorers enter scores for players. You can use form validation to ensure data integrity.
+
+To Do:
 Calculating Team Scores:
 
 After scorers submit scores, you can calculate team scores based on the individual player scores and the group they are assigned to.
@@ -129,396 +136,292 @@ Once all the scores are verified, you can mark the scores as final.
 Very important to HARDCODE only the uuid in the EnterScoreForm.svelte simply do this 6 times run a differant uuid but it needs to be
 assigned or referenced to the row in the scores table. This system if done correctly we shlould end up with a result and historical data with only 1 row per group on average 6 groups per round.
 
-## Fantasay Notes
-
-draft_order_json
-{
-"draft_rounds": [
-{
-"round_number": 1,
-"draft_order": ["fantasy_team_1", "fantasy_team_2", "fantasy_team_3", "fantasy_team_4", "fantasy_team_5", "fantasy_team_6"],
-"picks": []
-},
-{
-"round_number": 2,
-"draft_order": ["fantasy_team_6", "fantasy_team_5", "fantasy_team_4", "fantasy_team_3", "fantasy_team_2", "fantasy_team_1"],
-"picks": []
-},
-{
-"round_number": 3,
-"draft_order": ["fantasy_team_1", "fantasy_team_2", "fantasy_team_3", "fantasy_team_4", "fantasy_team_5", "fantasy_team_6"],
-"picks": []
-},
-{
-"round_number": 4,
-"draft_order": ["fantasy_team_1", "fantasy_team_2", "fantasy_team_3", "fantasy_team_4", "fantasy_team_5", "fantasy_team_6"],
-"picks": []
-},
-{
-"round_number": 5,
-"draft_order": ["fantasy_team_6", "fantasy_team_5", "fantasy_team_4", "fantasy_team_3", "fantasy_team_2", "fantasy_team_1"],
-"picks": []
-},
-{
-"round_number": 6,
-"draft_order": ["fantasy_team_1", "fantasy_team_2", "fantasy_team_3", "fantasy_team_4", "fantasy_team_5", "fantasy_team_6"],
-"picks": []
-}
-],
-"fantasy_teams": {
-"fantasy_team_1": {
-"score": 0,
-"team_info": {
-"owner_id": "uuid_1",
-"team_name": "Sample Name 1"
-},
-"fantasy_pros": {
-"pro_male_1": 0,
-"pro_male_2": 0,
-"pro_female_1": 0,
-"pro_female_2": 0
-},
-"reserve_pros": {
-"reserve_pro_male": 0,
-"reserve_pro_female": 0
-}
-},
-"fantasy_team_2": {
-"score": 0,
-"team_info": {
-"owner_id": "uuid_2",
-"team_name": "Sample Name 2"
-},
-"fantasy_pros": {
-"pro_male_1": 0,
-"pro_male_2": 0,
-"pro_female_1": 0,
-"pro_female_2": 0
-},
-"reserve_pros": {
-"reserve_pro_male": 0,
-"reserve_pro_female": 0
-}
-},
-"fantasy_team_3": {
-"score": 0,
-"team_info": {
-"owner_id": "uuid_3",
-"team_name": "Sample Name 3"
-},
-"fantasy_pros": {
-"pro_male_1": 0,
-"pro_male_2": 0,
-"pro_female_1": 0,
-"pro_female_2": 0
-},
-"reserve_pros": {
-"reserve_pro_male": 0,
-"reserve_pro_female": 0
-}
-},
-"fantasy_team_4": {
-"score": 0,
-"team_info": {
-"owner_id": "uuid_4",
-"team_name": "Sample Name 4"
-},
-"fantasy_pros": {
-"pro_male_1": 0,
-"pro_male_2": 0,
-"pro_female_1": 0,
-"pro_female_2": 0
-},
-"reserve_pros": {
-"reserve_pro_male": 0,
-"reserve_pro_female": 0
-}
-},
-"fantasy_team_5": {
-"score": 0,
-"team_info": {
-"owner_id": "uuid_5",
-"team_name": "Sample Name 5"
-},
-"fantasy_pros": {
-"pro_male_1": 0,
-"pro_male_2": 0,
-"pro_female_1": 0,
-"pro_female_2": 0
-},
-"reserve_pros": {
-"reserve_pro_male": 0,
-"reserve_pro_female": 0
-}
-},
-"fantasy_team_6": {
-"score": 0,
-"team_info": {
-"owner_id": "uuid_6",
-"team_name": "Sample Name 6"
-},
-"fantasy_pros": {
-"pro_male_1": 0,
-"pro_male_2": 0,
-"pro_female_1": 0,
-"pro_female_2": 0
-},
-"reserve_pros": {
-"reserve_pro_male": 0,
-"reserve_pro_female": 0
-}
-}
-},
-"pros": [
-]
-}
-
 ## Fantasy Teams
+
+fantasy_teams_json
 
 {
 "league_participant_1": {
-"owner_id": "774cb858-9e5e-4c67-acd2-6b9c5ed1838a",
-"team_name": "Sample Name"
+"owner_id": "6b216fc6-180b-43f3-8308-5f44f011ae8e",
+"team_name": "Dustins Team"
 },
 "league_participant_2": {
-"owner_id": "6b216fc6-180b-43f3-8308-5f44f011ae8e",
-"team_name": "New team"
+"owner_id": "774cb858-9e5e-4c67-acd2-6b9c5ed1838a",
+"team_name": "Bills Team"
 },
 "league_participant_3": {
 "owner_id": "213ce4c8-388c-4e90-8c23-9b7fabc72226",
-"team_name": "Jills team"
+"team_name": "Jills Team"
 },
 "league_participant_4": {
 "owner_id": "264349f8-f2a1-4ad4-9e08-2c3b0052cc04",
-"team_name": "Larrys team"
+"team_name": "Larrys Team"
 },
 "league_participant_5": {
 "owner_id": "3585404a-99da-4a55-93e4-0ab58192a8d3",
-"team_name": "Harrys team"
+"team_name": "Harrys Team"
 },
 "league_participant_6": {
 "owner_id": "cc283dff-b167-457f-a26b-8c3ecba985fe",
-"team_name": "greg team"
+"team_name": "Gregs Team"
 }
 }
 
-results_json
+## Fantasay Draft Order
 
-{
-"round_results": {
-"round_1": {
-"fantasy_team_1": {
-"rank": 1,
-"score": 45
-},
-"fantasy_team_2": {
-"rank": 2,
-"score": 50
-},
-"fantasy_team_3": {
-"rank": 3,
-"score": 55
-},
-"fantasy_team_4": {
-"rank": 4,
-"score": 60
-},
-"fantasy_team_5": {
-"rank": 5,
-"score": 65
-},
-"fantasy_team_6": {
-"rank": 6,
-"score": 70
-}
-}
-},
-"final_standings": {
-"fantasy_team_1": {
-"total_score": 130,
-"overall_rank": 1
-},
-"fantasy_team_2": {
-"total_score": 135,
-"overall_rank": 2
-},
-"fantasy_team_3": {
-"total_score": 140,
-"overall_rank": 3
-},
-"fantasy_team_4": {
-"total_score": 145,
-"overall_rank": 4
-},
-"fantasy_team_5": {
-"total_score": 150,
-"overall_rank": 5
-},
-"fantasy_team_6": {
-"total_score": 155,
-"overall_rank": 6
-}
-}
-}
-
-results_json
+draft_order_json
 
 {
-"round_results": {
-"round_1": {
-"fantasy_team_1": {
-"rank": 1,
-"score": 45
+"Bills Team": {
+"owner_id": "774cb858-9e5e-4c67-acd2-6b9c5ed1838a",
+"pro_male_5": {
+"name": "Isaac Robinson",
+"type": "male",
+"pro_id": 2
 },
-"fantasy_team_2": {
-"rank": 2,
-"score": 50
+"pro_male_8": {
+"name": "Gannon Buhr",
+"type": "male",
+"pro_id": 8
 },
-"fantasy_team_3": {
-"rank": 3,
-"score": 55
-},
-"fantasy_team_4": {
-"rank": 4,
-"score": 60
-},
-"fantasy_team_5": {
-"rank": 5,
-"score": 65
-},
-"fantasy_team_6": {
-"rank": 6,
-"score": 70
-}
+"pro_female_1": {
+"name": "Paige Pierce",
+"type": "female",
+"pro_id": 234
 }
 },
-"final_standings": {
-"fantasy_team_1": {
-"total_score": 130,
-"overall_rank": 1
+"Gregs Team": {
+"owner_id": "cc283dff-b167-457f-a26b-8c3ecba985fe",
+"pro_male_3": {
+"name": "Chris Dickerson",
+"type": "male",
+"pro_id": 12
 },
-"fantasy_team_2": {
-"total_score": 135,
-"overall_rank": 2
+"pro_male_10": {
+"name": "Bradley Williams",
+"type": "male",
+"pro_id": 10
 },
-"fantasy_team_3": {
-"total_score": 140,
-"overall_rank": 3
+"pro_female_1": {
+"name": "Holyn Handley",
+"type": "female",
+"pro_id": 15
+}
 },
-"fantasy_team_4": {
-"total_score": 145,
-"overall_rank": 4
+"Jills Team": {
+"owner_id": "213ce4c8-388c-4e90-8c23-9b7fabc72226",
+"pro_male_1": {
+"name": "Eagle McMahon",
+"type": "male",
+"pro_id": 1
 },
-"fantasy_team_5": {
-"total_score": 150,
-"overall_rank": 5
+"pro_female_1": {
+"name": "Kristin Tattar",
+"type": "female",
+"pro_id": 13
 },
-"fantasy_team_6": {
-"total_score": 155,
-"overall_rank": 6
+"pro_female_12": {
+"name": "Jennifer Allen",
+"type": "female",
+"pro_id": 24
+}
+},
+"Harrys Team": {
+"owner_id": "3585404a-99da-4a55-93e4-0ab58192a8d3",
+"pro_male_1": {
+"name": "Calvin Heimburg",
+"type": "male",
+"pro_id": 3
+},
+"pro_male_11": {
+"name": "Aaron Gossage",
+"type": "male",
+"pro_id": 11
+},
+"pro_female_1": {
+"name": "Kat Mertsch",
+"type": "female",
+"pro_id": 22
+},
+"pro_female_2": {
+"name": "Ohn Scoggins",
+"type": "female",
+"pro_id": 14
+}
+},
+"Larrys Team": {
+"owner_id": "264349f8-f2a1-4ad4-9e08-2c3b0052cc04",
+"pro_male_1": {
+"name": "Matthew Orum",
+"type": "male",
+"pro_id": 9
+},
+"pro_male_4": {
+"name": "Simon Lizotte",
+"type": "male",
+"pro_id": 4
+},
+"pro_female_1": {
+"name": "Hailey King",
+"type": "female",
+"pro_id": 16
+},
+"pro_female_9": {
+"name": "Ella Hansen",
+"type": "female",
+"pro_id": 21
+}
+},
+"Dustins Team": {
+"owner_id": "6b216fc6-180b-43f3-8308-5f44f011ae8e",
+"pro_male_1": {
+"name": "Kyle Klein",
+"type": "male",
+"pro_id": 7
+},
+"pro_male_6": {
+"name": "Ricky Wysocki",
+"type": "male",
+"pro_id": 6
+},
+"pro_female_1": {
+"name": "Henna Blomroos",
+"type": "female",
+"pro_id": 18
+},
+"pro_female_7": {
+"name": "Eveliina Salonen",
+"type": "female",
+"pro_id": 19
 }
 }
 }
 
-prizes_json
+# Fantasy Results Sample
 
+fantasy_scores_json
 {
-"gear_prizes": {
-"first_place": {
-"item": "Exclusive FLI GOLF Bag",
-"value": 200
+"Bills Team": {
+"owner_id": "774cb858-9e5e-4c67-acd2-6b9c5ed1838a",
+"pro_male_5": {
+"name": "Isaac Robinson",
+"type": "male",
+"pro_id": 2
+},
+"pro_male_8": {
+"name": "Gannon Buhr",
+"type": "male",
+"pro_id": 8
+},
+"pro_female_1": {
+"name": "Paige Pierce",
+"type": "female",
+"pro_id": 234
 }
 },
-"special_prizes": {
-"best_player": {
-"item": "Personalized Trophy",
-"value": 150
+"Gregs Team": {
+"owner_id": "cc283dff-b167-457f-a26b-8c3ecba985fe",
+"pro_male_3": {
+"name": "Chris Dickerson",
+"type": "male",
+"pro_id": 12
 },
-"hole_in_one": {
-"item": "Player signed apparel",
-"value": 100
+"pro_male_10": {
+"name": "Bradley Williams",
+"type": "male",
+"pro_id": 10
+},
+"pro_female_1": {
+"name": "Holyn Handley",
+"type": "female",
+"pro_id": 15
 }
 },
-"digital_gift_card": {
-"first_place_casino_prize": 200
+"Jills Team": {
+"owner_id": "213ce4c8-388c-4e90-8c23-9b7fabc72226",
+"pro_male_1": {
+"name": "Eagle McMahon",
+"type": "male",
+"pro_id": 1
+},
+"pro_female_1": {
+"name": "Kristin Tattar",
+"type": "female",
+"pro_id": 13
+},
+"pro_female_12": {
+"name": "Jennifer Allen",
+"type": "female",
+"pro_id": 24
 }
+},
+"Harrys Team": {
+"owner_id": "3585404a-99da-4a55-93e4-0ab58192a8d3",
+"pro_male_1": {
+"name": "Calvin Heimburg",
+"type": "male",
+"pro_id": 3
+},
+"pro_male_11": {
+"name": "Aaron Gossage",
+"type": "male",
+"pro_id": 11
+},
+"pro_female_1": {
+"name": "Kat Mertsch",
+"type": "female",
+"pro_id": 22
+},
+"pro_female_2": {
+"name": "Ohn Scoggins",
+"type": "female",
+"pro_id": 14
 }
-
-rules_json
-
-{
-"draft_rules": {
-"rounds": 4,
-"draft_type": "snake",
-"team_selection": {
-"last_two_rounds": "reserve players",
-"first_two_rounds": "top teams"
+},
+"Larrys Team": {
+"owner_id": "264349f8-f2a1-4ad4-9e08-2c3b0052cc04",
+"pro_male_1": {
+"name": "Matthew Orum",
+"type": "male",
+"pro_id": 9
+},
+"pro_male_4": {
+"name": "Simon Lizotte",
+"type": "male",
+"pro_id": 4
+},
+"pro_female_1": {
+"name": "Hailey King",
+"type": "female",
+"pro_id": 16
+},
+"pro_female_9": {
+"name": "Ella Hansen",
+"type": "female",
+"pro_id": 21
 }
 },
-"season_rules": {
-"season_duration": "1 year",
-"league_entry_fee": 300,
-"number_of_tournaments": 6
+"Dustins Team": {
+"owner_id": "6b216fc6-180b-43f3-8308-5f44f011ae8e",
+"pro_male_1": {
+"name": "Kyle Klein",
+"type": "male",
+"pro_id": 7
 },
-"scoring_rules": {
-"bogey_penalty": 2,
-"under_par_bonus": -0.5,
-"points_per_throw": 1,
-"double_bogey_penalty": 4
+"pro_male_6": {
+"name": "Ricky Wysocki",
+"type": "male",
+"pro_id": 6
 },
-"tournament_rules": {
-"winner_criteria": "lowest_total_score",
-"matchups_per_tournament": 3,
-"replacement_player_policy": "regular_scoring_rules_apply"
+"pro_female_1": {
+"name": "Henna Blomroos",
+"type": "female",
+"pro_id": 18
 },
-"prize_distribution": {
-"first_place_percentage": 100
+"pro_female_7": {
+"name": "Eveliina Salonen",
+"type": "female",
+"pro_id": 19
 }
-}
-
-teams_json
-
-{
-"fantasy_team_1": {
-"roster": {
-"top_teams": [
-"Team A",
-"Team B"
-],
-"reserve_teams": [
-"Team C",
-"Team D"
-]
-},
-"owner_id": "owner_uuid_1",
-"team_name": "Disc Dominators"
-},
-"fantasy_team_2": {
-"roster": {
-"top_teams": [
-"Team E",
-"Team F"
-],
-"reserve_teams": [
-"Team G",
-"Team H"
-]
-},
-"owner_id": "owner_uuid_2",
-"team_name": "Chain Chasers"
-},
-"fantasy_team_3": {
-"roster": {
-"top_teams": [
-"Team I",
-"Team J"
-],
-"reserve_teams": [
-"Team K",
-"Team L"
-]
-},
-"owner_id": "owner_uuid_3",
-"team_name": "Hyzer Heroes"
 }
 }
