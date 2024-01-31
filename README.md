@@ -1,6 +1,6 @@
 # Fli-Light
 
-I am a scalled down version of Fli Golf
+I am a scaled down version of Fli Golf
 
 Database Design:
 
@@ -86,25 +86,19 @@ Utilize Supabase's Auth module to ensure your backend operations are secure.
 Relationships:
 
 A pro belongs to one team, and a team may have multiple pros.
-A team can have one sponsor, but in the future a sponsor might sponsor multiple teams.
+A tournament can have multiple sponsors.
 A tournament is played at one venue and has leaderboards associated with it.
 Displaying Information:
 
 Live Tournament Leaderboard: Use the Leaderboards table and the associated tournament_id to show live scores and positions during an ongoing tournament.
 
 Team and Pro Earnings Leaderboard: Query the Teams and Pros tables respectively, ordering by the earnings field to showcase which teams and pros are earning the most throughout the league.
+
 Remember to constantly test your implementation to ensure data integrity, especially when dealing with leaderboards and earnings calculations. Given that this is a nationwide league with potentially a lot of fans and players watching, ensuring accuracy and timely updates will be key to its success.
 
 Assign groups to holes.
 Assign a scorer per group to enter scores.
 I have Created a user-friendly interface for scorers to enter scores, including multi-step forms.
-
-To Do:
-Calculate team scores.
-Provide a verification mechanism for entered scores.
-Here's a high-level overview of how you can approach this:
-
-Assigning Groups to Holes:
 
 You can continue using the approach mentioned earlier, where you retrieve the hole count and create groups for each hole.
 Assigning Scorers: I assume we need to insert a row for the count returned and for example a group is assigned Hole 1.
@@ -119,7 +113,13 @@ I have Created a user interface for scorers to enter scores. You can use a multi
 I used Svelte to build the interface.
 The form should allow scorers enter scores for players. You can use form validation to ensure data integrity.
 
-To Do:
+Assigning Groups to Holes:
+
+## To do:
+Calculate team scores.
+Provide a verification mechanism for entered scores.
+Here's a high-level overview of how you can approach this:
+
 Calculating Team Scores:
 
 After scorers submit scores, you can calculate team scores based on the individual player scores and the group they are assigned to.
