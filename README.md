@@ -1,44 +1,71 @@
 # Fli-Light
 
-I am a scaled down version of Fli Golf
+This project is a streamlined version of Fli Golf, focusing on essential features while leveraging Suprabase for backend automation and data management. For instance, hole names are automatically generated to ensure consistency. Instead of creating a comprehensive CRUD interface for managing pros, in this setup I originally used Suprabase's quick start guide for authentication, resulting in the creation of a Profiles table. This table includes a 'Role' field, which I currently adjust manually to test various roles beyond just participants.
 
-Database Design:
+Row-Level Security (RLS), a security feature in Suprabase, is currently disabled for most tables to facilitate testing. However, it is anticipated that RLS will be activated and properly configured in the future to safeguard data integrity and access.
+
+Included in this documentation are descriptions for most—but not all—tables. Certain tables, like 'ticket_orders', are omitted as they are under development or being updated. The 'ticket_orders' feature, for instance, is a recent addition and remains a work in progress. The instructions provided herein are designed to assist you with the basic setup and initial steps necessary to get started with the project.
+
+## Database Design:
 
 ## Pros Table:
 
-pro_id, name, gender, image, team_id (foreign key), earnings, points
+pro_id, name, gender, image, team_id (foreign key), earnings, points, u_disc_link, pro_contry_ref, pro_type, is_reserve
 
 ## Sponsors Table:
 
-sponsor_id, name, image
+sponsor_id, name, sponsor_image_url
 
 ## Teams Table:
 
-team_id, name, image, sponsor_id (foreign key), earnings, points
-Venues Table:
+team_id, name, team_image_url, earnings, points, team_size
 
-venue_id, name, location, image
+## Venues Table:
+
+venue_id, name, location, venue_image_url, tournament_id
 
 ## Tournaments Table:
 
-tournament_id, name, date, venue_id (foreign key), winner_pro_id (foreign key), winner_team_id (foreign key)
-Leaderboards (Live Tournaments):
+tournament_id, name, start_date, venue_id (foreign key), winner_pro_id (foreign key), winner_team_id (foreign key),
+tournament_image_url, upcoming, end_date, purse, season
 
-## Leaderbord
+## Leaderboards (Live Tournaments):
+
+Note: This table has no data because I have not started the bridge from scoring to pro system
 
 leaderboard_id, tournament_id (foreign key), pro_id (foreign key), team_id (foreign key), score, position
 Note: The earnings and points fields in both the Pros and Teams tables will be used to track cumulative earnings and points.
 
+## Tournaments League:
+
+Please use the Definition tab in suprabase to view the scema the reason I did not include in this readme is because the json fields hold a lot of data subject to change.
+
 # How to Setup a Tournament using "Svelte UI" and "Supabase"
 
-## Step 1: Manually Input Data
+## Step 1: Manually Input Data using Suprabase UI
 
 - Add a row in the "Tournaments" table.
 - Add a row in the "Venues" table.
 
 ## Step 2: Import Holes Data using CSV
 
-Utilize a CSV file to populate the holes. Below is the sample structure of the CSV file:
+Begin by manually creating a few rows to familiarize yourself with the system's workings. This initial step will help you understand the nuances of the data structure, especially since some holes may have various types based on their physical setup.
+
+To efficiently import multiple holes, it is recommended to use a CSV file. This approach allows for the bulk addition of data, streamlining the setup process. Below, you will find the recommended structure for your CSV file to ensure compatibility with the system:
+
+Please note that the 'hole_name' attribute will be automatically generated within Suprabase. A specific function named generate_hole_name has been developed and integrated into Suprabase to facilitate this, ensuring consistency and eliminating the need for manual entry of hole names in the CSV file.
+
+## Note: Suprabase function
+
+## generate_hole_name
+
+trigger
+Invoker
+
+BEGIN
+NEW.hole_name := 'Hole ' || NEW.hole_number || COALESCE(NEW.hole_type::text, '') || ' - ' || (SELECT name FROM public.venues WHERE venue_id = NEW.venue_id);
+RETURN NEW;
+END;
 
 hole_id,hole_number,hole_name,par,distance,venue_id,hole_type
 32,3,,3,386,4,
@@ -116,6 +143,7 @@ The form should allow scorers enter scores for players. You can use form validat
 Assigning Groups to Holes:
 
 ## To do:
+
 Calculate team scores.
 Provide a verification mechanism for entered scores.
 Here's a high-level overview of how you can approach this:
@@ -425,3 +453,5 @@ fantasy_scores_json
 }
 }
 }
+
+## This is a work in progress
